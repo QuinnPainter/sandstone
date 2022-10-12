@@ -1,0 +1,10 @@
+{
+    "rust-analyzer.checkOnSave.allTargets": false,
+    "rust-analyzer.cargo.target": "thumbv4t-none-eabi",
+    "rust-analyzer.cargo.features": [
+        "arm7"
+    ],
+    "files.associations": {
+        "*.s": "arm"
+    }
+}
