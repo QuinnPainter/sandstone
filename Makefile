@@ -1,4 +1,4 @@
-ROM_NAME := test
+ROM_NAME := enginetest
 ARM9_ARCH := thumbv5te-none-eabi
 ARM7_ARCH := thumbv4t-none-eabi
 
