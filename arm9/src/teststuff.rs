@@ -1,4 +1,4 @@
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 use ironds::display::console;
 
 pub struct Obj1 {

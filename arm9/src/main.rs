@@ -1,7 +1,6 @@
 #![no_std]
 #![no_main]
 extern crate alloc;
-use core::fmt::Write;
 use ironds as nds;
 use alloc::{string::String, rc::Rc};
 use core::cell::RefCell;
