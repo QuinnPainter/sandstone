@@ -1,9 +1,9 @@
 {
     "folders": [
-		{
-		    "path": ".",
-			"name": "Root"
-		},
+        {
+            "path": ".",
+            "name": "Root"
+        },
         {
             "path": "arm9",
             "name": "ARM9"
@@ -17,9 +17,13 @@
         // needed for no-std, prevents the "can't find crate for 'test'" issue
         "rust-analyzer.checkOnSave.allTargets": false,
         "rust-analyzer.checkOnSave.extraArgs": [
-            "--bins"
+            "--lib"
         ],
         "rust-analyzer.cargo.target": "thumbv5te-none-eabi",
+        "rust-analyzer.linkedProjects": [
+            "arm9/Cargo.toml",
+            "arm7/Cargo.toml"
+        ],
         "files.associations": {
             "*.s": "arm"
         }
