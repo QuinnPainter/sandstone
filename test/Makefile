@@ -1,6 +1,8 @@
-ROM_NAME := enginetest
+ROM_NAME := test
 ARM9_ARCH := thumbv5te-none-eabi
 ARM7_ARCH := thumbv4t-none-eabi
+
+# todo: parellelise, so arm9 and arm7 are built at the same time?
 
 dev:
 	cd arm9; cargo build

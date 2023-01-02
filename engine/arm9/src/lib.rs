@@ -1,5 +1,4 @@
 #![no_std]
-#![no_main]
 extern crate alloc;
 use ironds as nds;
 use alloc::{string::String, rc::Rc};
@@ -8,8 +7,7 @@ use core::cell::RefCell;
 mod hierarchy;
 mod teststuff;
 
-#[no_mangle]
-extern "C" fn main() -> ! {
+pub fn main_loop() -> ! {
     nds::interrupt::irq_set_handler(Some(inter));
     nds::interrupt::irq_enable(nds::interrupt::IRQFlags::VBLANK);
     nds::display::set_vcount_trigger(100);
