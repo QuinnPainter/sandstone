@@ -21,3 +21,18 @@ pub struct HierarchyItem {
 }
 
 pub static mut HIERARCHY: Vec<HierarchyItem> = Vec::new();
+
+static mut COMPONENT_FACTORY: Option<fn(u32) -> Rc<RefCell<dyn Component>>> = None;
+
+pub fn init_component_factory(f: fn(u32) -> Rc<RefCell<dyn Component>>) {
+    unsafe { COMPONENT_FACTORY = Some(f); }
+}
+
+#[inline]
+pub (crate) fn run_component_factory(id: u32) -> Rc<RefCell<dyn Component>> {
+    unsafe {
+        debug_assert_ne!(COMPONENT_FACTORY, None, "Cannot use Component Factory before initialisation!");
+        COMPONENT_FACTORY.unwrap_unchecked()(id)
+    }
+}
+

@@ -10,7 +10,7 @@ use alloc::string::ToString;
 
 #[no_mangle]
 extern "C" fn main() -> ! {
-    dsengine::init_component_factory(component_factory);
+    dsengine::hierarchy::init_component_factory(component_factory);
 
     dsengine::main_loop();
 }
