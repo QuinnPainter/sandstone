@@ -4,6 +4,7 @@ use alloc::vec::Vec;
 use core::num::NonZeroU32;
 use core::cell::RefCell;
 use crate::Component;
+use ironds::sync::NdsMutex;
 
 #[derive(Eq, PartialEq, Clone, Copy, Default, Debug)]
 pub struct Transform {
@@ -20,7 +21,7 @@ pub struct HierarchyItem {
     pub enabled: bool,
 }
 
-pub static mut HIERARCHY: Vec<HierarchyItem> = Vec::new();
+pub static HIERARCHY: NdsMutex<Vec<HierarchyItem>> = NdsMutex::new(Vec::new());
 
 static mut COMPONENT_FACTORY: Option<fn(u32) -> Rc<RefCell<dyn Component>>> = None;
 
@@ -29,6 +30,7 @@ pub fn init_component_factory(f: fn(u32) -> Rc<RefCell<dyn Component>>) {
 }
 
 #[inline]
+#[must_use]
 pub (crate) fn run_component_factory(id: u32) -> Rc<RefCell<dyn Component>> {
     unsafe {
         debug_assert_ne!(COMPONENT_FACTORY, None, "Cannot use Component Factory before initialisation!");
@@ -36,3 +38,7 @@ pub (crate) fn run_component_factory(id: u32) -> Rc<RefCell<dyn Component>> {
     }
 }
 
+#[must_use]
+pub fn find_by_name(name: &str) -> Option<usize> {
+    HIERARCHY.lock().iter().position(|x| x.name.eq(name))
+}

@@ -14,22 +14,18 @@ pub fn main_loop() -> ! {
     nds::display::console::print("Hello from Rust on the DS!\n\n");
 
     let test_obj = hierarchy::run_component_factory(0);
-    unsafe {
-        hierarchy::HIERARCHY.push(hierarchy::HierarchyItem {
-            child_idx: None,
-            sibling_idx: None,
-            name: String::from("Stuff"),
-            transform: hierarchy::Transform::default(),
-            enabled: false,
-            component: test_obj
-        });
-    }
+    hierarchy::HIERARCHY.lock().push(hierarchy::HierarchyItem {
+        child_idx: None,
+        sibling_idx: None,
+        name: String::from("Stuff"),
+        transform: hierarchy::Transform::default(),
+        enabled: false,
+        component: test_obj
+    });
 
     loop {
-        unsafe {
-            for h in &hierarchy::HIERARCHY {
-                h.component.clone().borrow_mut().update();
-            }
+        for h in hierarchy::HIERARCHY.lock().iter() {
+            h.component.clone().borrow_mut().update();
         }
         nds::interrupt::wait_for_vblank();
     }
