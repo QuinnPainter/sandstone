@@ -13,7 +13,7 @@ pub fn main_loop() -> ! {
     nds::display::console::init_default();
     nds::display::console::print("Hello from Rust on the DS!\n\n");
 
-    let test_obj = hierarchy::run_component_factory(0);
+    let test_obj = hierarchy::run_component_factory(1);
     hierarchy::HIERARCHY.lock().push(hierarchy::HierarchyItem {
         child_idx: None,
         sibling_idx: None,
