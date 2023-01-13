@@ -1,8 +1,11 @@
 #![no_std]
 extern crate alloc;
+use hierarchy::HierarchyItem;
 use ironds as nds;
 use alloc::string::String;
+use pool::Pool;
 
+pub mod pool;
 pub mod hierarchy;
 
 pub fn main_loop() -> ! {
@@ -13,19 +16,43 @@ pub fn main_loop() -> ! {
     nds::display::console::init_default();
     nds::display::console::print("Hello from Rust on the DS!\n\n");
 
+    let mut hierarchy: Pool<HierarchyItem> = Pool::new();
+
     let test_obj = hierarchy::run_component_factory(1);
-    hierarchy::HIERARCHY.lock().push(hierarchy::HierarchyItem {
+    let o1handle = hierarchy.add(hierarchy::HierarchyItem {
         child_idx: None,
         sibling_idx: None,
         name: String::from("Stuff"),
         transform: hierarchy::Transform::default(),
         enabled: false,
-        component: test_obj
+        script_type_id: 1,
+        script: test_obj
+    });
+    let o2handle = hierarchy.add(hierarchy::HierarchyItem {
+        child_idx: None,
+        sibling_idx: None,
+        name: String::from("Stuff2"),
+        transform: hierarchy::Transform::default(),
+        enabled: false,
+        script_type_id: 2,
+        script: hierarchy::run_component_factory(2)
     });
 
+    for i in 0..hierarchy.vec_len() {
+        if let Some((item_ticket, mut item)) = hierarchy.try_take_by_index(i) {
+            let mut context = ScriptContext { hierarchy: &mut hierarchy };
+            item.script.start(&mut context);
+            hierarchy.put_back(item_ticket, item);
+        }
+    }
+
     loop {
-        for h in hierarchy::HIERARCHY.lock().iter() {
-            h.component.clone().borrow_mut().update();
+        for i in 0..hierarchy.vec_len() {
+            if let Some((item_ticket, mut item)) = hierarchy.try_take_by_index(i) {
+                let mut context = ScriptContext { hierarchy: &mut hierarchy };
+                item.script.update(&mut context);
+                hierarchy.put_back(item_ticket, item);
+            }
         }
         nds::interrupt::wait_for_vblank();
     }
@@ -36,7 +63,11 @@ extern "C" fn inter (f: nds::interrupt::IRQFlags) {
     }
 }
 
-pub trait Component {
-    fn update(&mut self);
-    fn start(&mut self);
+pub struct ScriptContext<'a> {
+    pub hierarchy: &'a mut Pool<HierarchyItem>
+}
+
+pub trait Script: {
+    fn update(&mut self, context: &mut ScriptContext);
+    fn start(&mut self, context: &mut ScriptContext);
 }
