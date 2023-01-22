@@ -25,7 +25,7 @@ pub fn main_loop() -> ! {
         transform: hierarchy::Transform::default(),
         enabled: false,
         script_type_id: 1,
-        script: test_obj
+        script: Some(test_obj)
     });
     let o2handle = hierarchy.add(hierarchy::HierarchyItem {
         child_idx: None,
@@ -34,7 +34,7 @@ pub fn main_loop() -> ! {
         transform: hierarchy::Transform::default(),
         enabled: false,
         script_type_id: 2,
-        script: hierarchy::run_script_factory(2)
+        script: Some(hierarchy::run_script_factory(2))
     });
 
     hierarchy.run_pending_script_starts();

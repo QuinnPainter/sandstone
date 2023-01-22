@@ -13,8 +13,8 @@ pub struct HierarchyItem {
     pub sibling_idx: Option<NonZeroU32>,
     pub name: String,
     pub transform: Transform,
-    pub script_type_id: u32,
-    pub script: Box<dyn Script>,
+    pub script_type_id: u32, // only valid if script is Some
+    pub script: Option<Box<dyn Script>>,
     pub enabled: bool,
 }
 
@@ -38,7 +38,8 @@ impl Hierarchy {
     where T: Script + HasTypeId {
         let s = self.object_pool.iter_mut().find(|x| x.script_type_id == <T as HasTypeId>::type_id());
         let s_2 = s.unwrap();
-        let s_3 = s_2.script.as_mut();
+        let s_3 = s_2.script.as_mut().unwrap();
+        let s_3 = s_3.as_mut();
         unsafe { Some( &mut *(s_3 as *mut dyn Script as *mut T) ) }
     }
 
@@ -58,9 +59,11 @@ impl Hierarchy {
         if let Some(handle) = self.to_start_stack.pop() {
             // this could return None if an object was immediately destroyed after creating it
             if let Some((item_ticket, mut item)) = self.object_pool.try_take(handle) {
-                let mut context = ScriptContext { hierarchy: self };
-                item.script.start(&mut context);
-                self.object_pool.put_back(item_ticket, item);
+                if let Some(script) = &mut item.script {
+                    let mut context = ScriptContext { hierarchy: self };
+                    script.start(&mut context);
+                    self.object_pool.put_back(item_ticket, item);
+                }
             }
             return true;
         }
@@ -70,9 +73,11 @@ impl Hierarchy {
     pub(crate) fn run_script_update(&mut self) {
         for i in 0..self.object_pool.vec_len() {
             if let Some((item_ticket, mut item)) = self.object_pool.try_take_by_index(i) {
-                let mut context = ScriptContext { hierarchy: self };
-                item.script.update(&mut context);
-                self.object_pool.put_back(item_ticket, item);
+                if let Some(script) = &mut item.script {
+                    let mut context = ScriptContext { hierarchy: self };
+                    script.update(&mut context);
+                    self.object_pool.put_back(item_ticket, item);
+                }
             }
         }
     }
