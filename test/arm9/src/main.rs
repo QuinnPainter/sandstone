@@ -13,7 +13,7 @@ use alloc::boxed::Box;
 
 #[no_mangle]
 extern "C" fn main() -> ! {
-    dsengine::hierarchy::init_component_factory(component_factory);
+    dsengine::hierarchy::init_script_factory(script_factory);
 
     /*let s: RefCell<Obj1> = get_from_id(1, 2);
     let l: Box<dyn Component> = Box::new(Obj1::default());
@@ -21,7 +21,7 @@ extern "C" fn main() -> ! {
     dsengine::main_loop();
 }
 
-fn component_factory(id: u32) -> Box<dyn Script> {
+fn script_factory(id: u32) -> Box<dyn Script> {
     match id {
         1 => Box::new(Obj1::default()),
         2 => Box::new(Obj2::default()),
@@ -81,7 +81,7 @@ impl Script for Obj1 {
         console::print(&self.cntr.to_string());
 
         console::set_cursor_pos(1, 10);
-        let o2 = dsengine::hierarchy::find_by_component_type::<Obj2>(context.hierarchy).unwrap();
+        let o2 = context.hierarchy.find_by_script_type::<Obj2>().unwrap();
         console::print(&o2.strog);
     }
 }

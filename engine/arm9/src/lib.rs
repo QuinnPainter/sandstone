@@ -1,9 +1,8 @@
 #![no_std]
 extern crate alloc;
-use hierarchy::HierarchyItem;
+use hierarchy::Hierarchy;
 use ironds as nds;
 use alloc::string::String;
-use pool::Pool;
 
 pub mod pool;
 pub mod hierarchy;
@@ -16,9 +15,9 @@ pub fn main_loop() -> ! {
     nds::display::console::init_default();
     nds::display::console::print("Hello from Rust on the DS!\n\n");
 
-    let mut hierarchy: Pool<HierarchyItem> = Pool::new();
+    let mut hierarchy: Hierarchy = Hierarchy::new();
 
-    let test_obj = hierarchy::run_component_factory(1);
+    let test_obj = hierarchy::run_script_factory(1);
     let o1handle = hierarchy.add(hierarchy::HierarchyItem {
         child_idx: None,
         sibling_idx: None,
@@ -35,25 +34,15 @@ pub fn main_loop() -> ! {
         transform: hierarchy::Transform::default(),
         enabled: false,
         script_type_id: 2,
-        script: hierarchy::run_component_factory(2)
+        script: hierarchy::run_script_factory(2)
     });
 
-    for i in 0..hierarchy.vec_len() {
-        if let Some((item_ticket, mut item)) = hierarchy.try_take_by_index(i) {
-            let mut context = ScriptContext { hierarchy: &mut hierarchy };
-            item.script.start(&mut context);
-            hierarchy.put_back(item_ticket, item);
-        }
-    }
+    hierarchy.run_pending_script_starts();
 
     loop {
-        for i in 0..hierarchy.vec_len() {
-            if let Some((item_ticket, mut item)) = hierarchy.try_take_by_index(i) {
-                let mut context = ScriptContext { hierarchy: &mut hierarchy };
-                item.script.update(&mut context);
-                hierarchy.put_back(item_ticket, item);
-            }
-        }
+        hierarchy.run_script_update();
+        hierarchy.run_pending_script_starts();
+
         nds::interrupt::wait_for_vblank();
     }
 }
@@ -64,7 +53,7 @@ extern "C" fn inter (f: nds::interrupt::IRQFlags) {
 }
 
 pub struct ScriptContext<'a> {
-    pub hierarchy: &'a mut Pool<HierarchyItem>
+    pub hierarchy: &'a mut Hierarchy
 }
 
 pub trait Script: {
