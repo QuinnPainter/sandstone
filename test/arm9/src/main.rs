@@ -81,8 +81,10 @@ impl Script for Obj1 {
         console::print(&self.cntr.to_string());
 
         console::set_cursor_pos(1, 10);
-        let o2 = context.hierarchy.find_by_script_type::<Obj2>().unwrap();
-        console::print(&o2.strog);
+        let o2 = context.hierarchy.find_by_script_type::<Obj2>(context.hierarchy.root).unwrap();
+        let o2_bj = context.hierarchy.borrow2(o2);
+        let o2_scr = o2_bj.cast_script::<Obj2>();
+        console::print(&o2_scr.strog);
     }
 }
 

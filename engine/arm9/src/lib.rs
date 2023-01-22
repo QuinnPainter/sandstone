@@ -1,4 +1,6 @@
 #![no_std]
+#![feature(nonzero_ops)]
+
 extern crate alloc;
 use hierarchy::Hierarchy;
 use ironds as nds;
@@ -18,18 +20,18 @@ pub fn main_loop() -> ! {
     let mut hierarchy: Hierarchy = Hierarchy::new();
 
     let test_obj = hierarchy::run_script_factory(1);
-    let o1handle = hierarchy.add(hierarchy::HierarchyItem {
-        child_idx: None,
-        sibling_idx: None,
+    let _o1handle = hierarchy.add(hierarchy::HierarchyItem {
+        child_handle: None,
+        sibling_handle: None,
         name: String::from("Stuff"),
         transform: hierarchy::Transform::default(),
         enabled: false,
         script_type_id: 1,
         script: Some(test_obj)
     });
-    let o2handle = hierarchy.add(hierarchy::HierarchyItem {
-        child_idx: None,
-        sibling_idx: None,
+    let _o2handle = hierarchy.add(hierarchy::HierarchyItem {
+        child_handle: None,
+        sibling_handle: None,
         name: String::from("Stuff2"),
         transform: hierarchy::Transform::default(),
         enabled: false,

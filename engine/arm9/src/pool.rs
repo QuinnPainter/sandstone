@@ -1,5 +1,7 @@
 use core::marker::PhantomData;
+use core::num::NonZeroU32;
 use core::ops::{Index, IndexMut};
+use core::fmt::Debug;
 use alloc::vec::Vec;
 
 pub struct Pool<T> {
@@ -9,20 +11,40 @@ pub struct Pool<T> {
 }
 
 struct PoolEntry<T> {
-    generation: u32,
+    generation: NonZeroU32,
     data: Option<T>
 }
 
-#[derive(Debug)]
+#[derive(PartialEq, Eq)]
 pub struct Handle<T> {
     index: usize,
-    generation: u32,
+    generation: NonZeroU32, // making this nonzero makes Option<Handle> more efficient using niche optimisation
     // Doesn't do anything, only serves to make Handles of different types incompatible with each other
     phantom_type: PhantomData<T>
 }
 
 unsafe impl<T> Send for Handle<T> {}
 unsafe impl<T> Sync for Handle<T> {}
+
+impl<T> Clone for Handle<T> {
+    fn clone(&self) -> Self {
+        Self {
+            index: self.index,
+            generation: self.generation,
+            phantom_type: PhantomData::<T>
+        }
+    }
+}
+impl<T> Copy for Handle<T> {}
+
+impl<T> Debug for Handle<T> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Handle")
+            .field("index", &self.index)
+            .field("generation", &self.generation)
+            .finish()
+    }
+}
 
 pub struct Ticket<T> {
     index: usize,
@@ -131,7 +153,11 @@ impl<T> Pool<T> {
 
             debug_assert!(entry.data.is_none(), "Tried to add object to slot in pool that is already occupied");
 
-            entry.generation += 1;
+            entry.generation = if cfg!(debug_assertions) { 
+                entry.generation.checked_add(1).expect("Pool generation number overflow")
+            } else {
+                unsafe { entry.generation.unchecked_add(1) }
+            };
             entry.data.replace(data);
 
             Handle {
@@ -140,7 +166,7 @@ impl<T> Pool<T> {
                 phantom_type: PhantomData::<T>
             }
         } else {
-            let new_generation = 1;
+            let new_generation = NonZeroU32::new(1).unwrap();
             self.data_vec.push(PoolEntry {
                 generation: new_generation,
                 data: Some(data)
