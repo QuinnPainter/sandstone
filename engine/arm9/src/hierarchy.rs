@@ -67,20 +67,13 @@ impl Hierarchy {
         }
     }
 
-    pub fn add(&mut self, item: HierarchyItem) {
+    pub fn add(&mut self, item: HierarchyItem, parent: Handle<HierarchyItem>) {
         let handle = self.object_pool.add(item);
+        let parent_obj = self.object_pool.borrow_mut(parent);
+        self.object_pool.borrow_mut(handle).sibling_handle = parent_obj.child_handle.replace(handle);
+
         self.to_start_stack.push(handle);
     }
-
-    /*#[must_use]
-    pub fn find_by_script_type<T>(&mut self) -> Option<&mut T>
-    where T: Script + HasTypeId {
-        let s = self.object_pool.iter_mut().find(|x| x.script_type_id == <T as HasTypeId>::type_id());
-        let s_2 = s.unwrap();
-        let s_3 = s_2.script.as_mut().unwrap();
-        let s_3 = s_3.as_mut();
-        unsafe { Some( &mut *(s_3 as *mut dyn Script as *mut T) ) }
-    }*/
 
     #[inline]
     #[must_use]
@@ -88,19 +81,10 @@ impl Hierarchy {
         self.object_pool.borrow(handle)
     }
 
-    /*#[must_use]
-    pub fn find_by_name(&mut self, search_root: Handle<HierarchyItem>, name: &str) -> Option<Handle<HierarchyItem>> {
-        // todo: fast path for situation where search root is graph root node
-        // could iterate over vec sequentially instead of following tree
-        let mut cur_node_handle = self.object_pool.borrow(search_root).child_handle?;
-        loop {
-            let cur_node = self.object_pool.borrow(cur_node_handle);
-            if cur_node.name == name {
-                return Some(cur_node_handle);
-            }
-            cur_node_handle = cur_node.sibling_handle?;
-        }
-    }*/
+    // todo: recursive search?
+    // could have fast path for situation where search root is graph root node
+    // as we can iterate over vec sequentially instead of following the tree
+
     #[must_use]
     pub fn find_by_name(&mut self, search_root: Handle<HierarchyItem>, name: &str) -> Option<Handle<HierarchyItem>> {
         self.find(search_root, |x| x.name == name)

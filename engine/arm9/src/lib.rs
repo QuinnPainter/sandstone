@@ -28,7 +28,7 @@ pub fn main_loop() -> ! {
         enabled: false,
         script_type_id: 1,
         script: Some(test_obj)
-    });
+    }, hierarchy.root);
     let _o2handle = hierarchy.add(hierarchy::HierarchyItem {
         child_handle: None,
         sibling_handle: None,
@@ -37,7 +37,7 @@ pub fn main_loop() -> ! {
         enabled: false,
         script_type_id: 2,
         script: Some(hierarchy::run_script_factory(2))
-    });
+    }, hierarchy.root);
 
     hierarchy.run_pending_script_starts();
 
