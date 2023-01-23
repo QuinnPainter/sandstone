@@ -21,10 +21,10 @@ impl HierarchyItem {
     pub fn cast_script<T>(&self) -> &T
     where T: Script + HasTypeId {
         if <T as HasTypeId>::type_id() != self.script_type_id {
-            panic!("nivalid type");
+            panic!("Tried to cast_script with mismatching types");
         }
         if self.script.is_none() {
-            panic!("no script")
+            panic!("Tried to cast_script on an object which has no Script")
         }
         unsafe { &*(self.script.as_ref().unwrap_unchecked().as_ref() as *const dyn Script as *const T) }
     }
@@ -32,10 +32,10 @@ impl HierarchyItem {
     pub fn cast_script_mut<T>(&mut self) -> &mut T
     where T: Script + HasTypeId {
         if <T as HasTypeId>::type_id() != self.script_type_id {
-            panic!("nivalid type");
+            panic!("Tried to cast_script_mut with mismatching types");
         }
         if self.script.is_none() {
-            panic!("no script")
+            panic!("Tried to cast_script_mut on an object which has no Script")
         }
         unsafe { &mut *(self.script.as_mut().unwrap_unchecked().as_mut() as *mut dyn Script as *mut T) }
     }
