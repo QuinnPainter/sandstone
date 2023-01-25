@@ -40,6 +40,7 @@ pub fn main_loop() -> ! {
     }, hierarchy.root);
 
     hierarchy.run_pending_script_starts();
+    hierarchy.temp();
 
     loop {
         hierarchy.run_script_update();

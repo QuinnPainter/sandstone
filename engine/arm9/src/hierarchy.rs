@@ -1,3 +1,4 @@
+use core::num::NonZeroU32;
 use alloc::{string::String, boxed::Box, vec::Vec};
 use crate::{Script, pool::{Pool, Handle}, ScriptContext};
 
@@ -65,6 +66,20 @@ impl Hierarchy {
             object_pool,
             to_start_stack: Vec::new(),
         }
+    }
+
+    pub fn temp(&mut self) {
+        let mut g = dsengine_common::SavedNodeGraph {nodes: Vec::new()};
+        g.nodes.push(dsengine_common::SavedNode {
+            child_index: None,
+            sibling_index: None,
+            name: String::from("derp"),
+            transform: dsengine_common::SavedTransform { x: 0, y: 0 },
+            script_type_id: Some(NonZeroU32::new(5).unwrap()),
+            enabled: true
+        });
+        //let a = dsengine_common::do_serialize(&g);
+        //ironds::nocash::print(&alloc::format!("{:?}", a).to_string());
     }
 
     pub fn add(&mut self, item: Node, parent: Handle<Node>) {
