@@ -4,6 +4,8 @@ engine/arm[79]/target/
 engine/arm[79]/debug/
 editor/target/
 editor/debug/
+common/target/
+common/debug/
 
 engine/arm[79]/Cargo.lock
 
