@@ -5,7 +5,7 @@ extern crate alloc;
 
 use alloc::{string::String, rc::Rc, vec::Vec};
 use core::{cell::{RefCell, Ref}, any::Any};
-use dsengine::{hierarchy::{self, HierarchyItem}, Script, ScriptContext};
+use dsengine::{hierarchy::{self, Node}, Script, ScriptContext};
 use dsengine::pool::Pool;
 use ironds::{display::console, sync::{NdsCell, NdsMutex}};
 use alloc::string::ToString;
@@ -66,7 +66,7 @@ struct Obj1 {
 }
 
 impl Script for Obj1 {
-    fn start(&mut self, context: &mut ScriptContext) {
+    fn start(&mut self, _context: &mut ScriptContext) {
         self.cntr = 4;
     }
 
@@ -101,12 +101,12 @@ impl dsengine::hierarchy::HasTypeId for Obj2 {
 }
 
 impl Script for Obj2 {
-    fn start(&mut self, context: &mut ScriptContext) {
+    fn start(&mut self, _context: &mut ScriptContext) {
         self.cntr = 6;
         self.strog = "flagg;".to_string();
     }
 
-    fn update(&mut self, context: &mut ScriptContext) {
+    fn update(&mut self, _context: &mut ScriptContext) {
         self.cntr -= 1;
         console::set_cursor_pos(1, 5);
         console::print(&self.cntr.to_string());

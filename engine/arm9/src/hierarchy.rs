@@ -7,9 +7,9 @@ pub struct Transform {
     pub y: u32,
 }
 
-pub struct HierarchyItem {
-    pub child_handle: Option<Handle<HierarchyItem>>, // todo: maybe could be more efficient, could just be Index without Generation
-    pub sibling_handle: Option<Handle<HierarchyItem>>,
+pub struct Node {
+    pub child_handle: Option<Handle<Node>>, // todo: maybe could be more efficient, could just be Index without Generation
+    pub sibling_handle: Option<Handle<Node>>,
     pub name: String,
     pub transform: Transform,
     pub script_type_id: u32, // only valid if script is Some
@@ -17,7 +17,7 @@ pub struct HierarchyItem {
     pub enabled: bool,
 }
 
-impl HierarchyItem {
+impl Node {
     pub fn cast_script<T>(&self) -> &T
     where T: Script + HasTypeId {
         if <T as HasTypeId>::type_id() != self.script_type_id {
@@ -42,15 +42,15 @@ impl HierarchyItem {
 }
 
 pub struct Hierarchy {
-    pub root: Handle<HierarchyItem>,
-    object_pool: Pool<HierarchyItem>,
-    to_start_stack: Vec<Handle<HierarchyItem>>
+    pub root: Handle<Node>,
+    object_pool: Pool<Node>,
+    to_start_stack: Vec<Handle<Node>>
 }
 
 impl Hierarchy {
     pub fn new() -> Self {
-        let mut object_pool: Pool<HierarchyItem> = Pool::new();
-        let root = object_pool.add(HierarchyItem {
+        let mut object_pool: Pool<Node> = Pool::new();
+        let root = object_pool.add(Node {
             child_handle: None,
             sibling_handle: None,
             name: String::new(),
@@ -67,7 +67,7 @@ impl Hierarchy {
         }
     }
 
-    pub fn add(&mut self, item: HierarchyItem, parent: Handle<HierarchyItem>) {
+    pub fn add(&mut self, item: Node, parent: Handle<Node>) {
         let handle = self.object_pool.add(item);
         let parent_obj = self.object_pool.borrow_mut(parent);
         self.object_pool.borrow_mut(handle).sibling_handle = parent_obj.child_handle.replace(handle);
@@ -77,7 +77,7 @@ impl Hierarchy {
 
     #[inline]
     #[must_use]
-    pub fn borrow2(&self, handle: Handle<HierarchyItem>) -> &HierarchyItem {
+    pub fn borrow2(&self, handle: Handle<Node>) -> &Node {
         self.object_pool.borrow(handle)
     }
 
@@ -86,19 +86,19 @@ impl Hierarchy {
     // as we can iterate over vec sequentially instead of following the tree
 
     #[must_use]
-    pub fn find_by_name(&mut self, search_root: Handle<HierarchyItem>, name: &str) -> Option<Handle<HierarchyItem>> {
+    pub fn find_by_name(&mut self, search_root: Handle<Node>, name: &str) -> Option<Handle<Node>> {
         self.find(search_root, |x| x.name == name)
     }
 
     #[must_use]
-    pub fn find_by_script_type<T>(&mut self, search_root: Handle<HierarchyItem>) -> Option<Handle<HierarchyItem>>
+    pub fn find_by_script_type<T>(&mut self, search_root: Handle<Node>) -> Option<Handle<Node>>
     where T: Script + HasTypeId {
         self.find(search_root, |x| x.script_type_id == <T as HasTypeId>::type_id())
     }
 
     #[must_use]
-    pub fn find<P>(&mut self, search_root: Handle<HierarchyItem>, mut predicate: P) -> Option<Handle<HierarchyItem>>
-    where P: FnMut(&HierarchyItem) -> bool, {
+    pub fn find<P>(&mut self, search_root: Handle<Node>, mut predicate: P) -> Option<Handle<Node>>
+    where P: FnMut(&Node) -> bool, {
         let mut cur_node_handle = self.object_pool.borrow(search_root).child_handle?;
         loop {
             let cur_node = self.object_pool.borrow(cur_node_handle);

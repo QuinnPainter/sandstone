@@ -20,7 +20,7 @@ pub fn main_loop() -> ! {
     let mut hierarchy: Hierarchy = Hierarchy::new();
 
     let test_obj = hierarchy::run_script_factory(1);
-    let _o1handle = hierarchy.add(hierarchy::HierarchyItem {
+    let _o1handle = hierarchy.add(hierarchy::Node {
         child_handle: None,
         sibling_handle: None,
         name: String::from("Stuff"),
@@ -29,7 +29,7 @@ pub fn main_loop() -> ! {
         script_type_id: 1,
         script: Some(test_obj)
     }, hierarchy.root);
-    let _o2handle = hierarchy.add(hierarchy::HierarchyItem {
+    let _o2handle = hierarchy.add(hierarchy::Node {
         child_handle: None,
         sibling_handle: None,
         name: String::from("Stuff2"),
