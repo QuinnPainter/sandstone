@@ -2,6 +2,7 @@
 #![feature(nonzero_ops)]
 
 extern crate alloc;
+use core::num::NonZeroU32;
 use hierarchy::Hierarchy;
 use ironds as nds;
 use alloc::string::String;
@@ -19,15 +20,17 @@ pub fn main_loop() -> ! {
 
     let mut hierarchy: Hierarchy = Hierarchy::new();
 
-    let test_obj = hierarchy::run_script_factory(1);
+    let test_obj = hierarchy::run_script_factory(NonZeroU32::new(1).unwrap());
     let _o1handle = hierarchy.add(hierarchy::Node {
         child_handle: None,
         sibling_handle: None,
         name: String::from("Stuff"),
         transform: hierarchy::Transform::default(),
         enabled: false,
-        script_type_id: 1,
-        script: Some(test_obj)
+        script_data: Some(hierarchy::NodeScriptData {
+            type_id: NonZeroU32::new(1).unwrap(),
+            script: test_obj  
+        })
     }, hierarchy.root);
     let _o2handle = hierarchy.add(hierarchy::Node {
         child_handle: None,
@@ -35,8 +38,10 @@ pub fn main_loop() -> ! {
         name: String::from("Stuff2"),
         transform: hierarchy::Transform::default(),
         enabled: false,
-        script_type_id: 2,
-        script: Some(hierarchy::run_script_factory(2))
+        script_data: Some(hierarchy::NodeScriptData {
+            type_id: NonZeroU32::new(2).unwrap(),
+            script: hierarchy::run_script_factory(NonZeroU32::new(2).unwrap())
+        })
     }, hierarchy.root);
 
     hierarchy.run_pending_script_starts();

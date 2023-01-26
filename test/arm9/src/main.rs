@@ -4,7 +4,7 @@
 extern crate alloc;
 
 use alloc::{string::String, rc::Rc, vec::Vec};
-use core::{cell::{RefCell, Ref}, any::Any};
+use core::{cell::{RefCell, Ref}, any::Any, num::NonZeroU32};
 use dsengine::{hierarchy::{self, Node}, Script, ScriptContext};
 use dsengine::pool::Pool;
 use ironds::{display::console, sync::{NdsCell, NdsMutex}};
@@ -21,8 +21,8 @@ extern "C" fn main() -> ! {
     dsengine::main_loop();
 }
 
-fn script_factory(id: u32) -> Box<dyn Script> {
-    match id {
+fn script_factory(id: NonZeroU32) -> Box<dyn Script> {
+    match u32::from(id) {
         1 => Box::new(Obj1::default()),
         2 => Box::new(Obj2::default()),
         _ => panic!("Invalid component ID: {}", id)
@@ -95,8 +95,8 @@ struct Obj2 {
 }
 
 impl dsengine::hierarchy::HasTypeId for Obj2 {
-    fn type_id() -> u32 {
-        2
+    fn type_id() -> NonZeroU32 {
+        NonZeroU32::new(2).unwrap()
     }
 }
 

@@ -8,37 +8,33 @@ pub struct Transform {
     pub y: u32,
 }
 
+pub struct NodeScriptData {
+    pub type_id: NonZeroU32,
+    pub script: Box<dyn Script>
+}
+
 pub struct Node {
     pub child_handle: Option<Handle<Node>>, // todo: maybe could be more efficient, could just be Index without Generation
     pub sibling_handle: Option<Handle<Node>>,
     pub name: String,
     pub transform: Transform,
-    pub script_type_id: u32, // only valid if script is Some
-    pub script: Option<Box<dyn Script>>,
+    pub script_data: Option<NodeScriptData>,
     pub enabled: bool,
 }
 
 impl Node {
     pub fn cast_script<T>(&self) -> &T
     where T: Script + HasTypeId {
-        if <T as HasTypeId>::type_id() != self.script_type_id {
-            panic!("Tried to cast_script with mismatching types");
-        }
-        if self.script.is_none() {
-            panic!("Tried to cast_script on an object which has no Script")
-        }
-        unsafe { &*(self.script.as_ref().unwrap_unchecked().as_ref() as *const dyn Script as *const T) }
+        let s_data = self.script_data.as_ref().expect("Tried to cast_script on an object which has no Script");
+        assert_eq!(<T as HasTypeId>::type_id(), s_data.type_id, "Tried to cast_script with mismatching types");
+        unsafe { &*(s_data.script.as_ref() as *const dyn Script as *const T) }
     }
 
     pub fn cast_script_mut<T>(&mut self) -> &mut T
     where T: Script + HasTypeId {
-        if <T as HasTypeId>::type_id() != self.script_type_id {
-            panic!("Tried to cast_script_mut with mismatching types");
-        }
-        if self.script.is_none() {
-            panic!("Tried to cast_script_mut on an object which has no Script")
-        }
-        unsafe { &mut *(self.script.as_mut().unwrap_unchecked().as_mut() as *mut dyn Script as *mut T) }
+        let s_data = self.script_data.as_mut().expect("Tried to cast_script on an object which has no Script");
+        assert_eq!(<T as HasTypeId>::type_id(), s_data.type_id, "Tried to cast_script with mismatching types");
+        unsafe { &mut *(s_data.script.as_mut() as *mut dyn Script as *mut T) }
     }
 }
 
@@ -56,8 +52,7 @@ impl Hierarchy {
             sibling_handle: None,
             name: String::new(),
             transform: Transform::default(),
-            script_type_id: 0,
-            script: None,
+            script_data: None,
             enabled: true
         });
 
@@ -75,9 +70,27 @@ impl Hierarchy {
             sibling_index: None,
             name: String::from("derp"),
             transform: dsengine_common::SavedTransform { x: 0, y: 0 },
-            script_type_id: Some(NonZeroU32::new(5).unwrap()),
+            script_type_id: None,
             enabled: true
         });
+
+        let mut tmp: Vec<Handle<Node>> = Vec::new();
+        for node in g.nodes {
+            tmp.push(self.object_pool.add(Node {
+                child_handle: None,
+                sibling_handle: None,
+                name: node.name,
+                transform: Transform { x: node.transform.x, y: node.transform.y },
+                script_data: match node.script_type_id {
+                    Some(id) => Some(NodeScriptData {
+                        type_id: id,
+                        script: run_script_factory(id)
+                    }),
+                    None => None
+                },
+                enabled: node.enabled
+            }));
+        }
         //let a = dsengine_common::do_serialize(&g);
         //ironds::nocash::print(&alloc::format!("{:?}", a).to_string());
     }
@@ -108,7 +121,12 @@ impl Hierarchy {
     #[must_use]
     pub fn find_by_script_type<T>(&mut self, search_root: Handle<Node>) -> Option<Handle<Node>>
     where T: Script + HasTypeId {
-        self.find(search_root, |x| x.script_type_id == <T as HasTypeId>::type_id())
+        self.find(search_root, |x| {
+            if x.script_data.is_some() {
+                return x.script_data.as_ref().unwrap().type_id == <T as HasTypeId>::type_id();
+            }
+            false
+        })
     }
 
     #[must_use]
@@ -132,9 +150,9 @@ impl Hierarchy {
         if let Some(handle) = self.to_start_stack.pop() {
             // this could return None if an object was immediately destroyed after creating it
             if let Some((item_ticket, mut item)) = self.object_pool.try_take(handle) {
-                if let Some(script) = &mut item.script {
+                if let Some(script_data) = &mut item.script_data {
                     let mut context = ScriptContext { hierarchy: self };
-                    script.start(&mut context);
+                    script_data.script.start(&mut context);
                 }
                 self.object_pool.put_back(item_ticket, item);
             }
@@ -146,9 +164,9 @@ impl Hierarchy {
     pub(crate) fn run_script_update(&mut self) {
         for i in 0..self.object_pool.vec_len() {
             if let Some((item_ticket, mut item)) = self.object_pool.try_take_by_index(i) {
-                if let Some(script) = &mut item.script {
+                if let Some(script_data) = &mut item.script_data {
                     let mut context = ScriptContext { hierarchy: self };
-                    script.update(&mut context);
+                    script_data.script.update(&mut context);
                 }
                 self.object_pool.put_back(item_ticket, item);
             }
@@ -156,15 +174,15 @@ impl Hierarchy {
     }
 }
 
-static mut SCRIPT_FACTORY: Option<fn(u32) -> Box<dyn Script>> = None;
+static mut SCRIPT_FACTORY: Option<fn(NonZeroU32) -> Box<dyn Script>> = None;
 
-pub fn init_script_factory(f: fn(u32) -> Box<dyn Script>) {
+pub fn init_script_factory(f: fn(NonZeroU32) -> Box<dyn Script>) {
     unsafe { SCRIPT_FACTORY = Some(f); }
 }
 
 #[inline]
 #[must_use]
-pub (crate) fn run_script_factory(id: u32) -> Box<dyn Script> {
+pub (crate) fn run_script_factory(id: NonZeroU32) -> Box<dyn Script> {
     unsafe {
         debug_assert_ne!(SCRIPT_FACTORY, None, "Cannot use Script Factory before initialisation!");
         SCRIPT_FACTORY.unwrap_unchecked()(id)
@@ -172,5 +190,5 @@ pub (crate) fn run_script_factory(id: u32) -> Box<dyn Script> {
 }
 
 pub trait HasTypeId {
-    fn type_id() -> u32;
+    fn type_id() -> NonZeroU32;
 }
