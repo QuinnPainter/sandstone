@@ -105,7 +105,7 @@ impl Hierarchy {
 
     #[inline]
     #[must_use]
-    pub fn borrow2(&self, handle: Handle<Node>) -> &Node {
+    pub fn borrow(&self, handle: Handle<Node>) -> &Node {
         self.object_pool.borrow(handle)
     }
 
@@ -122,10 +122,10 @@ impl Hierarchy {
     pub fn find_by_script_type<T>(&mut self, search_root: Handle<Node>) -> Option<Handle<Node>>
     where T: Script + HasTypeId {
         self.find(search_root, |x| {
-            if x.script_data.is_some() {
-                return x.script_data.as_ref().unwrap().type_id == <T as HasTypeId>::type_id();
+            match &x.script_data {
+                Some(s_data) => s_data.type_id == <T as HasTypeId>::type_id(),
+                None => false
             }
-            false
         })
     }
 
