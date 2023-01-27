@@ -69,20 +69,7 @@ impl Hierarchy {
     }
 
     pub fn spawn_prefab(&mut self, index: u32, parent: Handle<Node>) {
-        /*let mut saved_graph = dsengine_common::SavedNodeGraph {nodes: Vec::new()};
-        saved_graph.nodes.push(dsengine_common::SavedNode {
-            child_index: None,
-            sibling_index: None,
-            name: String::from("derp"),
-            transform: dsengine_common::SavedTransform { x: 0, y: 0 },
-            script_type_id: None,
-            enabled: true
-        });
-        let a = dsengine_common::do_serialize(&saved_graph);
-        ironds::nocash::print(&alloc::format!("{:?}", a).to_string());*/
-
         let saved_graph = self.saved_prefab_data.0.get(index as usize).expect("Tried to spawn invalid prefab index");
-
         let mut new_handles: Vec<Handle<Node>> = Vec::new();
 
         // Push the nodes onto the object pool, with placeholder child, parent and sibling handles
@@ -147,11 +134,41 @@ impl Hierarchy {
             ironds::nocash::print(alloc::format!("Parent: {:?}", node.parent_handle).as_str());
         }
     }
+    
+    #[inline(always)]
+    #[must_use]
+    pub fn vec_len(&self) -> usize {
+        self.object_pool.vec_len()
+    }
 
     #[inline]
     #[must_use]
     pub fn borrow(&self, handle: Handle<Node>) -> &Node {
         self.object_pool.borrow(handle)
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn try_borrow(&self, handle: Handle<Node>) -> Option<&Node> {
+        self.object_pool.try_borrow(handle)
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn borrow_mut(&mut self, handle: Handle<Node>) -> &mut Node {
+        self.object_pool.borrow_mut(handle)
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn try_borrow_mut(&mut self, handle: Handle<Node>) -> Option<&mut Node> {
+        self.object_pool.try_borrow_mut(handle)
+    }
+
+    #[inline]
+    #[must_use]
+    pub fn handle_from_index(&self, index: usize) -> Handle<Node> {
+        self.object_pool.handle_from_index(index)
     }
 
     // todo: recursive search?
@@ -193,13 +210,22 @@ impl Hierarchy {
 
     pub(crate) fn run_one_pending_script_start(&mut self) -> bool{
         if let Some(handle) = self.to_start_stack.pop() {
+            let mut context = ScriptContext { hierarchy: self };
             // this could return None if an object was immediately destroyed after creating it
-            if let Some((item_ticket, mut item)) = self.object_pool.try_take(handle) {
-                if let Some(script_data) = &mut item.script_data {
-                    let mut context = ScriptContext { hierarchy: self };
-                    script_data.script.start(&mut context);
+            let mut script_data = if let Some(item) = context.hierarchy.try_borrow_mut(handle) {
+                if let Some(script_data) = item.script_data.take() {
+                    script_data
+                } else {
+                    return true; // return early - item has no Script
                 }
-                self.object_pool.put_back(item_ticket, item);
+            } else {
+                return true; // return early - invalid handle on start stack (should panic here?)
+            };
+            script_data.script.start(&mut context);
+
+            // put script back
+            if let Some(item) = context.hierarchy.try_borrow_mut(handle) {
+                item.script_data = Some(script_data);
             }
             return true;
         }
@@ -207,13 +233,24 @@ impl Hierarchy {
     }
 
     pub(crate) fn run_script_update(&mut self) {
-        for i in 0..self.object_pool.vec_len() {
-            if let Some((item_ticket, mut item)) = self.object_pool.try_take_by_index(i) {
-                if let Some(script_data) = &mut item.script_data {
-                    let mut context = ScriptContext { hierarchy: self };
-                    script_data.script.update(&mut context);
+        let mut context = ScriptContext { hierarchy: self };
+        for i in 0..context.hierarchy.vec_len() {
+            let handle = context.hierarchy.handle_from_index(i);
+            // this could return None if an object was immediately destroyed after creating it
+            let mut script_data = if let Some(item) = context.hierarchy.try_borrow_mut(handle) {
+                if let Some(script_data) = item.script_data.take() {
+                    script_data
+                } else {
+                    continue; // return early - item has no Script
                 }
-                self.object_pool.put_back(item_ticket, item);
+            } else {
+                continue; // return early - invalid handle (should panic here?)
+            };
+            script_data.script.update(&mut context);
+
+            // put script back
+            if let Some(item) = context.hierarchy.try_borrow_mut(handle) {
+                item.script_data = Some(script_data);
             }
         }
     }

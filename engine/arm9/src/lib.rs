@@ -2,10 +2,8 @@
 #![feature(nonzero_ops)]
 
 extern crate alloc;
-use core::num::NonZeroU32;
 use hierarchy::Hierarchy;
 use ironds as nds;
-use alloc::string::String;
 
 pub mod pool;
 pub mod hierarchy;
@@ -20,33 +18,10 @@ pub fn main_loop() -> ! {
 
     let mut hierarchy: Hierarchy = Hierarchy::new();
 
-    /*let test_obj = hierarchy::run_script_factory(NonZeroU32::new(1).unwrap());
-    let _o1handle = hierarchy.add(hierarchy::Node {
-        child_handle: None,
-        sibling_handle: None,
-        name: String::from("Stuff"),
-        transform: hierarchy::Transform::default(),
-        enabled: false,
-        script_data: Some(hierarchy::NodeScriptData {
-            type_id: NonZeroU32::new(1).unwrap(),
-            script: test_obj  
-        })
-    }, hierarchy.root);
-    let _o2handle = hierarchy.add(hierarchy::Node {
-        child_handle: None,
-        sibling_handle: None,
-        name: String::from("Stuff2"),
-        transform: hierarchy::Transform::default(),
-        enabled: false,
-        script_data: Some(hierarchy::NodeScriptData {
-            type_id: NonZeroU32::new(2).unwrap(),
-            script: hierarchy::run_script_factory(NonZeroU32::new(2).unwrap())
-        })
-    }, hierarchy.root);*/
-
     hierarchy.spawn_prefab(0, hierarchy.root);
+    hierarchy.spawn_prefab(1, hierarchy.root);
     hierarchy.run_pending_script_starts();
-    hierarchy.pretty_print_hierarchy_structure();
+    //hierarchy.pretty_print_hierarchy_structure();
 
     loop {
         hierarchy.run_script_update();

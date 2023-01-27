@@ -119,13 +119,13 @@ impl<T> Pool<T> {
     }
 
     // try_take without generation. Used by hierarchy update loop.
-    #[inline]
+    /*#[inline]
     #[must_use]
     pub(crate) fn try_take_by_index(&mut self, index: usize) -> Option<(Ticket<T>, T)> {
         let entry = self.data_vec.get_mut(index)?;
         let taken_data = entry.data.take()?;
         Some((Ticket { index: index, phantom_type: PhantomData::<T> }, taken_data))
-    }
+    }*/
 
     #[inline]
     pub fn put_back(&mut self, ticket: Ticket<T>, value: T) -> Handle<T> {
@@ -139,6 +139,15 @@ impl<T> Pool<T> {
         Handle {
             index: ticket.index,
             generation: record.generation,
+            phantom_type: PhantomData::<T>
+        }
+    }
+
+    #[must_use]
+    pub fn handle_from_index(&self, index: usize) -> Handle<T> {
+        Handle {
+            index,
+            generation: self.data_vec.get(index).expect("Called handle_from_index with out-of-bounds index").generation,
             phantom_type: PhantomData::<T>
         }
     }
