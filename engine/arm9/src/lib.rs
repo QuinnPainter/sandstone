@@ -20,7 +20,7 @@ pub fn main_loop() -> ! {
 
     let mut hierarchy: Hierarchy = Hierarchy::new();
 
-    let test_obj = hierarchy::run_script_factory(NonZeroU32::new(1).unwrap());
+    /*let test_obj = hierarchy::run_script_factory(NonZeroU32::new(1).unwrap());
     let _o1handle = hierarchy.add(hierarchy::Node {
         child_handle: None,
         sibling_handle: None,
@@ -42,10 +42,11 @@ pub fn main_loop() -> ! {
             type_id: NonZeroU32::new(2).unwrap(),
             script: hierarchy::run_script_factory(NonZeroU32::new(2).unwrap())
         })
-    }, hierarchy.root);
+    }, hierarchy.root);*/
 
+    hierarchy.spawn_prefab(0, hierarchy.root);
     hierarchy.run_pending_script_starts();
-    hierarchy.temp();
+    hierarchy.pretty_print_hierarchy_structure();
 
     loop {
         hierarchy.run_script_update();

@@ -2,8 +2,28 @@ mod ui;
 
 use imgui::sys::ImVec2;
 use std::ffi::CString;
+use std::fs::File;
+use std::io::Write;
 
 fn main() {
+    let mut saved_graph = dsengine_common::SavedNodeGraph {nodes: Vec::new()};
+    saved_graph.nodes.push(dsengine_common::SavedNode {
+        child_index: None,
+        sibling_index: None,
+        name: String::from("derp"),
+        transform: dsengine_common::SavedTransform { x: 0, y: 0 },
+        script_type_id: Some(core::num::NonZeroU32::new(1).unwrap()),
+        enabled: true
+    });
+    let mut prefabs = dsengine_common::SavedPrefabs(Vec::new());
+    prefabs.0.push(saved_graph);
+    let a = dsengine_common::serialize_prefabs(&prefabs);
+    {
+        let mut prefab_file = File::create("../test/prefab_data.bin").unwrap();
+        prefab_file.write_all(&a).unwrap();
+    }
+    println!("{:?}", a);
+
     let mut first_loop = true;
     let mut name = String::from("garf");
     //let mut pos_x = 0.0f32;

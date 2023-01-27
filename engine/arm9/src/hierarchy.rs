@@ -1,6 +1,7 @@
 use core::num::NonZeroU32;
 use alloc::{string::String, boxed::Box, vec::Vec};
 use crate::{Script, pool::{Pool, Handle}, ScriptContext};
+use dsengine_common::SavedPrefabs;
 
 #[derive(Eq, PartialEq, Clone, Copy, Default, Debug)]
 pub struct Transform {
@@ -15,6 +16,7 @@ pub struct NodeScriptData {
 
 pub struct Node {
     pub child_handle: Option<Handle<Node>>, // todo: maybe could be more efficient, could just be Index without Generation
+    pub parent_handle: Option<Handle<Node>>, // should only be None on root node
     pub sibling_handle: Option<Handle<Node>>,
     pub name: String,
     pub transform: Transform,
@@ -41,7 +43,8 @@ impl Node {
 pub struct Hierarchy {
     pub root: Handle<Node>,
     object_pool: Pool<Node>,
-    to_start_stack: Vec<Handle<Node>>
+    to_start_stack: Vec<Handle<Node>>,
+    saved_prefab_data: SavedPrefabs
 }
 
 impl Hierarchy {
@@ -49,6 +52,7 @@ impl Hierarchy {
         let mut object_pool: Pool<Node> = Pool::new();
         let root = object_pool.add(Node {
             child_handle: None,
+            parent_handle: None,
             sibling_handle: None,
             name: String::new(),
             transform: Transform::default(),
@@ -60,12 +64,13 @@ impl Hierarchy {
             root,
             object_pool,
             to_start_stack: Vec::new(),
+            saved_prefab_data: dsengine_common::deserialize_prefabs(unsafe { PREFAB_DATA.unwrap() })
         }
     }
 
-    pub fn temp(&mut self) {
-        let mut g = dsengine_common::SavedNodeGraph {nodes: Vec::new()};
-        g.nodes.push(dsengine_common::SavedNode {
+    pub fn spawn_prefab(&mut self, index: u32, parent: Handle<Node>) {
+        /*let mut saved_graph = dsengine_common::SavedNodeGraph {nodes: Vec::new()};
+        saved_graph.nodes.push(dsengine_common::SavedNode {
             child_index: None,
             sibling_index: None,
             name: String::from("derp"),
@@ -73,13 +78,20 @@ impl Hierarchy {
             script_type_id: None,
             enabled: true
         });
+        let a = dsengine_common::do_serialize(&saved_graph);
+        ironds::nocash::print(&alloc::format!("{:?}", a).to_string());*/
 
-        let mut tmp: Vec<Handle<Node>> = Vec::new();
-        for node in g.nodes {
-            tmp.push(self.object_pool.add(Node {
+        let saved_graph = self.saved_prefab_data.0.get(index as usize).expect("Tried to spawn invalid prefab index");
+
+        let mut new_handles: Vec<Handle<Node>> = Vec::new();
+
+        // Push the nodes onto the object pool, with placeholder child, parent and sibling handles
+        for node in &saved_graph.nodes {
+            new_handles.push(self.object_pool.add(Node {
                 child_handle: None,
+                parent_handle: None,
                 sibling_handle: None,
-                name: node.name,
+                name: node.name.clone(),
                 transform: Transform { x: node.transform.x, y: node.transform.y },
                 script_data: match node.script_type_id {
                     Some(id) => Some(NodeScriptData {
@@ -91,16 +103,49 @@ impl Hierarchy {
                 enabled: node.enabled
             }));
         }
-        //let a = dsengine_common::do_serialize(&g);
-        //ironds::nocash::print(&alloc::format!("{:?}", a).to_string());
+        
+        // Wire up the child, parent and sibling handles for the new nodes
+        let mut prefab_root: Option<Handle<Node>> = None;
+        for (snode, handle) in (&saved_graph.nodes).iter().zip(new_handles.iter()) {
+            let node = self.object_pool.borrow_mut(*handle);
+            let idx_to_handle = |opt_index: Option<NonZeroU32>| -> Option<Handle<Node>> {
+                match opt_index {
+                    Some(idx) => Some(new_handles[(u32::from(idx)-1) as usize]),
+                    None => None
+                }
+            };
+            node.child_handle = idx_to_handle(snode.child_index);
+            node.sibling_handle = idx_to_handle(snode.sibling_index);
+            node.parent_handle = idx_to_handle(snode.sibling_index).or({
+                prefab_root = Some(*handle);
+                Some(parent)
+            });
+            self.to_start_stack.push(*handle);
+        }
+        self.link_new_child(parent, prefab_root.expect("Tried to create prefab with no root node"));
+
     }
 
-    pub fn add(&mut self, item: Node, parent: Handle<Node>) {
+    /*pub fn add(&mut self, mut item: Node, parent: Handle<Node>) {
+        item.parent_handle = Some(parent);
         let handle = self.object_pool.add(item);
-        let parent_obj = self.object_pool.borrow_mut(parent);
-        self.object_pool.borrow_mut(handle).sibling_handle = parent_obj.child_handle.replace(handle);
+        self.link_new_child(parent, handle);
 
         self.to_start_stack.push(handle);
+    }*/
+
+    fn link_new_child(&mut self, parent: Handle<Node>, child: Handle<Node>) {
+        let parent_obj = self.object_pool.borrow_mut(parent);
+        self.object_pool.borrow_mut(child).sibling_handle = parent_obj.child_handle.replace(child);
+    }
+
+    pub fn pretty_print_hierarchy_structure(&self) {
+        for node in &self.object_pool {
+            ironds::nocash::print("Node");
+            ironds::nocash::print(alloc::format!("Child: {:?}", node.child_handle).as_str());
+            ironds::nocash::print(alloc::format!("Sibling: {:?}", node.sibling_handle).as_str());
+            ironds::nocash::print(alloc::format!("Parent: {:?}", node.parent_handle).as_str());
+        }
     }
 
     #[inline]
@@ -172,6 +217,12 @@ impl Hierarchy {
             }
         }
     }
+}
+
+static mut PREFAB_DATA: Option<&[u8]> = None;
+
+pub fn init_prefab_data(data: &'static [u8]) {
+    unsafe { PREFAB_DATA = Some(data); }
 }
 
 static mut SCRIPT_FACTORY: Option<fn(NonZeroU32) -> Box<dyn Script>> = None;
