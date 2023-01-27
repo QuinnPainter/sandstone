@@ -114,6 +114,13 @@ fn main() {
             });
         ui.window("Hierarchy")
             .build(|| {
+                if ui.is_window_hovered() && ui.is_mouse_clicked(imgui::MouseButton::Right) {
+                    ui.open_popup("hierarchy_context");
+                }
+                if let Some(_p) = ui.begin_popup("hierarchy_context") {
+                    if ui.selectable("Add Stuff") {}
+                    if ui.selectable("Things") {}
+                }
                 if let Some(_t) = ui.tree_node("obj1") {
                     ui.tree_node("obj3");
                 }
