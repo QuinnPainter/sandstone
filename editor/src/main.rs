@@ -1,9 +1,10 @@
 mod ui;
 
-use imgui::sys::ImVec2;
+use imgui::{Ui, sys::ImVec2};
 use std::ffi::CString;
 use std::fs::File;
 use std::io::Write;
+use std::num::NonZeroU32;
 
 fn main() {
     let mut saved_graph = dsengine_common::SavedNodeGraph {nodes: Vec::new()};
@@ -34,6 +35,40 @@ fn main() {
         prefab_file.write_all(&a).unwrap();
     }
     println!("{:?}", a);
+
+    let mut hierarchy_graph: Vec<dsengine_common::SavedNode> = Vec::new();
+    hierarchy_graph.push(dsengine_common::SavedNode {
+        child_index: None,
+        sibling_index: None,
+        name: String::from("derp"),
+        transform: dsengine_common::SavedTransform { x: 0, y: 0 },
+        script_type_id: Some(core::num::NonZeroU32::new(1).unwrap()),
+        enabled: true
+    });
+    hierarchy_graph.push(dsengine_common::SavedNode {
+        child_index: Some(NonZeroU32::new(2).unwrap()),
+        sibling_index: None,
+        name: String::from("herp"),
+        transform: dsengine_common::SavedTransform { x: 0, y: 0 },
+        script_type_id: Some(core::num::NonZeroU32::new(1).unwrap()),
+        enabled: true
+    });
+    hierarchy_graph.push(dsengine_common::SavedNode {
+        child_index: None,
+        sibling_index: Some(NonZeroU32::new(4).unwrap()),
+        name: String::from("flerp"),
+        transform: dsengine_common::SavedTransform { x: 0, y: 0 },
+        script_type_id: Some(core::num::NonZeroU32::new(1).unwrap()),
+        enabled: true
+    });
+    hierarchy_graph.push(dsengine_common::SavedNode {
+        child_index: None,
+        sibling_index: None,
+        name: String::from("merp"),
+        transform: dsengine_common::SavedTransform { x: 0, y: 0 },
+        script_type_id: Some(core::num::NonZeroU32::new(1).unwrap()),
+        enabled: true
+    });
 
     let mut first_loop = true;
     let mut name = String::from("garf");
@@ -121,10 +156,7 @@ fn main() {
                     if ui.selectable("Add Stuff") {}
                     if ui.selectable("Things") {}
                 }
-                if let Some(_t) = ui.tree_node("obj1") {
-                    ui.tree_node("obj3");
-                }
-                ui.tree_node("obj2");
+                draw_hierarchy_node(ui, &hierarchy_graph, 0);
             });
         ui.window("World")
             .build(|| {
@@ -135,4 +167,21 @@ fn main() {
                 ui.text("files go here");
             });
     });
+}
+
+fn draw_hierarchy_node(ui: &Ui, hierarchy: &Vec<dsengine_common::SavedNode>, node_idx: usize) {
+    if let Some(node) = hierarchy.get(node_idx) {
+        if let Some(_t) = ui.tree_node(node.name.as_str()) {
+            if let Some(mut cur_child_idx) = node.child_index {
+                loop {
+                    let cur_child_idx_usize = u32::from(cur_child_idx) as usize;
+                    draw_hierarchy_node(ui, hierarchy, cur_child_idx_usize);
+                    cur_child_idx = match hierarchy[cur_child_idx_usize].sibling_index {
+                        Some(x) => x,
+                        None => break
+                    }
+                }
+            }
+        }
+    }
 }
