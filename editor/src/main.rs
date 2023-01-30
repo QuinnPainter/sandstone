@@ -1,5 +1,6 @@
 mod ui;
 
+use dsengine_common::SavedNode;
 use imgui::{Ui, sys::ImVec2};
 use std::ffi::CString;
 use std::fs::File;
@@ -38,15 +39,23 @@ fn main() {
 
     let mut hierarchy_graph: Vec<dsengine_common::SavedNode> = Vec::new();
     hierarchy_graph.push(dsengine_common::SavedNode {
-        child_index: None,
+        child_index: Some(NonZeroU32::new(1).unwrap()),
         sibling_index: None,
+        name: String::from("__EDITOR_ROOT__"),
+        transform: dsengine_common::SavedTransform { x: 0, y: 0 },
+        script_type_id: None,
+        enabled: true
+    });
+    hierarchy_graph.push(dsengine_common::SavedNode {
+        child_index: None,
+        sibling_index: Some(NonZeroU32::new(2).unwrap()),
         name: String::from("derp"),
         transform: dsengine_common::SavedTransform { x: 0, y: 0 },
         script_type_id: Some(core::num::NonZeroU32::new(1).unwrap()),
         enabled: true
     });
     hierarchy_graph.push(dsengine_common::SavedNode {
-        child_index: Some(NonZeroU32::new(2).unwrap()),
+        child_index: Some(NonZeroU32::new(3).unwrap()),
         sibling_index: None,
         name: String::from("herp"),
         transform: dsengine_common::SavedTransform { x: 0, y: 0 },
@@ -83,6 +92,7 @@ fn main() {
     let world_name = CString::new("World").unwrap();
 
     let pos_label = CString::new("Position").unwrap();
+    let mut selected_node_idx: Option<usize> = None;
 
     ui::mainloop(move |ui| {
         //ui.show_demo_window(&mut true);
@@ -156,7 +166,7 @@ fn main() {
                     if ui.selectable("Add Stuff") {}
                     if ui.selectable("Things") {}
                 }
-                draw_hierarchy_node(ui, &hierarchy_graph, 0);
+                draw_hierarchy_node(ui, &hierarchy_graph, 0, &mut selected_node_idx);
             });
         ui.window("World")
             .build(|| {
@@ -169,19 +179,42 @@ fn main() {
     });
 }
 
-fn draw_hierarchy_node(ui: &Ui, hierarchy: &Vec<dsengine_common::SavedNode>, node_idx: usize) {
+fn draw_hierarchy_node(ui: &Ui, hierarchy: &Vec<dsengine_common::SavedNode>, node_idx: usize, selected_node_idx: &mut Option<usize>) {
     if let Some(node) = hierarchy.get(node_idx) {
-        if let Some(_t) = ui.tree_node(node.name.as_str()) {
+        fn draw_child_nodes (ui: &Ui, hierarchy: &Vec<dsengine_common::SavedNode>, selected_node_idx: &mut Option<usize>, node: &SavedNode) {
             if let Some(mut cur_child_idx) = node.child_index {
                 loop {
                     let cur_child_idx_usize = u32::from(cur_child_idx) as usize;
-                    draw_hierarchy_node(ui, hierarchy, cur_child_idx_usize);
+                    draw_hierarchy_node(ui, hierarchy, cur_child_idx_usize, selected_node_idx);
                     cur_child_idx = match hierarchy[cur_child_idx_usize].sibling_index {
                         Some(x) => x,
                         None => break
                     }
                 }
             }
+        }
+
+        // Root node is not drawn
+        if node_idx == 0 {
+            draw_child_nodes(ui, hierarchy, selected_node_idx, node);
+        } else {
+            let mut flags = imgui::TreeNodeFlags::empty();
+            flags |= imgui::TreeNodeFlags::OPEN_ON_ARROW;
+            if node.child_index.is_none() {
+                flags |= imgui::TreeNodeFlags::LEAF;
+            }
+            // could change this to is_some_and if that gets stablised
+            // if selected_node_idx.is_some_and(|x| x == node_idx) {
+            if matches!(selected_node_idx, Some(x) if *x == node_idx) {
+                flags |= imgui::TreeNodeFlags::SELECTED;
+            }
+            ui.tree_node_config(node.name.as_str()).flags(flags).build(|| {
+                if ui.is_item_clicked() {
+                    *selected_node_idx = Some(node_idx);
+                    println!("clonk: {}", node_idx);
+                }
+                draw_child_nodes(ui, hierarchy, selected_node_idx, node);
+            });
         }
     }
 }
