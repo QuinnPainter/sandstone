@@ -83,11 +83,21 @@ fn main() {
                 imgui::sys::igDockBuilderDockWindow(inspector_name.as_ptr(), dock_id_inspector);
                 imgui::sys::igDockBuilderDockWindow(world_name.as_ptr(), tmp_id);
                 imgui::sys::igDockBuilderFinish(dockspace_id);
+                ui.open_popup("Load Project");
             }
         }
+        ui.modal_popup("Load Project", || {
+            if ui.button("New") {
+                new_project();
+            }
+            ui.button("Load");
+        });
+        //ui.window("Load").build(|| {ui.button("Load");});
         ui.main_menu_bar(|| {
             ui.menu("File", || {
-                ui.menu_item("New");
+                if ui.menu_item("New") {
+                    new_project();
+                }
                 ui.menu_item("Open");
                 ui.menu("Open Recent", || {
                     ui.menu_item("Placeholder 1");
@@ -126,4 +136,8 @@ fn main() {
                 ui.text("files go here");
             });
     });
+}
+
+fn new_project() {
+    let s = tinyfiledialogs::select_folder_dialog("Dingue", "Dongue");
 }
