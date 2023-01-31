@@ -4,6 +4,7 @@ use imgui::sys::ImVec2;
 use std::ffi::CString;
 use std::fs::File;
 use std::io::Write;
+use std::thread;
 
 mod hierarchy;
 
@@ -86,11 +87,11 @@ fn main() {
                 ui.open_popup("Load Project");
             }
         }
-        ui.modal_popup("Load Project", || {
-            if ui.button("New") {
+        ui.modal_popup_config("Load Project").resizable(false).build(|| {
+            if ui.button_with_size("New", [90.0, 30.0]) {
                 new_project();
             }
-            ui.button("Load");
+            ui.button_with_size("Load", [90.0, 30.0]);
         });
         //ui.window("Load").build(|| {ui.button("Load");});
         ui.main_menu_bar(|| {
@@ -139,5 +140,7 @@ fn main() {
 }
 
 fn new_project() {
-    let s = tinyfiledialogs::select_folder_dialog("Dingue", "Dongue");
+    thread::spawn(|| {
+        let s = tinyfiledialogs::select_folder_dialog("Dingue", "Dongue");
+    });
 }
