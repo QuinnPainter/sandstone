@@ -54,8 +54,14 @@ fn main() {
 
     let pos_label = CString::new("Position").unwrap();
 
+    let mut new_project_path_buffer = String::new();
+    let mut new_project_name_buffer = String::new();
+
+    let (file_dialog_transmitter, file_dialog_receiver) = std::sync::mpsc::channel::<FileDialogReturnInfo>();
+
     ui::mainloop(move |ui| {
         //ui.show_demo_window(&mut true);
+        let mut open_load_project_dialog = false;
         // seems that imgui-rs has no abstractions for any docking stuff yet, so we must use the raw bindings
         unsafe {
             let view = imgui::sys::igGetMainViewport();
@@ -73,8 +79,8 @@ fn main() {
                     imgui::sys::ImGuiDir_Right, 0.20,
                     std::ptr::null::<u32>() as *mut u32, &mut tmp_id as *mut u32);
                 let dock_id_files = imgui::sys::igDockBuilderSplitNode(tmp_id,
-                        imgui::sys::ImGuiDir_Down, 0.20,
-                        std::ptr::null::<u32>() as *mut u32, &mut tmp_id as *mut u32);
+                    imgui::sys::ImGuiDir_Down, 0.20,
+                    std::ptr::null::<u32>() as *mut u32, &mut tmp_id as *mut u32);
                 let dock_id_hierarchy = imgui::sys::igDockBuilderSplitNode(tmp_id,
                     imgui::sys::ImGuiDir_Left, 0.20,
                     std::ptr::null::<u32>() as *mut u32, &mut tmp_id as *mut u32);
@@ -84,20 +90,53 @@ fn main() {
                 imgui::sys::igDockBuilderDockWindow(inspector_name.as_ptr(), dock_id_inspector);
                 imgui::sys::igDockBuilderDockWindow(world_name.as_ptr(), tmp_id);
                 imgui::sys::igDockBuilderFinish(dockspace_id);
-                ui.open_popup("Load Project");
+                open_load_project_dialog = true;
             }
         }
-        ui.modal_popup_config("Load Project").resizable(false).build(|| {
-            if ui.button_with_size("New", [90.0, 30.0]) {
-                new_project();
+        ui.modal_popup_config("Load Project").resizable(false).always_auto_resize(true).build(|| {
+            if let Some(tab_bar_token) = ui.tab_bar_with_flags("tabs", imgui::TabBarFlags::empty()) {
+                if let Some(tab_token) = ui.tab_item("New") {
+                    // checks if:
+                    // the file dialog sent a message
+                    // the dialog was a New Project dialog
+                    // the path is Some (would be None if the dialog was closed)
+                    if let Ok(FileDialogReturnInfo::NewProject(Some(path))) = file_dialog_receiver.try_recv() {
+                        new_project_path_buffer = path;
+                    }
+
+                    ui.text("Project name");
+                    ui.input_text("##ProjectName", &mut new_project_name_buffer)
+                        .callback(imgui::InputTextCallback::CHAR_FILTER, FileNameInputFilter).build();
+                    ui.text("Location");
+                    ui.input_text("##PathInput", &mut new_project_path_buffer).build();
+                    ui.same_line();
+                    if ui.button("Browse") {
+                        new_project(file_dialog_transmitter.clone());
+                    }
+                    ui.spacing();
+                    // Enable text wrapping using the current window width
+                    let text_wrap_token = ui.push_text_wrap_pos();
+                    ui.text_disabled(format!("Project will be created in {}",
+                        std::path::Path::new(&new_project_path_buffer).join(&new_project_name_buffer).display()));
+                    text_wrap_token.end();
+                    ui.spacing();
+                    if ui.button("Create") {
+                        ui.close_current_popup();
+                    }
+                    tab_token.end();
+                }
+                if let Some(tab_token) = ui.tab_item("Open") {
+                    if ui.button_with_size("Open", [90.0, 30.0]) {
+                    }
+                    tab_token.end();
+                }
+                tab_bar_token.end();
             }
-            ui.button_with_size("Load", [90.0, 30.0]);
         });
-        //ui.window("Load").build(|| {ui.button("Load");});
         ui.main_menu_bar(|| {
             ui.menu("File", || {
                 if ui.menu_item("New") {
-                    new_project();
+                    open_load_project_dialog = true;
                 }
                 ui.menu_item("Open");
                 ui.menu("Open Recent", || {
@@ -112,6 +151,14 @@ fn main() {
             });
             if ui.menu_item("About") {}
         });
+
+        // Workaround for https://github.com/ocornut/imgui/issues/331
+        if open_load_project_dialog {
+            new_project_path_buffer = String::from(
+                home::home_dir().unwrap_or(std::path::PathBuf::new())
+                .to_str().unwrap_or(""));
+            ui.open_popup("Load Project");
+        }
 
         ui.window("Inspector")
             .build(|| {
@@ -139,8 +186,35 @@ fn main() {
     });
 }
 
-fn new_project() {
-    thread::spawn(|| {
-        let s = tinyfiledialogs::select_folder_dialog("Dingue", "Dongue");
+struct FileNameInputFilter;
+impl imgui::InputTextCallbackHandler for FileNameInputFilter {
+    fn char_filter(&mut self, c: char) -> Option<char> {
+        // Characters that are problematic for file names.
+        // Could be more restrictive and change this to a whitelist.
+        const INVALID_CHARS: [char; 11] = ['/', '\\', '?', '%', '*', '*', ':', '|', '"', '<', '>'];
+        if INVALID_CHARS.contains(&c) {
+            None
+        } else {
+            Some(c)
+        }
+    }
+}
+
+enum FileDialogReturnInfo {
+    NewProject(Option<String>),
+    OpenProject(Option<String>)
+}
+
+fn new_project(tx: std::sync::mpsc::Sender<FileDialogReturnInfo>) {
+    thread::spawn(move || {
+        let path = tinyfiledialogs::select_folder_dialog("New Project", "");
+        tx.send(FileDialogReturnInfo::NewProject(path)).unwrap();
+    });
+}
+
+fn open_project(tx: std::sync::mpsc::Sender<FileDialogReturnInfo>) {
+    thread::spawn(move || {
+        let path = tinyfiledialogs::select_folder_dialog("Open Project", "");
+        tx.send(FileDialogReturnInfo::OpenProject(path)).unwrap();
     });
 }
