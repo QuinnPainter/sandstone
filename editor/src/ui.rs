@@ -9,7 +9,7 @@ const TITLE: &str = "dsengine";
 
 type Window = WindowedContext<glutin::PossiblyCurrent>;
 
-pub fn mainloop<F: FnMut(&mut Ui) + 'static>(mut run_app: F) {
+pub fn mainloop<F: FnMut(&mut Ui, &mut bool) + 'static>(mut run_app: F) {
     // Common setup for creating a winit window and imgui context, not specifc
     // to this renderer at all except that glutin is used to create the window
     // since it will give us access to a GL context
@@ -27,6 +27,7 @@ pub fn mainloop<F: FnMut(&mut Ui) + 'static>(mut run_app: F) {
         .expect("failed to create renderer");
 
     let mut last_frame = Instant::now();
+    let mut exit = false;
 
     // Standard winit event loop
     event_loop.run(move |event, _, control_flow| {
@@ -49,7 +50,11 @@ pub fn mainloop<F: FnMut(&mut Ui) + 'static>(mut run_app: F) {
                 unsafe { ig_renderer.gl_context().clear(glow::COLOR_BUFFER_BIT) };
 
                 let ui = imgui_context.frame();
-                run_app(ui);
+                
+                run_app(ui, &mut exit);
+                if exit {
+                    *control_flow = glutin::event_loop::ControlFlow::Exit;
+                }
 
                 winit_platform.prepare_render(ui, window.window());
                 let draw_data = imgui_context.render();

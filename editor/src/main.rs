@@ -2,14 +2,14 @@ mod ui;
 
 use imgui::sys::ImVec2;
 use std::ffi::CString;
-use std::fs::File;
-use std::io::Write;
+//use std::fs::File;
+//use std::io::Write;
 use std::thread;
 
 mod hierarchy;
 
 fn main() {
-    let mut saved_graph = dsengine_common::SavedNodeGraph {nodes: Vec::new()};
+    /*let mut saved_graph = dsengine_common::SavedNodeGraph {nodes: Vec::new()};
     saved_graph.nodes.push(dsengine_common::SavedNode {
         child_index: None,
         sibling_index: None,
@@ -36,7 +36,7 @@ fn main() {
         let mut prefab_file = File::create("../test/prefab_data.bin").unwrap();
         prefab_file.write_all(&a).unwrap();
     }
-    println!("{:?}", a);
+    println!("{:?}", a);*/
 
     let mut hierarchy_obj = hierarchy::Hierarchy::new();
     
@@ -59,7 +59,7 @@ fn main() {
 
     let (file_dialog_transmitter, file_dialog_receiver) = std::sync::mpsc::channel::<FileDialogReturnInfo>();
 
-    ui::mainloop(move |ui| {
+    ui::mainloop(move |ui, exit| {
         //ui.show_demo_window(&mut true);
         let mut open_load_project_dialog = false;
         // seems that imgui-rs has no abstractions for any docking stuff yet, so we must use the raw bindings
@@ -96,14 +96,6 @@ fn main() {
         ui.modal_popup_config("Load Project").resizable(false).always_auto_resize(true).build(|| {
             if let Some(tab_bar_token) = ui.tab_bar_with_flags("tabs", imgui::TabBarFlags::empty()) {
                 if let Some(tab_token) = ui.tab_item("New") {
-                    // checks if:
-                    // the file dialog sent a message
-                    // the dialog was a New Project dialog
-                    // the path is Some (would be None if the dialog was closed)
-                    if let Ok(FileDialogReturnInfo::NewProject(Some(path))) = file_dialog_receiver.try_recv() {
-                        new_project_path_buffer = path;
-                    }
-
                     ui.text("Project name");
                     ui.input_text("##ProjectName", &mut new_project_name_buffer)
                         .callback(imgui::InputTextCallback::CHAR_FILTER, FileNameInputFilter).build();
@@ -127,6 +119,7 @@ fn main() {
                 }
                 if let Some(tab_token) = ui.tab_item("Open") {
                     if ui.button_with_size("Open", [90.0, 30.0]) {
+                        open_project(file_dialog_transmitter.clone());
                     }
                     tab_token.end();
                 }
@@ -138,16 +131,21 @@ fn main() {
                 if ui.menu_item("New") {
                     open_load_project_dialog = true;
                 }
-                ui.menu_item("Open");
-                ui.menu("Open Recent", || {
+                if ui.menu_item("Open") {
+                    open_project(file_dialog_transmitter.clone());
+                }
+                // todo: open recent
+                /*ui.menu("Open Recent", || {
                     ui.menu_item("Placeholder 1");
                     ui.menu_item("Placeholder 2");
-                });
+                });*/
                 // this Ctrl-S doesn't actually set up that shortcut, just displays the text
                 ui.menu_item_config("Save").shortcut("Ctrl+S").build();
-                ui.menu_item("Save As..");
+                //ui.menu_item("Save As..");
                 ui.separator();
-                ui.menu_item_config("Quit").shortcut("Alt+F4").build();
+                if ui.menu_item_config("Quit").shortcut("Alt+F4").build() {
+                    *exit = true;
+                }
             });
             if ui.menu_item("About") {}
         });
@@ -158,6 +156,17 @@ fn main() {
                 home::home_dir().unwrap_or(std::path::PathBuf::new())
                 .to_str().unwrap_or(""));
             ui.open_popup("Load Project");
+        }
+
+        // Handle the file dialog close event
+        if let Ok(dialog_info) = file_dialog_receiver.try_recv() {
+            match dialog_info {
+                FileDialogReturnInfo::NewProject(Some(path)) => {
+                    new_project_path_buffer = path;
+                }
+                FileDialogReturnInfo::OpenProject(Some(path)) => {}
+                _ => {}
+            }
         }
 
         ui.window("Inspector")
