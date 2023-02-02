@@ -1,13 +1,11 @@
 mod ui;
 mod hierarchy;
+mod project_loader;
 
 use imgui::sys::ImVec2;
 use std::ffi::CString;
 //use std::fs::File;
 //use std::io::Write;
-use std::sync::mpsc;
-use std::thread;
-use std::path::{Path, PathBuf};
 
 fn main() {
     /*let mut saved_graph = dsengine_common::SavedNodeGraph {nodes: Vec::new()};
@@ -40,6 +38,7 @@ fn main() {
     println!("{:?}", a);*/
 
     let mut hierarchy_obj = hierarchy::Hierarchy::new();
+    let mut proj_loader = project_loader::ProjectLoader::new();
     
     let mut first_loop = true;
     let mut name = String::from("garf");
@@ -55,14 +54,8 @@ fn main() {
 
     let pos_label = CString::new("Position").unwrap();
 
-    let mut new_project_path_buffer = String::new();
-    let mut new_project_name_buffer = String::new();
-
-    let (file_dialog_transmitter, file_dialog_receiver) = mpsc::channel::<FileDialogReturnInfo>();
-
     ui::mainloop(move |ui, exit| {
         //ui.show_demo_window(&mut true);
-        let mut open_load_project_dialog = false;
         // seems that imgui-rs has no abstractions for any docking stuff yet, so we must use the raw bindings
         unsafe {
             let view = imgui::sys::igGetMainViewport();
@@ -91,49 +84,15 @@ fn main() {
                 imgui::sys::igDockBuilderDockWindow(inspector_name.as_ptr(), dock_id_inspector);
                 imgui::sys::igDockBuilderDockWindow(world_name.as_ptr(), tmp_id);
                 imgui::sys::igDockBuilderFinish(dockspace_id);
-                open_load_project_dialog = true;
             }
         }
-        ui.modal_popup_config("Load Project").resizable(false).always_auto_resize(true).build(|| {
-            if let Some(tab_bar_token) = ui.tab_bar("tabs") {
-                if let Some(tab_token) = ui.tab_item("New") {
-                    ui.text("Project name");
-                    ui.input_text("##ProjectName", &mut new_project_name_buffer)
-                        .callback(imgui::InputTextCallback::CHAR_FILTER, FileNameInputFilter).build();
-                    ui.text("Location");
-                    ui.input_text("##PathInput", &mut new_project_path_buffer).build();
-                    ui.same_line();
-                    if ui.button("Browse") {
-                        new_project_file_dialog(file_dialog_transmitter.clone());
-                    }
-                    ui.spacing();
-                    // Enable text wrapping using the current window width
-                    let text_wrap_token = ui.push_text_wrap_pos();
-                    ui.text_disabled(format!("Project will be created in {}",
-                        Path::new(&new_project_path_buffer).join(&new_project_name_buffer).display()));
-                    text_wrap_token.end();
-                    ui.spacing();
-                    if ui.button("Create") {
-                        ui.close_current_popup();
-                    }
-                    tab_token.end();
-                }
-                if let Some(tab_token) = ui.tab_item("Open") {
-                    if ui.button_with_size("Open", [90.0, 30.0]) {
-                        open_project_file_dialog(file_dialog_transmitter.clone());
-                    }
-                    tab_token.end();
-                }
-                tab_bar_token.end();
-            }
-        });
         ui.main_menu_bar(|| {
             ui.menu("File", || {
                 if ui.menu_item("New") {
-                    open_load_project_dialog = true;
+                    proj_loader.open_load_project_modal();
                 }
                 if ui.menu_item("Open") {
-                    open_project_file_dialog(file_dialog_transmitter.clone());
+                    proj_loader.open_project_file_dialog();
                 }
                 // todo: open recent
                 /*ui.menu("Open Recent", || {
@@ -151,25 +110,7 @@ fn main() {
             if ui.menu_item("About") {}
         });
 
-        // Workaround for https://github.com/ocornut/imgui/issues/331
-        if open_load_project_dialog {
-            // Set starting path to the user's home directory
-            new_project_path_buffer = String::from(
-                home::home_dir().unwrap_or(PathBuf::new())
-                .to_str().unwrap_or(""));
-            ui.open_popup("Load Project");
-        }
-
-        // Handle the file dialog close event
-        if let Ok(dialog_info) = file_dialog_receiver.try_recv() {
-            match dialog_info {
-                FileDialogReturnInfo::NewProject(Some(path)) => {
-                    new_project_path_buffer = path;
-                }
-                FileDialogReturnInfo::OpenProject(Some(path)) => {}
-                _ => {}
-            }
-        }
+        proj_loader.update(&ui);
 
         ui.window("Inspector")
             .build(|| {
@@ -194,38 +135,5 @@ fn main() {
             .build(|| {
                 ui.text("files go here");
             });
-    });
-}
-
-struct FileNameInputFilter;
-impl imgui::InputTextCallbackHandler for FileNameInputFilter {
-    fn char_filter(&mut self, c: char) -> Option<char> {
-        // Characters that are problematic for file names.
-        // Could be more restrictive and change this to a whitelist.
-        const INVALID_CHARS: [char; 11] = ['/', '\\', '?', '%', '*', '*', ':', '|', '"', '<', '>'];
-        if INVALID_CHARS.contains(&c) {
-            None
-        } else {
-            Some(c)
-        }
-    }
-}
-
-enum FileDialogReturnInfo {
-    NewProject(Option<String>),
-    OpenProject(Option<String>)
-}
-
-fn new_project_file_dialog(tx: mpsc::Sender<FileDialogReturnInfo>) {
-    thread::spawn(move || {
-        let path = tinyfiledialogs::select_folder_dialog("New Project", "");
-        tx.send(FileDialogReturnInfo::NewProject(path)).unwrap();
-    });
-}
-
-fn open_project_file_dialog(tx: mpsc::Sender<FileDialogReturnInfo>) {
-    thread::spawn(move || {
-        let path = tinyfiledialogs::select_folder_dialog("Open Project", "");
-        tx.send(FileDialogReturnInfo::OpenProject(path)).unwrap();
     });
 }
