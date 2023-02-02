@@ -1,7 +1,10 @@
 use std::sync::mpsc;
 use std::thread;
 use std::path::{Path, PathBuf};
+use std::fs::File;
+use std::io::Write;
 use imgui::Ui;
+use serde::{Serialize, Deserialize};
 
 pub struct ProjectLoader {
     new_project_path_buffer: String,
@@ -44,6 +47,7 @@ impl ProjectLoader {
     }
 
     pub fn update(&mut self, ui: &Ui) {
+        // Draw the "Load Project" popup modal
         ui.modal_popup_config("Load Project").resizable(false).always_auto_resize(true).build(|| {
             if let Some(tab_bar_token) = ui.tab_bar("tabs") {
                 if let Some(tab_token) = ui.tab_item("New") {
@@ -64,7 +68,7 @@ impl ProjectLoader {
                     text_wrap_token.end();
                     ui.spacing();
                     if ui.button("Create") {
-                        create_new_project(total_path);
+                        create_new_project(total_path, self.new_project_name_buffer.clone());
                         ui.close_current_popup();
                     }
                     tab_token.end();
@@ -102,11 +106,22 @@ impl ProjectLoader {
     }
 }
     
-fn create_new_project(path: PathBuf) {
+fn create_new_project(path: PathBuf, name: String) {
     // todo: handle IO errors
-    std::fs::create_dir_all(path).unwrap();
-}
+    // Create project folder
+    std::fs::create_dir_all(&path).unwrap();
 
+    // Create project info file
+    {
+        let project_info = ProjectInfo {
+            name
+        };
+        let ser_project_info = ron::ser::to_string_pretty(&project_info, ron::ser::PrettyConfig::default()).unwrap();
+
+        let mut project_info_file = File::create(&path.join("project_info.ron")).unwrap();
+        project_info_file.write_all(ser_project_info.as_bytes()).unwrap();
+    }
+}
 
 enum FileDialogReturnInfo {
     NewProject(Option<String>),
@@ -126,4 +141,9 @@ impl imgui::InputTextCallbackHandler for FileNameInputFilter {
             Some(c)
         }
     }
+}
+
+#[derive(Serialize, Deserialize)]
+struct ProjectInfo {
+    name: String
 }
