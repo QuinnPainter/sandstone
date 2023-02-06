@@ -1,60 +1,89 @@
 use std::num::{NonZeroUsize, NonZeroU32};
-use dsengine_common::SavedNode;
 use imgui::{Ui, TreeNodeFlags};
+use stable_vec::StableVec;
+
+pub struct Transform {
+    pub x: u32,
+    pub y: u32
+}
+
+pub struct Node {
+    pub child_index: Option<NonZeroUsize>,
+    pub parent_index: Option<usize>,
+    pub sibling_index: Option<NonZeroUsize>,
+    pub name: String,
+    pub transform: Transform,
+    pub script_type_id: Option<NonZeroU32>,
+    pub enabled: bool
+}
+
+pub struct NodeGraph(pub StableVec<Node>);
+impl NodeGraph {
+    pub fn new() -> Self {
+        Self (StableVec::new())
+    }
+}
 
 pub struct Hierarchy {
-    graph: Vec<SavedNode>,
-    selected_node_idx: Option<NonZeroUsize>
+    pub graph: NodeGraph,
+    pub selected_node_idx: Option<NonZeroUsize>
 }
 
 impl Hierarchy {
     pub fn new() -> Self {
-        let mut graph: Vec<SavedNode> = Vec::new();
-        graph.push(dsengine_common::SavedNode {
-            child_index: Some(NonZeroU32::new(1).unwrap()),
+        let mut graph: StableVec<Node> = StableVec::new();
+        graph.push(Node {
+            child_index: Some(NonZeroUsize::new(1).unwrap()),
+            parent_index: None,
             sibling_index: None,
             name: String::from("__EDITOR_ROOT__"),
-            transform: dsengine_common::SavedTransform { x: 0, y: 0 },
+            transform: Transform { x: 0, y: 0 },
             script_type_id: None,
             enabled: true
         });
-        graph.push(dsengine_common::SavedNode {
+        graph.push(Node {
             child_index: None,
-            sibling_index: Some(NonZeroU32::new(2).unwrap()),
+            parent_index: Some(0),
+            sibling_index: Some(NonZeroUsize::new(2).unwrap()),
             name: String::from("derp"),
-            transform: dsengine_common::SavedTransform { x: 0, y: 0 },
+            transform: Transform { x: 0, y: 0 },
             script_type_id: Some(core::num::NonZeroU32::new(1).unwrap()),
             enabled: true
         });
-        graph.push(dsengine_common::SavedNode {
-            child_index: Some(NonZeroU32::new(3).unwrap()),
+        graph.push(Node {
+            child_index: Some(NonZeroUsize::new(3).unwrap()),
+            parent_index: Some(0),
             sibling_index: None,
             name: String::from("herp"),
-            transform: dsengine_common::SavedTransform { x: 0, y: 0 },
+            transform: Transform{ x: 0, y: 0 },
             script_type_id: Some(core::num::NonZeroU32::new(1).unwrap()),
             enabled: true
         });
-        graph.push(dsengine_common::SavedNode {
+        graph.push(Node {
             child_index: None,
-            sibling_index: Some(NonZeroU32::new(4).unwrap()),
+            parent_index: Some(2),
+            sibling_index: Some(NonZeroUsize::new(4).unwrap()),
             name: String::from("flerp"),
-            transform: dsengine_common::SavedTransform { x: 0, y: 0 },
+            transform: Transform { x: 0, y: 0 },
             script_type_id: Some(core::num::NonZeroU32::new(1).unwrap()),
             enabled: true
         });
-        graph.push(dsengine_common::SavedNode {
+        graph.push(Node {
             child_index: None,
+            parent_index: Some(2),
             sibling_index: None,
             name: String::from("merp"),
-            transform: dsengine_common::SavedTransform { x: 0, y: 0 },
+            transform: Transform { x: 0, y: 0 },
             script_type_id: Some(core::num::NonZeroU32::new(1).unwrap()),
             enabled: true
         });
         Self {
-            graph,
+            graph: NodeGraph(graph),
             selected_node_idx: None
         }
     }
+ 
+    //pub fn load_graph(&mut self, &mut crate::project_loader::)
 
     pub fn draw_hierarchy(&mut self, ui: &Ui) {
         ui.window("Hierarchy")
@@ -71,7 +100,7 @@ impl Hierarchy {
     }
 
     fn draw_hierarchy_node(&mut self, ui: &Ui, node_idx: usize) {
-        if let Some(node) = self.graph.get(node_idx) {
+        if let Some(node) = self.graph.0.get(node_idx) {
             let mut tree_node_token: Option<imgui::TreeNodeToken> = None;
             // Root node is not drawn
             if node_idx != 0 {
@@ -103,9 +132,9 @@ impl Hierarchy {
                 // Draw child nodes recursively
                 if let Some(mut cur_child_idx) = node.child_index {
                     loop {
-                        let cur_child_idx_usize = u32::from(cur_child_idx) as usize;
+                        let cur_child_idx_usize = usize::from(cur_child_idx);
                         self.draw_hierarchy_node(ui, cur_child_idx_usize);
-                        cur_child_idx = match self.graph[cur_child_idx_usize].sibling_index {
+                        cur_child_idx = match self.graph.0[cur_child_idx_usize].sibling_index {
                             Some(x) => x,
                             None => break
                         }
@@ -114,5 +143,5 @@ impl Hierarchy {
             }
             if let Some(t) = tree_node_token { t.pop(); }
         }
-    }    
+    }
 }

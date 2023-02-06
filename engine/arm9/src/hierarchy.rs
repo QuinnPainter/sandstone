@@ -95,15 +95,9 @@ impl Hierarchy {
         let mut prefab_root: Option<Handle<Node>> = None;
         for (snode, handle) in (&saved_graph.nodes).iter().zip(new_handles.iter()) {
             let node = self.object_pool.borrow_mut(*handle);
-            let idx_to_handle = |opt_index: Option<NonZeroU32>| -> Option<Handle<Node>> {
-                match opt_index {
-                    Some(idx) => Some(new_handles[(u32::from(idx)-1) as usize]),
-                    None => None
-                }
-            };
-            node.child_handle = idx_to_handle(snode.child_index);
-            node.sibling_handle = idx_to_handle(snode.sibling_index);
-            node.parent_handle = idx_to_handle(snode.sibling_index).or({
+            node.child_handle = snode.child_index.map(|idx| new_handles[u32::from(idx) as usize]);
+            node.sibling_handle = snode.sibling_index.map(|idx| new_handles[u32::from(idx) as usize]);
+            node.parent_handle = snode.parent_index.map(|idx| new_handles[idx as usize]).or({
                 prefab_root = Some(*handle);
                 Some(parent)
             });

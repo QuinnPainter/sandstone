@@ -13,6 +13,7 @@ pub struct SavedTransform {
 #[derive(Serialize, Deserialize)]
 pub struct SavedNode {
     pub child_index: Option<NonZeroU32>,
+    pub parent_index: Option<u32>, // not technically necessary to save, but makes things easier when deserialising
     pub sibling_index: Option<NonZeroU32>,
     pub name: String,
     pub transform: SavedTransform,

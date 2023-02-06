@@ -1,8 +1,8 @@
 mod ui;
 mod hierarchy;
 mod project_loader;
+mod inspector;
 
-use imgui::sys::ImVec2;
 use std::ffi::CString;
 //use std::fs::File;
 //use std::io::Write;
@@ -39,20 +39,14 @@ fn main() {
 
     let mut hierarchy_obj = hierarchy::Hierarchy::new();
     let mut proj_loader = project_loader::ProjectLoader::new();
+    let mut project_data = ProjectData::new();
     
     let mut first_loop = true;
-    let mut name = String::from("garf");
-    //let mut pos_x = 0.0f32;
-    //let mut pos_y = 0.0f32;
-    let mut enabled = true;
-    let mut pos = ImVec2::new(0.0, 0.0);
 
     let hierarchy_name = CString::new("Hierarchy").unwrap();
     let files_name = CString::new("Files").unwrap();
     let inspector_name = CString::new("Inspector").unwrap();
     let world_name = CString::new("World").unwrap();
-
-    let pos_label = CString::new("Position").unwrap();
 
     ui::mainloop(move |ui, exit| {
         //ui.show_demo_window(&mut true);
@@ -110,22 +104,9 @@ fn main() {
             if ui.menu_item("About") {}
         });
 
-        proj_loader.update(&ui);
+        proj_loader.update(ui, &mut project_data);
 
-        ui.window("Inspector")
-            .build(|| {
-                if ui.input_text("Name", &mut name).build() {
-                    // called when the field is edited
-                    dbg!(&name);
-                }
-                if ui.checkbox("Enabled", &mut enabled) {}
-                unsafe {
-                    //if ui.input_float("X", &mut pos_x).build() {}
-                    //if ui.input_float2("Y", &mut pos_y).build() {}
-                    imgui::sys::igDragFloat2(pos_label.as_ptr(), &mut pos as *mut ImVec2 as *mut f32,
-                        0.1, 0.0, 0.0, std::ptr::null(), 0);
-                }
-            });
+        inspector::draw_inspector(ui, &mut hierarchy_obj);
         hierarchy_obj.draw_hierarchy(ui);
         ui.window("World")
             .build(|| {
@@ -136,4 +117,18 @@ fn main() {
                 ui.text("files go here");
             });
     });
+}
+
+pub struct ProjectData {
+    name: String,
+    prefabs: Vec<hierarchy::NodeGraph>
+}
+
+impl ProjectData {
+    fn new() -> Self {
+        Self {
+            name: String::new(),
+            prefabs: Vec::new()
+        }
+    }
 }

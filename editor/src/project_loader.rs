@@ -3,15 +3,19 @@ use std::thread;
 use std::path::{Path, PathBuf};
 use std::fs::File;
 use std::io::Write;
+use std::num::{NonZeroU32, NonZeroUsize};
 use imgui::Ui;
 use serde::{Serialize, Deserialize};
+use crate::ProjectData;
+use crate::hierarchy::{NodeGraph, Node, Transform};
 
 pub struct ProjectLoader {
     new_project_path_buffer: String,
     new_project_name_buffer: String,
     file_dialog_transmitter: mpsc::Sender<FileDialogReturnInfo>,
     file_dialog_receiver: mpsc::Receiver<FileDialogReturnInfo>,
-    open_load_project_modal: bool
+    open_load_project_modal: bool,
+    close_load_project_modal: bool
 }
 
 impl ProjectLoader {
@@ -22,7 +26,8 @@ impl ProjectLoader {
             new_project_name_buffer: String::new(),
             file_dialog_transmitter: tx,
             file_dialog_receiver: rx,
-            open_load_project_modal: true
+            open_load_project_modal: true,
+            close_load_project_modal: false
         }
     }
 
@@ -46,7 +51,7 @@ impl ProjectLoader {
         });
     }
 
-    pub fn update(&mut self, ui: &Ui) {
+    pub fn update(&mut self, ui: &Ui, project_data: &mut ProjectData) {
         // Draw the "Load Project" popup modal
         ui.modal_popup_config("Load Project").resizable(false).always_auto_resize(true).build(|| {
             if let Some(tab_bar_token) = ui.tab_bar("tabs") {
@@ -68,7 +73,7 @@ impl ProjectLoader {
                     text_wrap_token.end();
                     ui.spacing();
                     if ui.button("Create") {
-                        create_new_project(total_path, self.new_project_name_buffer.clone());
+                        create_new_project(&total_path, self.new_project_name_buffer.clone(), project_data);
                         ui.close_current_popup();
                     }
                     tab_token.end();
@@ -78,6 +83,10 @@ impl ProjectLoader {
                         self.open_project_file_dialog();
                     }
                     tab_token.end();
+                }
+                if self.close_load_project_modal {
+                    self.close_load_project_modal = false;
+                    ui.close_current_popup();
                 }
                 tab_bar_token.end();
             }
@@ -99,28 +108,65 @@ impl ProjectLoader {
                 FileDialogReturnInfo::NewProject(Some(path)) => {
                     self.new_project_path_buffer = path;
                 }
-                FileDialogReturnInfo::OpenProject(Some(path)) => {}
+                FileDialogReturnInfo::OpenProject(Some(path)) => {
+                    load_project(Path::new(&path), project_data);
+                    self.close_load_project_modal = true;
+                }
                 _ => {}
             }
         }
     }
 }
     
-fn create_new_project(path: PathBuf, name: String) {
+fn create_new_project(path: &Path, name: String, project_data: &mut ProjectData) {
     // todo: handle IO errors
     // Create project folder
-    std::fs::create_dir_all(&path).unwrap();
+    std::fs::create_dir_all(path).unwrap();
 
-    // Create project info file
+    // Create project data file
     {
-        let project_info = ProjectInfo {
-            name
+        let project_data = SavedProjectData {
+            name,
+            prefabs: Vec::new()
         };
-        let ser_project_info = ron::ser::to_string_pretty(&project_info, ron::ser::PrettyConfig::default()).unwrap();
+        let ser_project_data = ron::ser::to_string_pretty(&project_data, ron::ser::PrettyConfig::default()).unwrap();
 
-        let mut project_info_file = File::create(&path.join("project_info.ron")).unwrap();
-        project_info_file.write_all(ser_project_info.as_bytes()).unwrap();
+        let mut project_data_file = File::create(path.join("project_info.ron")).unwrap();
+        project_data_file.write_all(ser_project_data.as_bytes()).unwrap();
     }
+
+    load_project(path, project_data);
+}
+
+fn load_project(path: &Path, project_data: &mut ProjectData) {
+    // todo: handle IO errors
+    let project_data_file = File::open(path.join("project_info.ron")).unwrap();
+    let saved_project_data: SavedProjectData = ron::de::from_reader(project_data_file).unwrap();
+
+    project_data.name = saved_project_data.name;
+    project_data.prefabs.clear();
+    project_data.prefabs.reserve(saved_project_data.prefabs.len());
+    for graph in saved_project_data.prefabs {
+        let mut new_graph = NodeGraph::new();
+        for node in graph.nodes {
+            new_graph.0.push(Node {
+                child_index: node.child_index.map(|x| nzu32_to_nzusize(x)),
+                parent_index: node.parent_index.map(|x| x as usize),
+                sibling_index: node.sibling_index.map(|x| nzu32_to_nzusize(x)),
+                name: node.name,
+                transform: Transform { x: node.transform.x, y: node.transform.y },
+                script_type_id: node.script_type_id,
+                enabled: node.enabled
+            });
+        }
+        project_data.prefabs.push(new_graph);
+    }
+}
+
+#[inline(always)]
+fn nzu32_to_nzusize(x: NonZeroU32) -> NonZeroUsize {
+    // This is fully safe, as new_unchecked only fails if input is 0 - the input is NonZero
+    unsafe { NonZeroUsize::new_unchecked(u32::from(x) as usize) }
 }
 
 enum FileDialogReturnInfo {
@@ -144,6 +190,7 @@ impl imgui::InputTextCallbackHandler for FileNameInputFilter {
 }
 
 #[derive(Serialize, Deserialize)]
-struct ProjectInfo {
-    name: String
+pub struct SavedProjectData {
+    name: String,
+    prefabs: Vec<dsengine_common::SavedNodeGraph>
 }

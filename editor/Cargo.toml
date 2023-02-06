@@ -15,4 +15,5 @@ glutin = "0.29.1"
 ron = "0.8.0"
 tinyfiledialogs = "3.0"
 home = "0.5"
-serde = { version = "1", features = ["derive"]}
+serde = { version = "1", features = ["derive"] }
+stable-vec = "0.4"
