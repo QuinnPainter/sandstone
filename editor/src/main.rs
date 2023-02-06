@@ -104,10 +104,10 @@ fn main() {
             if ui.menu_item("About") {}
         });
 
-        proj_loader.update(ui, &mut project_data);
+        proj_loader.update(ui, &mut project_data, &mut hierarchy_obj);
 
-        inspector::draw_inspector(ui, &mut hierarchy_obj);
-        hierarchy_obj.draw_hierarchy(ui);
+        inspector::draw_inspector(ui, &mut hierarchy_obj, &mut project_data);
+        hierarchy_obj.draw_hierarchy(ui, &mut project_data);
         ui.window("World")
             .build(|| {
                 ui.text("someday this will work");
@@ -121,14 +121,14 @@ fn main() {
 
 pub struct ProjectData {
     name: String,
-    prefabs: Vec<hierarchy::NodeGraph>
+    graphs: Vec<hierarchy::NodeGraph>
 }
 
 impl ProjectData {
     fn new() -> Self {
         Self {
             name: String::new(),
-            prefabs: Vec::new()
+            graphs: Vec::new()
         }
     }
 }
