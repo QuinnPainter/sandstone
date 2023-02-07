@@ -3,7 +3,7 @@ mod hierarchy;
 mod project_loader;
 mod inspector;
 
-use std::ffi::CString;
+use std::{ffi::CString, path::PathBuf};
 //use std::fs::File;
 //use std::io::Write;
 
@@ -47,6 +47,7 @@ fn main() {
     let files_name = CString::new("Files").unwrap();
     let inspector_name = CString::new("Inspector").unwrap();
     let world_name = CString::new("World").unwrap();
+    let graphs_name = CString::new("Graphs").unwrap();
 
     ui::mainloop(move |ui, exit| {
         //ui.show_demo_window(&mut true);
@@ -74,6 +75,7 @@ fn main() {
                     std::ptr::null::<u32>() as *mut u32, &mut tmp_id as *mut u32);
 
                 imgui::sys::igDockBuilderDockWindow(hierarchy_name.as_ptr(), dock_id_hierarchy);
+                imgui::sys::igDockBuilderDockWindow(graphs_name.as_ptr(), dock_id_hierarchy);
                 imgui::sys::igDockBuilderDockWindow(files_name.as_ptr(), dock_id_files);
                 imgui::sys::igDockBuilderDockWindow(inspector_name.as_ptr(), dock_id_inspector);
                 imgui::sys::igDockBuilderDockWindow(world_name.as_ptr(), tmp_id);
@@ -94,7 +96,9 @@ fn main() {
                     ui.menu_item("Placeholder 2");
                 });*/
                 // this Ctrl-S doesn't actually set up that shortcut, just displays the text
-                ui.menu_item_config("Save").shortcut("Ctrl+S").build();
+                if ui.menu_item_config("Save").shortcut("Ctrl+S").build() {
+                    project_loader::save_project(&mut project_data);
+                }
                 //ui.menu_item("Save As..");
                 ui.separator();
                 if ui.menu_item_config("Quit").shortcut("Alt+F4").build() {
@@ -120,6 +124,7 @@ fn main() {
 }
 
 pub struct ProjectData {
+    path: PathBuf,
     name: String,
     graphs: Vec<hierarchy::NodeGraph>
 }
@@ -127,6 +132,7 @@ pub struct ProjectData {
 impl ProjectData {
     fn new() -> Self {
         Self {
+            path: PathBuf::new(),
             name: String::new(),
             graphs: Vec::new()
         }

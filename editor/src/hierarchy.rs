@@ -7,6 +7,14 @@ pub struct Transform {
     pub x: u32,
     pub y: u32
 }
+impl Default for Transform {
+    fn default() -> Self {
+        Self {
+            x: 0,
+            y: 0
+        }
+    }
+}
 
 pub struct Node {
     pub child_index: Option<NonZeroUsize>,
@@ -27,14 +35,16 @@ impl NodeGraph {
 
 pub struct Hierarchy {
     pub current_graph_idx: usize,
-    pub selected_node_idx: Option<NonZeroUsize>
+    pub selected_node_idx: Option<NonZeroUsize>,
+    new_graph_name_buffer: String
 }
 
 impl Hierarchy {
     pub fn new() -> Self {
         Self {
             current_graph_idx: 0,
-            selected_node_idx: None
+            selected_node_idx: None,
+            new_graph_name_buffer: String::new()
         }
     }
 
@@ -45,10 +55,63 @@ impl Hierarchy {
                     ui.open_popup("hierarchy_context");
                 }
                 if let Some(_p) = ui.begin_popup("hierarchy_context") {
-                    if ui.selectable("Add Stuff") {}
-                    if ui.selectable("Things") {}
+                    if ui.selectable("Add Node") {
+                        if let Some(graph) = project_data.graphs.get_mut(self.current_graph_idx) {
+                            let mut node_number = 0;
+                            let mut node_name;
+                            loop {
+                                node_name = format!("Node {node_number}");
+                                if graph.0.iter().find(|&(_, n)| n.name == node_name).is_none() {
+                                    break;
+                                }
+                                node_number += 1;
+                            }
+                            let new_index = graph.0.push(Node {
+                                child_index: None,
+                                parent_index: Some(0), // parent is root node
+                                sibling_index: None,
+                                name: node_name,
+                                transform: Transform::default(),
+                                script_type_id: None,
+                                enabled: true
+                            });
+                            let old_root_child = graph.0[0].child_index.replace(NonZeroUsize::new(new_index).unwrap());
+                            graph.0[new_index].sibling_index = old_root_child;
+                        }
+                    }
                 }
                 self.draw_hierarchy_node(ui, project_data, 0);
+            });
+        ui.window("Graphs")
+            .build(|| {
+                for (i, g) in project_data.graphs.iter().enumerate() {
+                    if let Some(root_node) = g.0.get(0) {
+                        if ui.selectable_config(format!("{}##{}", &root_node.name, i))
+                            .selected(self.current_graph_idx == i)
+                            .build() {
+                            self.current_graph_idx = i;
+                            self.selected_node_idx = None;
+                        }
+                    }
+                }
+                ui.input_text("##new_graph_name", &mut self.new_graph_name_buffer).hint("New Graph").build();
+                ui.same_line();
+                if ui.button("+##add_graph") {
+                    let mut new_graph = NodeGraph(StableVec::new());
+                    new_graph.0.push(Node {
+                        child_index: None,
+                        parent_index: None,
+                        sibling_index: None,
+                        name: self.new_graph_name_buffer.clone(),
+                        transform: Transform::default(),
+                        script_type_id: None,
+                        enabled: true
+                    });
+                    self.current_graph_idx = project_data.graphs.len();
+                    self.selected_node_idx = None;
+                    project_data.graphs.push(new_graph);
+                    self.new_graph_name_buffer.clear();
+                }
             });
     }
 

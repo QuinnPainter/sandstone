@@ -7,10 +7,7 @@ pub fn draw_inspector(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut Pro
             if let Some(graph) = project_data.graphs.get_mut(hierarchy.current_graph_idx) {
                 if let Some(selected_index) = hierarchy.selected_node_idx {
                     let selected_node = &mut graph.0[selected_index.into()];
-                    if ui.input_text("Name", &mut selected_node.name).build() {
-                        // called when the field is edited
-                        dbg!(&selected_node.name);
-                    }
+                    ui.input_text("Name", &mut selected_node.name).build();
                     if ui.checkbox("Enabled", &mut selected_node.enabled) {}
                     /*unsafe {
                         //if ui.input_float("X", &mut pos_x).build() {}

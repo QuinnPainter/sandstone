@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 use std::fs::File;
 use std::io::Write;
 use std::num::{NonZeroU32, NonZeroUsize};
+use dsengine_common::{SavedNodeGraph, SavedNode, SavedTransform};
 use imgui::Ui;
 use serde::{Serialize, Deserialize};
 use crate::ProjectData;
@@ -119,22 +120,10 @@ impl ProjectLoader {
 }
     
 fn create_new_project(path: &Path, name: String, project_data: &mut ProjectData, hierarchy: &mut Hierarchy) {
-    // todo: handle IO errors
-    // Create project folder
-    std::fs::create_dir_all(path).unwrap();
-
-    // Create project data file
-    {
-        let project_data = SavedProjectData {
-            name,
-            prefabs: Vec::new()
-        };
-        let ser_project_data = ron::ser::to_string_pretty(&project_data, ron::ser::PrettyConfig::default()).unwrap();
-
-        let mut project_data_file = File::create(path.join("project_info.ron")).unwrap();
-        project_data_file.write_all(ser_project_data.as_bytes()).unwrap();
-    }
-
+    project_data.name = name;
+    project_data.path = path.to_path_buf();
+    project_data.graphs = Vec::new();
+    save_project(project_data);
     load_project(path, project_data, hierarchy);
 }
 
@@ -143,6 +132,7 @@ fn load_project(path: &Path, project_data: &mut ProjectData, hierarchy: &mut Hie
     let project_data_file = File::open(path.join("project_info.ron")).unwrap();
     let saved_project_data: SavedProjectData = ron::de::from_reader(project_data_file).unwrap();
 
+    project_data.path = path.to_path_buf();
     project_data.name = saved_project_data.name;
     project_data.graphs.clear();
     project_data.graphs.reserve(saved_project_data.prefabs.len());
@@ -162,12 +152,50 @@ fn load_project(path: &Path, project_data: &mut ProjectData, hierarchy: &mut Hie
         project_data.graphs.push(new_graph);
     }
     hierarchy.current_graph_idx = 0;
+    hierarchy.selected_node_idx = None;
+}
+
+pub fn save_project(project_data: &mut ProjectData) {
+    // todo: handle IO errors
+    std::fs::create_dir_all(&project_data.path).unwrap();
+
+    let mut all_saved_graphs: Vec<SavedNodeGraph> = Vec::with_capacity(project_data.graphs.len());
+    for graph in &project_data.graphs {
+        let mut saved_graph = SavedNodeGraph { nodes: Vec::with_capacity(graph.0.num_elements()) };
+        for (_, node) in &graph.0 {
+            saved_graph.nodes.push(SavedNode {
+                child_index: node.child_index.map(|x| nzusize_to_nzu32(x)),
+                parent_index: node.parent_index.map(|x| x as u32),
+                sibling_index: node.sibling_index.map(|x| nzusize_to_nzu32(x)),
+                name: node.name.clone(),
+                transform: SavedTransform { x: node.transform.x, y: node.transform.y },
+                script_type_id: node.script_type_id,
+                enabled: node.enabled
+            });
+        }
+        all_saved_graphs.push(saved_graph);
+    }
+    
+    let saved_project_data = SavedProjectData {
+        name: project_data.name.clone(),
+        prefabs: all_saved_graphs
+    };
+    let ser_project_data = ron::ser::to_string_pretty(&saved_project_data, ron::ser::PrettyConfig::default()).unwrap();
+
+    let mut project_data_file = File::create(project_data.path.join("project_info.ron")).unwrap();
+    project_data_file.write_all(ser_project_data.as_bytes()).unwrap();
 }
 
 #[inline(always)]
 fn nzu32_to_nzusize(x: NonZeroU32) -> NonZeroUsize {
     // This is fully safe, as new_unchecked only fails if input is 0 - the input is NonZero
     unsafe { NonZeroUsize::new_unchecked(u32::from(x) as usize) }
+}
+
+#[inline(always)]
+fn nzusize_to_nzu32(x: NonZeroUsize) -> NonZeroU32 {
+    // This is fully safe, as new_unchecked only fails if input is 0 - the input is NonZero
+    unsafe { NonZeroU32::new_unchecked(usize::from(x) as u32) }
 }
 
 enum FileDialogReturnInfo {
