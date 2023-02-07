@@ -75,8 +75,7 @@ impl Hierarchy {
                                 script_type_id: None,
                                 enabled: true
                             });
-                            let old_root_child = graph.0[0].child_index.replace(NonZeroUsize::new(new_index).unwrap());
-                            graph.0[new_index].sibling_index = old_root_child;
+                            Hierarchy::link_node(graph, NonZeroUsize::new(new_index).unwrap(), 0);
                         }
                     }
                 }
@@ -170,18 +169,7 @@ impl Hierarchy {
         let node_idx_usize = usize::from(node_idx);
         if let Some(graph) = project_data.graphs.get_mut(self.current_graph_idx) {
             // Unlink node from the graph
-            let node_sibling_idx = (&graph.0[node_idx_usize]).sibling_index;
-            let node_parent_idx = (&graph.0[node_idx_usize]).parent_index.unwrap();
-            let node_parent = &mut graph.0[node_parent_idx];
-            if node_parent.child_index.unwrap() == node_idx {
-                node_parent.child_index = node_sibling_idx;
-            } else {
-                Hierarchy::loop_over_children(graph, node_parent_idx, |node: &mut Node| {
-                    if node.sibling_index == Some(node_idx) {
-                        node.sibling_index = node_sibling_idx;
-                    }
-                });
-            }
+            Hierarchy::unlink_node(graph, node_idx);
 
             // Put all of the nodes children into a stack
             // optimisation todo: could consolidate these into one vec, and just increment an index instead of popping
@@ -213,6 +201,27 @@ impl Hierarchy {
                 graph.0.remove(i);
             }
         }
+    }
+    
+    fn unlink_node(graph: &mut NodeGraph, node_idx: NonZeroUsize) {
+        let node_idx_usize = usize::from(node_idx);
+        let node_sibling_idx = (&graph.0[node_idx_usize]).sibling_index;
+        let node_parent_idx = (&graph.0[node_idx_usize]).parent_index.unwrap();
+        let node_parent = &mut graph.0[node_parent_idx];
+        if node_parent.child_index.unwrap() == node_idx {
+            node_parent.child_index = node_sibling_idx;
+        } else {
+            Hierarchy::loop_over_children(graph, node_parent_idx, |node: &mut Node| {
+                if node.sibling_index == Some(node_idx) {
+                    node.sibling_index = node_sibling_idx;
+                }
+            });
+        }
+    }
+
+    fn link_node(graph: &mut NodeGraph, node_idx: NonZeroUsize, parent: usize) {
+        let old_root_child = graph.0[parent].child_index.replace(node_idx);
+        graph.0[usize::from(node_idx)].sibling_index = old_root_child;
     }
 
     fn loop_over_children<F: FnMut(&mut Node)>(graph: &mut NodeGraph, node_idx: usize, mut op: F) {
