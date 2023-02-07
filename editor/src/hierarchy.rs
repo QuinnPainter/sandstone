@@ -162,4 +162,70 @@ impl Hierarchy {
             }
         }
     }
+
+    pub fn delete_node(&mut self, project_data: &mut ProjectData, node_idx: NonZeroUsize) {
+        // Deselect node just in case it is deleted
+        self.selected_node_idx = None;
+
+        let node_idx_usize = usize::from(node_idx);
+        if let Some(graph) = project_data.graphs.get_mut(self.current_graph_idx) {
+            // Unlink node from the graph
+            let node_sibling_idx = (&graph.0[node_idx_usize]).sibling_index;
+            let node_parent_idx = (&graph.0[node_idx_usize]).parent_index.unwrap();
+            let node_parent = &mut graph.0[node_parent_idx];
+            if node_parent.child_index.unwrap() == node_idx {
+                node_parent.child_index = node_sibling_idx;
+            } else {
+                Hierarchy::loop_over_children(graph, node_parent_idx, |node: &mut Node| {
+                    if node.sibling_index == Some(node_idx) {
+                        node.sibling_index = node_sibling_idx;
+                    }
+                });
+            }
+
+            // Put all of the nodes children into a stack
+            // optimisation todo: could consolidate these into one vec, and just increment an index instead of popping
+            let mut to_delete_stack: Vec<usize> = vec![node_idx_usize];
+            let mut tree_traverse_stack: Vec<usize> = vec![node_idx_usize];
+            // loop until tree_traversal_stack is empty
+            loop {
+                let cur_node_idx = match tree_traverse_stack.pop() {
+                    Some(x) => x,
+                    None => break
+                };
+                let cur_node = &graph.0[cur_node_idx];
+                // loop over immediate children
+                if let Some(mut cur_child_idx) = cur_node.child_index {
+                    loop {
+                        let cur_child_idx_usize = usize::from(cur_child_idx);
+                        tree_traverse_stack.push(cur_child_idx_usize);
+                        to_delete_stack.push(cur_child_idx_usize);
+                        cur_child_idx = match graph.0[cur_child_idx_usize].sibling_index {
+                            Some(x) => x,
+                            None => break
+                        }
+                    }
+                }
+            }
+
+            // Delete all nodes in the stack
+            for i in to_delete_stack {
+                graph.0.remove(i);
+            }
+        }
+    }
+
+    fn loop_over_children<F: FnMut(&mut Node)>(graph: &mut NodeGraph, node_idx: usize, mut op: F) {
+        let cur_node = &graph.0[node_idx];
+        if let Some(mut cur_child_idx) = cur_node.child_index {
+            loop {
+                let cur_child_idx_usize = usize::from(cur_child_idx);
+                op(&mut graph.0[cur_child_idx_usize]);
+                cur_child_idx = match graph.0[cur_child_idx_usize].sibling_index {
+                    Some(x) => x,
+                    None => break
+                }
+            }
+        }
+    }
 }

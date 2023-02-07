@@ -8,14 +8,17 @@ pub fn draw_inspector(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut Pro
                 if let Some(selected_index) = hierarchy.selected_node_idx {
                     let selected_node = &mut graph.0[selected_index.into()];
                     ui.input_text("Name", &mut selected_node.name).build();
-                    if ui.checkbox("Enabled", &mut selected_node.enabled) {}
-                    /*unsafe {
-                        //if ui.input_float("X", &mut pos_x).build() {}
-                        //if ui.input_float2("Y", &mut pos_y).build() {}
-                        let pos_label = std::ffi::CString::new("Position").unwrap();
-                        imgui::sys::igDragFloat2(pos_label.as_ptr(), &mut pos as *mut ImVec2 as *mut f32,
-                            0.1, 0.0, 0.0, std::ptr::null(), 0);
-                    }*/
+                    ui.checkbox("Enabled", &mut selected_node.enabled);
+                    let mut pos: [u32; 2] = [selected_node.transform.x, selected_node.transform.y];
+                    imgui::Drag::new("Position").build_array(ui, &mut pos);
+                    selected_node.transform.x = pos[0];
+                    selected_node.transform.y = pos[1];
+                    let mut script_id: u32 = selected_node.script_type_id.map(|x| u32::from(x)).unwrap_or(0);
+                    ui.input_scalar("Script ID", &mut script_id).build();
+                    selected_node.script_type_id = std::num::NonZeroU32::new(script_id);
+                    if ui.button("Delete") {
+                        hierarchy.delete_node(project_data, selected_index);
+                    }
                 }
             }
         });

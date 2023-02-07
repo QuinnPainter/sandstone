@@ -160,18 +160,31 @@ pub fn save_project(project_data: &mut ProjectData) {
     std::fs::create_dir_all(&project_data.path).unwrap();
 
     let mut all_saved_graphs: Vec<SavedNodeGraph> = Vec::with_capacity(project_data.graphs.len());
+    let mut old_indices: Vec<usize> = Vec::new();
     for graph in &project_data.graphs {
+        old_indices.clear();
+        old_indices.resize(graph.0.find_last_index().map(|x| x + 1).unwrap_or(0), 0);
         let mut saved_graph = SavedNodeGraph { nodes: Vec::with_capacity(graph.0.num_elements()) };
-        for (_, node) in &graph.0 {
+
+        // Create the nodes with placeholder indices
+        for (i, node) in &graph.0 {
+            old_indices[i] = saved_graph.nodes.len();
             saved_graph.nodes.push(SavedNode {
-                child_index: node.child_index.map(|x| nzusize_to_nzu32(x)),
-                parent_index: node.parent_index.map(|x| x as u32),
-                sibling_index: node.sibling_index.map(|x| nzusize_to_nzu32(x)),
+                child_index: None,
+                parent_index: None,
+                sibling_index: None,
                 name: node.name.clone(),
                 transform: SavedTransform { x: node.transform.x, y: node.transform.y },
                 script_type_id: node.script_type_id,
                 enabled: node.enabled
             });
+        }
+
+        // Wire up the child, parent and sibling relations with the new indices
+        for (snode, (_, node)) in saved_graph.nodes.iter_mut().zip(graph.0.iter()) {
+            snode.child_index = node.child_index.map(|x| NonZeroU32::new(old_indices[usize::from(x)] as u32).unwrap());
+            snode.parent_index = node.parent_index.map(|x| old_indices[usize::from(x)] as u32);
+            snode.sibling_index = node.sibling_index.map(|x| NonZeroU32::new(old_indices[usize::from(x)] as u32).unwrap());
         }
         all_saved_graphs.push(saved_graph);
     }
@@ -190,12 +203,6 @@ pub fn save_project(project_data: &mut ProjectData) {
 fn nzu32_to_nzusize(x: NonZeroU32) -> NonZeroUsize {
     // This is fully safe, as new_unchecked only fails if input is 0 - the input is NonZero
     unsafe { NonZeroUsize::new_unchecked(u32::from(x) as usize) }
-}
-
-#[inline(always)]
-fn nzusize_to_nzu32(x: NonZeroUsize) -> NonZeroU32 {
-    // This is fully safe, as new_unchecked only fails if input is 0 - the input is NonZero
-    unsafe { NonZeroU32::new_unchecked(usize::from(x) as u32) }
 }
 
 enum FileDialogReturnInfo {
