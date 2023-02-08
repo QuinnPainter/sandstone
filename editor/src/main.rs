@@ -1,45 +1,16 @@
 mod ui;
 mod hierarchy;
 mod project_loader;
+mod project_builder;
+mod project_data;
 mod inspector;
 
-use std::{ffi::CString, path::PathBuf};
-//use std::fs::File;
-//use std::io::Write;
+use std::ffi::CString;
 
 fn main() {
-    /*let mut saved_graph = dsengine_common::SavedNodeGraph {nodes: Vec::new()};
-    saved_graph.nodes.push(dsengine_common::SavedNode {
-        child_index: None,
-        sibling_index: None,
-        name: String::from("derp"),
-        transform: dsengine_common::SavedTransform { x: 0, y: 0 },
-        script_type_id: Some(core::num::NonZeroU32::new(1).unwrap()),
-        enabled: true
-    });
-    let mut prefabs = dsengine_common::SavedPrefabs(Vec::new());
-    prefabs.0.push(saved_graph);
-    let mut saved_graph = dsengine_common::SavedNodeGraph {nodes: Vec::new()};
-    saved_graph.nodes.push(dsengine_common::SavedNode {
-        child_index: None,
-        sibling_index: None,
-        name: String::from("flerp"),
-        transform: dsengine_common::SavedTransform { x: 0, y: 0 },
-        script_type_id: Some(core::num::NonZeroU32::new(2).unwrap()),
-        enabled: true
-    });
-    prefabs.0.push(saved_graph);
-
-    let a = dsengine_common::serialize_prefabs(&prefabs);
-    {
-        let mut prefab_file = File::create("../test/prefab_data.bin").unwrap();
-        prefab_file.write_all(&a).unwrap();
-    }
-    println!("{:?}", a);*/
-
     let mut hierarchy_obj = hierarchy::Hierarchy::new();
     let mut proj_loader = project_loader::ProjectLoader::new();
-    let mut project_data = ProjectData::new();
+    let mut project_data = project_data::ProjectData::new();
     
     let mut first_loop = true;
 
@@ -66,13 +37,13 @@ fn main() {
                 let mut tmp_id = dockspace_id;
                 let dock_id_inspector = imgui::sys::igDockBuilderSplitNode(tmp_id,
                     imgui::sys::ImGuiDir_Right, 0.20,
-                    std::ptr::null::<u32>() as *mut u32, &mut tmp_id as *mut u32);
+                    std::ptr::null_mut::<u32>(), &mut tmp_id as *mut u32);
                 let dock_id_files = imgui::sys::igDockBuilderSplitNode(tmp_id,
                     imgui::sys::ImGuiDir_Down, 0.20,
-                    std::ptr::null::<u32>() as *mut u32, &mut tmp_id as *mut u32);
+                    std::ptr::null_mut::<u32>(), &mut tmp_id as *mut u32);
                 let dock_id_hierarchy = imgui::sys::igDockBuilderSplitNode(tmp_id,
                     imgui::sys::ImGuiDir_Left, 0.20,
-                    std::ptr::null::<u32>() as *mut u32, &mut tmp_id as *mut u32);
+                    std::ptr::null_mut::<u32>(), &mut tmp_id as *mut u32);
 
                 imgui::sys::igDockBuilderDockWindow(hierarchy_name.as_ptr(), dock_id_hierarchy);
                 imgui::sys::igDockBuilderDockWindow(graphs_name.as_ptr(), dock_id_hierarchy);
@@ -105,6 +76,9 @@ fn main() {
                     *exit = true;
                 }
             });
+            if ui.menu_item("Build") {
+                project_builder::build(&mut project_data);
+            }
             if ui.menu_item("About") {}
         });
 
@@ -121,20 +95,4 @@ fn main() {
                 ui.text("files go here");
             });
     });
-}
-
-pub struct ProjectData {
-    path: PathBuf,
-    name: String,
-    graphs: Vec<hierarchy::NodeGraph>
-}
-
-impl ProjectData {
-    fn new() -> Self {
-        Self {
-            path: PathBuf::new(),
-            name: String::new(),
-            graphs: Vec::new()
-        }
-    }
 }

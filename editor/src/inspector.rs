@@ -1,5 +1,5 @@
 use imgui::Ui;
-use crate::{hierarchy::Hierarchy, ProjectData};
+use crate::{hierarchy::Hierarchy, project_data::ProjectData};
 
 pub fn draw_inspector(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut ProjectData) {
     ui.window("Inspector")

@@ -4,10 +4,9 @@ use std::path::{Path, PathBuf};
 use std::fs::File;
 use std::io::Write;
 use std::num::{NonZeroU32, NonZeroUsize};
-use dsengine_common::{SavedNodeGraph, SavedNode, SavedTransform};
 use imgui::Ui;
 use serde::{Serialize, Deserialize};
-use crate::ProjectData;
+use crate::project_data::ProjectData;
 use crate::hierarchy::{NodeGraph, Node, Transform, Hierarchy};
 
 pub struct ProjectLoader {
@@ -158,40 +157,10 @@ fn load_project(path: &Path, project_data: &mut ProjectData, hierarchy: &mut Hie
 pub fn save_project(project_data: &mut ProjectData) {
     // todo: handle IO errors
     std::fs::create_dir_all(&project_data.path).unwrap();
-
-    let mut all_saved_graphs: Vec<SavedNodeGraph> = Vec::with_capacity(project_data.graphs.len());
-    let mut old_indices: Vec<usize> = Vec::new();
-    for graph in &project_data.graphs {
-        old_indices.clear();
-        old_indices.resize(graph.0.find_last_index().map(|x| x + 1).unwrap_or(0), 0);
-        let mut saved_graph = SavedNodeGraph { nodes: Vec::with_capacity(graph.0.num_elements()) };
-
-        // Create the nodes with placeholder indices
-        for (i, node) in &graph.0 {
-            old_indices[i] = saved_graph.nodes.len();
-            saved_graph.nodes.push(SavedNode {
-                child_index: None,
-                parent_index: None,
-                sibling_index: None,
-                name: node.name.clone(),
-                transform: SavedTransform { x: node.transform.x, y: node.transform.y },
-                script_type_id: node.script_type_id,
-                enabled: node.enabled
-            });
-        }
-
-        // Wire up the child, parent and sibling relations with the new indices
-        for (snode, (_, node)) in saved_graph.nodes.iter_mut().zip(graph.0.iter()) {
-            snode.child_index = node.child_index.map(|x| NonZeroU32::new(old_indices[usize::from(x)] as u32).unwrap());
-            snode.parent_index = node.parent_index.map(|x| old_indices[x] as u32);
-            snode.sibling_index = node.sibling_index.map(|x| NonZeroU32::new(old_indices[usize::from(x)] as u32).unwrap());
-        }
-        all_saved_graphs.push(saved_graph);
-    }
     
     let saved_project_data = SavedProjectData {
         name: project_data.name.clone(),
-        prefabs: all_saved_graphs
+        prefabs: project_data.export_saved_graph()
     };
     let ser_project_data = ron::ser::to_string_pretty(&saved_project_data, ron::ser::PrettyConfig::default()).unwrap();
 

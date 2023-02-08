@@ -1,7 +1,7 @@
 use std::num::{NonZeroUsize, NonZeroU32};
 use imgui::{Ui, TreeNodeFlags};
 use stable_vec::StableVec;
-use crate::ProjectData;
+use crate::project_data::ProjectData;
 
 #[derive(Default)]
 pub struct Transform {
