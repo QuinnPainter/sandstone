@@ -140,9 +140,9 @@ fn load_project(path: &Path, project_data: &mut ProjectData, hierarchy: &mut Hie
         let mut new_graph = NodeGraph::new();
         for node in graph.nodes {
             new_graph.0.push(Node {
-                child_index: node.child_index.map(|x| nzu32_to_nzusize(x)),
+                child_index: node.child_index.map(nzu32_to_nzusize),
                 parent_index: node.parent_index.map(|x| x as usize),
-                sibling_index: node.sibling_index.map(|x| nzu32_to_nzusize(x)),
+                sibling_index: node.sibling_index.map(nzu32_to_nzusize),
                 name: node.name,
                 transform: Transform { x: node.transform.x, y: node.transform.y },
                 script_type_id: node.script_type_id,
@@ -183,7 +183,7 @@ pub fn save_project(project_data: &mut ProjectData) {
         // Wire up the child, parent and sibling relations with the new indices
         for (snode, (_, node)) in saved_graph.nodes.iter_mut().zip(graph.0.iter()) {
             snode.child_index = node.child_index.map(|x| NonZeroU32::new(old_indices[usize::from(x)] as u32).unwrap());
-            snode.parent_index = node.parent_index.map(|x| old_indices[usize::from(x)] as u32);
+            snode.parent_index = node.parent_index.map(|x| old_indices[x] as u32);
             snode.sibling_index = node.sibling_index.map(|x| NonZeroU32::new(old_indices[usize::from(x)] as u32).unwrap());
         }
         all_saved_graphs.push(saved_graph);

@@ -3,17 +3,10 @@ use imgui::{Ui, TreeNodeFlags};
 use stable_vec::StableVec;
 use crate::ProjectData;
 
+#[derive(Default)]
 pub struct Transform {
     pub x: u32,
     pub y: u32
-}
-impl Default for Transform {
-    fn default() -> Self {
-        Self {
-            x: 0,
-            y: 0
-        }
-    }
 }
 
 pub struct Node {
@@ -68,7 +61,7 @@ impl Hierarchy {
                             let mut node_name;
                             loop {
                                 node_name = format!("Node {node_number}");
-                                if graph.0.iter().find(|&(_, n)| n.name == node_name).is_none() {
+                                if !graph.0.iter().any(|(_, n)| n.name == node_name) {
                                     break;
                                 }
                                 node_number += 1;
@@ -204,25 +197,7 @@ impl Hierarchy {
             Hierarchy::unlink_node(graph, node_idx);
 
             // Put all of the nodes children into a stack
-            // optimisation todo: could consolidate these into one vec, and just increment an index instead of popping
             let mut to_delete_stack: Vec<usize> = vec![node_idx_usize];
-            /*let mut tree_traverse_stack: Vec<usize> = vec![node_idx_usize];
-            // loop until tree_traversal_stack is empty
-            while let Some(cur_node_idx) = tree_traverse_stack.pop() {
-                let cur_node = &graph.0[cur_node_idx];
-                // loop over immediate children
-                if let Some(mut cur_child_idx) = cur_node.child_index {
-                    loop {
-                        let cur_child_idx_usize = usize::from(cur_child_idx);
-                        tree_traverse_stack.push(cur_child_idx_usize);
-                        to_delete_stack.push(cur_child_idx_usize);
-                        cur_child_idx = match graph.0[cur_child_idx_usize].sibling_index {
-                            Some(x) => x,
-                            None => break
-                        }
-                    }
-                }
-            }*/
             Hierarchy::loop_over_children_recursive(graph, node_idx_usize, |_, idx| {
                 to_delete_stack.push(idx);
             });
@@ -236,8 +211,8 @@ impl Hierarchy {
     
     fn unlink_node(graph: &mut NodeGraph, node_idx: NonZeroUsize) {
         let node_idx_usize = usize::from(node_idx);
-        let node_sibling_idx = (&graph.0[node_idx_usize]).sibling_index;
-        let node_parent_idx = (&graph.0[node_idx_usize]).parent_index.unwrap();
+        let node_sibling_idx = graph.0[node_idx_usize].sibling_index;
+        let node_parent_idx = graph.0[node_idx_usize].parent_index.unwrap();
         let node_parent = &mut graph.0[node_parent_idx];
         if node_parent.child_index.unwrap() == node_idx {
             node_parent.child_index = node_sibling_idx;
