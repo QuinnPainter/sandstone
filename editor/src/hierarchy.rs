@@ -36,7 +36,13 @@ impl NodeGraph {
 pub struct Hierarchy {
     pub current_graph_idx: usize,
     pub selected_node_idx: Option<NonZeroUsize>,
-    new_graph_name_buffer: String
+    new_graph_name_buffer: String,
+    pending_node_moves: Vec<NodeMove>
+}
+
+struct NodeMove {
+    pub node_idx: usize,
+    pub new_parent_idx: usize
 }
 
 impl Hierarchy {
@@ -44,7 +50,8 @@ impl Hierarchy {
         Self {
             current_graph_idx: 0,
             selected_node_idx: None,
-            new_graph_name_buffer: String::new()
+            new_graph_name_buffer: String::new(),
+            pending_node_moves: Vec::new()
         }
     }
 
@@ -68,7 +75,7 @@ impl Hierarchy {
                             }
                             let new_index = graph.0.push(Node {
                                 child_index: None,
-                                parent_index: Some(0), // parent is root node
+                                parent_index: None,
                                 sibling_index: None,
                                 name: node_name,
                                 transform: Transform::default(),
@@ -112,6 +119,30 @@ impl Hierarchy {
                     self.new_graph_name_buffer.clear();
                 }
             });
+
+        // Process the pending node moves
+        if let Some(graph) = project_data.graphs.get_mut(self.current_graph_idx) {
+            while let Some(node_move) = self.pending_node_moves.pop() {
+                let mut valid_move = true;
+
+                // check if the new parent is the same node that is being moved
+                if node_move.node_idx == node_move.new_parent_idx {
+                    valid_move = false;
+                }
+
+                // check if the new parent is actually a child of the node
+                Hierarchy::loop_over_children_recursive(graph, node_move.node_idx, |_, idx| {
+                    if idx == node_move.new_parent_idx {
+                        valid_move = false;
+                    }
+                });
+                
+                if valid_move {
+                    Hierarchy::unlink_node(graph, NonZeroUsize::new(node_move.node_idx).unwrap());
+                    Hierarchy::link_node(graph, NonZeroUsize::new(node_move.node_idx).unwrap(), node_move.new_parent_idx);
+                }
+            }
+        }
     }
 
     fn draw_hierarchy_node(&mut self, ui: &Ui, project_data: &ProjectData, node_idx: usize) {
@@ -122,6 +153,7 @@ impl Hierarchy {
                 if node_idx != 0 {
                     let mut flags = TreeNodeFlags::empty();
                     flags.set(TreeNodeFlags::OPEN_ON_ARROW, true);
+                    flags.set(TreeNodeFlags::DEFAULT_OPEN, true);
                     flags.set(TreeNodeFlags::LEAF, node.child_index.is_none());
                     // could change this to is_some_and if that gets stablised
                     // flags.set(TreeNodeFlags::SELECTED, selected_node_idx.is_some_and(|x| usize::from(x) == node_idx));
@@ -139,7 +171,7 @@ impl Hierarchy {
                     if let Some(target) = ui.drag_drop_target() {
                         let drag_drop_flags = imgui::DragDropFlags::empty();
                         if let Some(Ok(payload)) = target.accept_payload::<usize, _>("HierarchyDragDrop", drag_drop_flags) {
-                            //set node_idx parent to payload.data
+                            self.pending_node_moves.push(NodeMove { node_idx: payload.data, new_parent_idx: node_idx });
                         }
                         target.pop();
                     }
@@ -174,13 +206,9 @@ impl Hierarchy {
             // Put all of the nodes children into a stack
             // optimisation todo: could consolidate these into one vec, and just increment an index instead of popping
             let mut to_delete_stack: Vec<usize> = vec![node_idx_usize];
-            let mut tree_traverse_stack: Vec<usize> = vec![node_idx_usize];
+            /*let mut tree_traverse_stack: Vec<usize> = vec![node_idx_usize];
             // loop until tree_traversal_stack is empty
-            loop {
-                let cur_node_idx = match tree_traverse_stack.pop() {
-                    Some(x) => x,
-                    None => break
-                };
+            while let Some(cur_node_idx) = tree_traverse_stack.pop() {
                 let cur_node = &graph.0[cur_node_idx];
                 // loop over immediate children
                 if let Some(mut cur_child_idx) = cur_node.child_index {
@@ -194,7 +222,10 @@ impl Hierarchy {
                         }
                     }
                 }
-            }
+            }*/
+            Hierarchy::loop_over_children_recursive(graph, node_idx_usize, |_, idx| {
+                to_delete_stack.push(idx);
+            });
 
             // Delete all nodes in the stack
             for i in to_delete_stack {
@@ -211,7 +242,7 @@ impl Hierarchy {
         if node_parent.child_index.unwrap() == node_idx {
             node_parent.child_index = node_sibling_idx;
         } else {
-            Hierarchy::loop_over_children(graph, node_parent_idx, |node: &mut Node| {
+            Hierarchy::loop_over_children(graph, node_parent_idx, |node, _| {
                 if node.sibling_index == Some(node_idx) {
                     node.sibling_index = node_sibling_idx;
                 }
@@ -221,15 +252,29 @@ impl Hierarchy {
 
     fn link_node(graph: &mut NodeGraph, node_idx: NonZeroUsize, parent: usize) {
         let old_root_child = graph.0[parent].child_index.replace(node_idx);
-        graph.0[usize::from(node_idx)].sibling_index = old_root_child;
+        let node = &mut graph.0[usize::from(node_idx)];
+        node.sibling_index = old_root_child;
+        node.parent_index = Some(parent);
     }
 
-    fn loop_over_children<F: FnMut(&mut Node)>(graph: &mut NodeGraph, node_idx: usize, mut op: F) {
+    fn loop_over_children_recursive<F: FnMut(&mut Node, usize)>(graph: &mut NodeGraph, node_idx: usize, mut op: F) {
+        let mut tree_traverse_stack: Vec<usize> = vec![node_idx];
+        // loop until tree_traverse_stack is empty
+        while let Some(cur_node_idx) = tree_traverse_stack.pop() {
+            // loop over immediate children
+            Hierarchy::loop_over_children(graph, cur_node_idx, |node, idx| {
+                tree_traverse_stack.push(idx);
+                op(node, idx);
+            });
+        }
+    }
+
+    fn loop_over_children<F: FnMut(&mut Node, usize)>(graph: &mut NodeGraph, node_idx: usize, mut op: F) {
         let cur_node = &graph.0[node_idx];
         if let Some(mut cur_child_idx) = cur_node.child_index {
             loop {
                 let cur_child_idx_usize = usize::from(cur_child_idx);
-                op(&mut graph.0[cur_child_idx_usize]);
+                op(&mut graph.0[cur_child_idx_usize], cur_child_idx_usize);
                 cur_child_idx = match graph.0[cur_child_idx_usize].sibling_index {
                     Some(x) => x,
                     None => break
