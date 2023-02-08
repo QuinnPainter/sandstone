@@ -157,8 +157,8 @@ impl Hierarchy {
                         self.selected_node_idx = Some(NonZeroUsize::new(node_idx).unwrap());
                     }
                     if let Some(tooltip) = ui.drag_drop_source_config("HierarchyDragDrop").begin_payload(node_idx) {
-                        // The tooltip displayed when dragging. This allocates every frame - could be improved?
-                        ui.text(node.name.clone());
+                        // The tooltip displayed when dragging
+                        ui.text(&node.name);
                         tooltip.end();
                     }
                     if let Some(target) = ui.drag_drop_target() {
