@@ -1,5 +1,6 @@
 use std::sync::mpsc;
 use std::thread;
+use std::process::Command;
 use std::path::{Path, PathBuf};
 use std::fs::File;
 use std::io::Write;
@@ -123,6 +124,16 @@ fn create_new_project(path: &Path, name: String, project_data: &mut ProjectData,
     project_data.path = path.to_path_buf();
     project_data.graphs = Vec::new();
     save_project(project_data);
+
+    // Create user code crate
+    Command::new("cargo")
+        .arg("new")
+        .arg("--lib")
+        .args(["--vcs", "none"])
+        .args(["--name", "dsengine-user-code"])
+        .arg(path.join("code").to_str().unwrap())
+        .output().unwrap();
+
     load_project(path, project_data, hierarchy);
 }
 
