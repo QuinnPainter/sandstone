@@ -22,7 +22,7 @@ impl ProjectData {
         let mut old_indices: Vec<usize> = Vec::new();
         for graph in &self.graphs {
             old_indices.clear();
-            old_indices.resize(graph.0.find_last_index().map(|x| x + 1).unwrap_or(0), 0);
+            old_indices.resize(graph.0.find_last_index().map_or(0, |x| x + 1), 0);
             let mut saved_graph = SavedNodeGraph { nodes: Vec::with_capacity(graph.0.num_elements()) };
     
             // Create the nodes with placeholder indices

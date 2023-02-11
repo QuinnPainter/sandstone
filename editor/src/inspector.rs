@@ -13,7 +13,7 @@ pub fn draw_inspector(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut Pro
                     imgui::Drag::new("Position").build_array(ui, &mut pos);
                     selected_node.transform.x = pos[0];
                     selected_node.transform.y = pos[1];
-                    let mut script_id: u32 = selected_node.script_type_id.map(u32::from).unwrap_or(0);
+                    let mut script_id: u32 = selected_node.script_type_id.map_or(0, u32::from);
                     ui.input_scalar("Script ID", &mut script_id).build();
                     selected_node.script_type_id = std::num::NonZeroU32::new(script_id);
                     if ui.button("Delete") {
