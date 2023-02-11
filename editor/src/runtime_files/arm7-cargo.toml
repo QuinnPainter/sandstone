@@ -1,0 +1,10 @@
+[package]
+name = "arm7"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dsengine_arm7 = { path = "../../engine/arm7" }
+
+[profile.dev]
+opt-level = 3

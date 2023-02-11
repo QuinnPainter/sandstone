@@ -1,0 +1,10 @@
+[package]
+name = "arm9"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dsengine = { path = "../../engine/arm9" }
+
+[profile.dev]
+opt-level = 3

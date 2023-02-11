@@ -2,13 +2,19 @@ use std::io::Write;
 use quote::quote;
 use crate::project_data::ProjectData;
 
+static ARM9_CARGO: &str = include_str!("runtime_files/arm9-cargo.toml");
+static ARM9_CARGO_CONFIG: &str = include_str!("runtime_files/arm9-cargo-config.toml");
+static ARM7_CARGO: &str = include_str!("runtime_files/arm7-cargo.toml");
+static ARM7_CARGO_CONFIG: &str = include_str!("runtime_files/arm7-cargo-config.toml");
+static RUST_TOOLCHAIN: &str = include_str!("runtime_files/rust-toolchain.toml");
+
 pub fn build(project_data: &mut ProjectData) {
     // todo: handle IO errors
     // Create build folder if it doesn't exist
     let build_path = project_data.path.join("build");
     std::fs::create_dir_all(&build_path).unwrap();
 
-    let s = quote! {
+    let arm9_code = quote! {
         #![no_std]
         #![no_main]
         extern crate alloc;
@@ -21,11 +27,21 @@ pub fn build(project_data: &mut ProjectData) {
             }
         }
     };
-    // cargo new,
-    // .cargo/config.toml (different arm9 arm7)
-    // rust-toolchain.toml
-    // cargo add user code and dsengine / dsengine_arm7 as dependency
-    println!("{}", s.to_string());
+    create_runtime_crate(true, &build_path, &arm9_code.to_string());
+
+    let arm7_code = quote! {
+        #![no_std]
+        #![no_main]
+        extern crate alloc;
+
+        use dsengine_arm7;
+
+        #[no_mangle]
+        extern "C" fn main() -> ! {
+            dsengine_arm7::main_loop();
+        }
+    };
+    create_runtime_crate(false, &build_path, &arm7_code.to_string());
     /*let mut saved_graph = dsengine_common::SavedNodeGraph {nodes: Vec::new()};
     saved_graph.nodes.push(dsengine_common::SavedNode {
         child_index: None,
@@ -58,3 +74,37 @@ pub fn build(project_data: &mut ProjectData) {
     let mut graph_file = std::fs::File::create(build_path.join("graph_data.bin")).unwrap();
     graph_file.write_all(&serialised_graphs).unwrap();
 }
+
+fn create_runtime_crate(arm9: bool, path: &std::path::Path, code: &str) {
+    let (runtime_path, cargo_toml, cargo_config);
+    if arm9 {
+        runtime_path = path.join("arm9_runtime");
+        cargo_toml = ARM9_CARGO;
+        cargo_config = ARM9_CARGO_CONFIG;
+    } else {
+        runtime_path = path.join("arm7_runtime");
+        cargo_toml = ARM7_CARGO;
+        cargo_config = ARM7_CARGO_CONFIG;
+    }
+    // Regenerate crate if it doesn't exist
+    if !runtime_path.join("Cargo.toml").exists() {
+        // Even if the cargo toml is missing, folder may still exist. in that case, delete it so we get a clean slate
+        match std::fs::remove_dir_all(&runtime_path) {
+            Ok(_) => (),
+            // totally fine if the folder was not found, we were trying to delete it anyway!
+            Err(err) if err.kind() == std::io::ErrorKind::NotFound => (),
+            Err(_) => () // todo: handle other errors
+        }
+
+        // Create directories
+        std::fs::create_dir_all(runtime_path.join(".cargo")).unwrap();
+        std::fs::create_dir_all(runtime_path.join("src")).unwrap();
+
+        // Create files
+        std::fs::write(runtime_path.join("Cargo.toml"), cargo_toml).unwrap();
+        std::fs::write(runtime_path.join(".cargo/config.toml"), cargo_config).unwrap();
+        std::fs::write(runtime_path.join("rust-toolchain.toml"), RUST_TOOLCHAIN).unwrap();
+    }
+    std::fs::write(runtime_path.join("src/main.rs"), code).unwrap();
+}
+ 
