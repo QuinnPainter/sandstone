@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 dsengine = { path = "../../engine/arm9" }
+dsengine-user-code = { path = "../code" }
 
 [profile.dev]
 opt-level = 3

@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 dsengine_common = { path = "../common" }
+ironds-romtool = { git = "https://github.com/QuinnPainter/ironds-romtool" }
 imgui = { version = "0.10.0", features = ["docking"] }
 imgui-winit-support = "0.10.0"
 imgui-glow-renderer = "0.10.0"
