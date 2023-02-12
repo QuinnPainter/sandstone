@@ -69,7 +69,7 @@ impl<T> Pool<T> {
     #[inline]
     #[must_use]
     pub fn borrow(&self, handle: Handle<T>) -> &T {
-        self.try_borrow(handle).expect(alloc::format!("Tried to borrow from pool with an invalid handle: {:?}", handle).as_str())
+        self.try_borrow(handle).unwrap_or_else(|| panic!("Tried to borrow from pool with an invalid handle: {handle:?}"))
     }
 
     #[inline]
@@ -86,7 +86,7 @@ impl<T> Pool<T> {
     #[inline]
     #[must_use]
     pub fn borrow_mut(&mut self, handle: Handle<T>) -> &mut T {
-        self.try_borrow_mut(handle).expect(alloc::format!("Tried to mutably borrow from pool with an invalid handle: {:?}", handle).as_str())
+        self.try_borrow_mut(handle).unwrap_or_else(|| panic!("Tried to mutably borrow from pool with an invalid handle: {handle:?}"))
     }
 
     #[inline]
@@ -103,7 +103,7 @@ impl<T> Pool<T> {
     #[inline]
     #[must_use]
     pub fn take(&mut self, handle: Handle<T>) -> (Ticket<T>, T) {
-        self.try_take(handle).expect(alloc::format!("Tried to take from pool with an invalid handle: {:?}", handle).as_str())
+        self.try_take(handle).unwrap_or_else(|| panic!("Tried to take from pool with an invalid handle: {handle:?}"))
     }
 
     #[inline]
@@ -170,7 +170,7 @@ impl<T> Pool<T> {
             entry.data.replace(data);
 
             Handle {
-                index: index,
+                index,
                 generation: entry.generation,
                 phantom_type: PhantomData::<T>
             }

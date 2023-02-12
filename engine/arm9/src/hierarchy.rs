@@ -80,20 +80,17 @@ impl Hierarchy {
                 sibling_handle: None,
                 name: node.name.clone(),
                 transform: Transform { x: node.transform.x, y: node.transform.y },
-                script_data: match node.script_type_id {
-                    Some(id) => Some(NodeScriptData {
-                        type_id: id,
-                        script: run_script_factory(id)
-                    }),
-                    None => None
-                },
+                script_data: node.script_type_id.map(|id| NodeScriptData {
+                    type_id: id,
+                    script: run_script_factory(id)
+                }),
                 enabled: node.enabled
             }));
         }
         
         // Wire up the child, parent and sibling handles for the new nodes
         let mut prefab_root: Option<Handle<Node>> = None;
-        for (snode, handle) in (&saved_graph.nodes).iter().zip(new_handles.iter()) {
+        for (snode, handle) in saved_graph.nodes.iter().zip(new_handles.iter()) {
             let node = self.object_pool.borrow_mut(*handle);
             node.child_handle = snode.child_index.map(|idx| new_handles[u32::from(idx) as usize]);
             node.sibling_handle = snode.sibling_index.map(|idx| new_handles[u32::from(idx) as usize]);
