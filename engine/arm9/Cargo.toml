@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-ironds = { path = "../../../ironds", features = ["arm9"] }
+ironds = { git = "https://github.com/QuinnPainter/ironds", features = ["arm9"] }
 dsengine_common = { path = "../../common" }
 
 [profile.dev]

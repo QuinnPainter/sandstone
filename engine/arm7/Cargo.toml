@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-ironds = { path = "../../../ironds", features = ["arm7"] }
+ironds = { git = "https://github.com/QuinnPainter/ironds", features = ["arm7"] }
 
 [profile.dev]
 opt-level = 3

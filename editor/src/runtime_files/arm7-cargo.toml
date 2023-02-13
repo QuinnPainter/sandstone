@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-dsengine_arm7 = { path = "../../engine/arm7" }
+dsengine_arm7 = { git = "https://github.com/QuinnPainter/dsengine" }
 
 [profile.dev]
 opt-level = 3

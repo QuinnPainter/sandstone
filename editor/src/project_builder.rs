@@ -37,7 +37,7 @@ pub fn build(project_data: &mut ProjectData) {
         #[no_mangle]
         extern "C" fn main() -> ! {
             dsengine::hierarchy::init_script_factory(script_factory);
-            dsengine::hierarchy::init_prefab_data(include_bytes!("../../prefab_data.bin"));
+            dsengine::hierarchy::init_prefab_data(include_bytes!("../../graph_data.bin"));
             dsengine::main_loop();
         }
     };
