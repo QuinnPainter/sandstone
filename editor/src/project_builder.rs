@@ -96,15 +96,23 @@ pub fn build(project_data: &mut ProjectData) {
 fn build_rom(rom_path: &Path, arm9_path: &Path, arm7_path: &Path, release: bool) -> Result<(), String> {
     build_runtime_crate(arm9_path, release)?;
     build_runtime_crate(arm7_path, release)?;
-    ironds_romtool::build_rom(rom_path, arm9_path, arm7_path)?;
+    //ironds_romtool::build_rom(rom_path, &arm9_path.join("arm9"), &arm7_path.join("arm7"))?;
+    Command::new("ndstool")
+        .args(["-c", rom_path.to_str().unwrap()])
+        .args(["-9", arm9_path.to_str().unwrap()])
+        .args(["-7", arm7_path.to_str().unwrap()])
+        .output().unwrap();
     Ok(())
 }
 
 fn build_runtime_crate(path: &Path, release: bool) -> Result<(), String> {
     let profile = if release { "release" } else { "dev" };
     let cargo_output = Command::new("cargo")
+        .arg("+nightly")
         .arg("build")
         .args(["--profile", profile])
+        .args(["-Z", "unstable-options"]) // Needed for --out-dir
+        .args(["--out-dir", "."]) // Put output binary at the current path
         .current_dir(path)
         .output().unwrap();
     if cargo_output.status.success() {
