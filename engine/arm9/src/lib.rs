@@ -18,8 +18,8 @@ pub fn main_loop() -> ! {
 
     let mut hierarchy: Hierarchy = Hierarchy::new();
 
+    // Load main scene
     hierarchy.spawn_prefab(0, hierarchy.root);
-    hierarchy.spawn_prefab(1, hierarchy.root);
     hierarchy.run_pending_script_starts();
     //hierarchy.pretty_print_hierarchy_structure();
 
