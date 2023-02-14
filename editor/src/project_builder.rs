@@ -96,19 +96,22 @@ pub fn build(project_data: &mut ProjectData) {
 fn build_rom(rom_path: &Path, arm9_path: &Path, arm7_path: &Path, release: bool) -> Result<(), String> {
     build_runtime_crate(arm9_path, release)?;
     build_runtime_crate(arm7_path, release)?;
-    //ironds_romtool::build_rom(rom_path, &arm9_path.join("arm9"), &arm7_path.join("arm7"))?;
-    Command::new("ndstool")
+    ironds_romtool::build_rom(rom_path, &arm9_path.join("arm9"), &arm7_path.join("arm7"))?;
+    /*Command::new("ndstool")
         .args(["-c", rom_path.to_str().unwrap()])
         .args(["-9", arm9_path.to_str().unwrap()])
         .args(["-7", arm7_path.to_str().unwrap()])
-        .output().unwrap();
+        .output().unwrap();*/
     Ok(())
 }
 
 fn build_runtime_crate(path: &Path, release: bool) -> Result<(), String> {
     let profile = if release { "release" } else { "dev" };
-    let cargo_output = Command::new("cargo")
-        .arg("+nightly")
+    // Running Cargo directly doesn't work on windows (it doesn't allow us to select Nightly)
+    // so we can just run it through rustup and select nightly while we're at it.
+    let cargo_output = Command::new("rustup")
+        .args(["run", "nightly"])
+        .arg("cargo")
         .arg("build")
         .args(["--profile", profile])
         .args(["-Z", "unstable-options"]) // Needed for --out-dir

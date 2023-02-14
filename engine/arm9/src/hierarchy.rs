@@ -69,7 +69,8 @@ impl Hierarchy {
     }
 
     pub fn spawn_prefab(&mut self, index: u32, parent: Handle<Node>) {
-        let saved_graph = self.saved_prefab_data.0.get(index as usize).expect("Tried to spawn invalid prefab index");
+        let saved_graph = self.saved_prefab_data.0.get(index as usize)
+            .unwrap_or_else(|| panic!("Tried to spawn invalid prefab index: {index}"));
         let mut new_handles: Vec<Handle<Node>> = Vec::new();
 
         // Push the nodes onto the object pool, with placeholder child, parent and sibling handles
