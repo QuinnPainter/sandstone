@@ -1,7 +1,0 @@
-{
-    // hide arm9 and arm7 dirs from root as they are seperate views in the workspace
-    "files.exclude": {
-        "arm9": true,
-        "arm7" : true
-    }
-}
