@@ -76,9 +76,15 @@ fn main() {
                     *exit = true;
                 }
             });
-            if ui.menu_item("Build") {
-                project_builder::build(&mut project_data);
-            }
+            ui.menu("Run", || {
+                if ui.menu_item("Build") {
+                    project_builder::build(&mut project_data);
+                }
+                if ui.menu_item("Clean Build") {
+                    project_builder::clean_build(&mut project_data);
+                }
+                //ui.menu_item("Build and Run")
+            });
             if ui.menu_item("About") {}
         });
 

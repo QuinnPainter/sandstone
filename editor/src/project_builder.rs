@@ -93,6 +93,17 @@ pub fn build(project_data: &mut ProjectData) {
     }
 }
 
+pub fn clean_build(project_data: &mut ProjectData) {
+    let build_path = project_data.path.join("build");
+    match std::fs::remove_dir_all(&build_path) {
+        Ok(_) => (),
+        // totally fine if the folder was not found, we were trying to delete it anyway!
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => (),
+        Err(_) => () // todo: handle other errors
+    }
+    build(project_data);
+}
+
 fn build_rom(rom_path: &Path, arm9_path: &Path, arm7_path: &Path, release: bool) -> Result<(), String> {
     build_runtime_crate(arm9_path, release)?;
     build_runtime_crate(arm7_path, release)?;
