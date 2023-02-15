@@ -8,6 +8,8 @@ use ironds as nds;
 pub mod pool;
 pub mod hierarchy;
 
+pub use ironds; // re-export
+
 pub fn main_loop() -> ! {
     nds::interrupt::irq_set_handler(Some(inter));
     nds::interrupt::irq_enable(nds::interrupt::IRQFlags::VBLANK);
