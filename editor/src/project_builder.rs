@@ -18,6 +18,16 @@ pub fn build(project_data: &mut ProjectData) {
     let arm9_path = build_path.join("arm9_runtime");
     let arm7_path = build_path.join("arm7_runtime");
 
+    let cargo_output = Command::new("rustup")
+        .args(["run", "nightly"])
+        .arg("cargo")
+        .arg("rustdoc")
+        .args(["-Z", "unstable-options"]) // Needed for --out-dir
+        .args(["--out-dir", build_path.to_str().unwrap()]) // Put output binary at the current path
+        .arg("--")
+        .args(["--output-format", "json"])
+        .current_dir(project_data.path.join("code"))
+        .output().unwrap();
     let arm9_code = quote! {
         #![no_std]
         #![no_main]
