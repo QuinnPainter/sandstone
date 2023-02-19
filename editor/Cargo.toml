@@ -19,3 +19,4 @@ home = "0.5"
 serde = { version = "1", features = ["derive"] }
 stable-vec = "0.4"
 quote = "1"
+include_dir = "0.7"

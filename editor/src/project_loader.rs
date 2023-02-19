@@ -1,14 +1,16 @@
 use std::sync::mpsc;
 use std::thread;
-use std::process::Command;
 use std::path::{Path, PathBuf};
 use std::fs::File;
 use std::io::Write;
 use std::num::{NonZeroU32, NonZeroUsize};
 use imgui::Ui;
 use serde::{Serialize, Deserialize};
+use include_dir::{include_dir, Dir};
 use crate::project_data::ProjectData;
 use crate::hierarchy::{NodeGraph, Node, Transform, Hierarchy};
+
+static TEMPLATE_CODE: Dir = include_dir!("$CARGO_MANIFEST_DIR/src/template_project_code");
 
 pub struct ProjectLoader {
     new_project_path_buffer: String,
@@ -126,13 +128,7 @@ fn create_new_project(path: &Path, name: String, project_data: &mut ProjectData,
     save_project(project_data);
 
     // Create user code crate
-    Command::new("cargo")
-        .arg("new")
-        .arg("--lib")
-        .args(["--vcs", "none"])
-        .args(["--name", "dsengine-user-code"])
-        .arg(path.join("code").to_str().unwrap())
-        .output().unwrap();
+    TEMPLATE_CODE.extract(path.join("code").to_str().unwrap()).unwrap();
 
     load_project(path, project_data, hierarchy);
 }
