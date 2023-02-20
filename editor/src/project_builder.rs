@@ -1,6 +1,7 @@
 use std::io::Write;
 use std::process::Command;
 use std::path::Path;
+use std::str::FromStr;
 use quote::quote;
 use crate::project_data::ProjectData;
 
@@ -18,16 +19,41 @@ pub fn build(project_data: &mut ProjectData) {
     let arm9_path = build_path.join("arm9_runtime");
     let arm7_path = build_path.join("arm7_runtime");
 
-    let cargo_output = Command::new("rustup")
+    // todo: this code is a travesty. desperately needs cleanup
+    let mut user_script_ids: Vec<(u32, &str)> = Vec::new();
+    // unfortunately out-dir doesn't work here, so target-dir has to do.
+    let user_code_target_path = build_path.join("user-code");
+    let _ = Command::new("rustup")
         .args(["run", "nightly"])
         .arg("cargo")
         .arg("rustdoc")
-        .args(["-Z", "unstable-options"]) // Needed for --out-dir
-        .args(["--out-dir", build_path.to_str().unwrap()]) // Put output binary at the current path
+        .args(["--target-dir", user_code_target_path.to_str().unwrap()])
         .arg("--")
         .args(["--output-format", "json"])
         .current_dir(project_data.path.join("code"))
         .output().unwrap();
+    // todo: would rather not hardcode this path
+    let json_path = user_code_target_path.join("thumbv5te-none-eabi/doc/dsengine_user_code.json");
+    let json_data: serde_json::Value = serde_json::from_slice(&std::fs::read(json_path).unwrap()).unwrap();
+    // Root of the JSON is the Crate, this accesses the Items list
+    // that contains all items in the crate in a flat list.
+    for (_, item) in json_data["index"].as_object().unwrap() {
+        if item["kind"] == "impl" {
+            if item["inner"].get("trait").map_or(false, |tr| tr["name"].as_str().map_or(false, |n| n == "HasTypeId")) {
+                let docstring = item["docs"].as_str().unwrap();
+                if let Some((_, text_after_key)) = docstring.split_once("{script_type_id=") {
+                    let type_id = text_after_key.split('}').take(1).next().unwrap().parse::<u32>().unwrap();
+                    let script_name = item["inner"]["for"]["inner"]["name"].as_str().unwrap();
+                    user_script_ids.push((type_id, script_name));
+                }
+            }
+        }
+    }
+
+    println!("{:?}", user_script_ids);
+    let (script_ids, script_names): (Vec<u32>, Vec<&str>) = user_script_ids.into_iter().unzip();
+    let script_name_tokens = script_names.into_iter().map(|s| proc_macro2::TokenStream::from_str(s).unwrap());
+
     let arm9_code = quote! {
         #![no_std]
         #![no_main]
@@ -38,8 +64,7 @@ pub fn build(project_data: &mut ProjectData) {
 
         fn script_factory(id: NonZeroU32) -> Box<dyn dsengine::Script> {
             match u32::from(id) {
-                1 => Box::new(user_code::Obj1::default()),
-                2 => Box::new(user_code::Obj2::default()),
+                #(#script_ids => Box::new(user_code::#script_name_tokens::default()),)*
                 _ => panic!("Invalid script ID: {}", id)
             }
         }
@@ -64,34 +89,7 @@ pub fn build(project_data: &mut ProjectData) {
         }
     };
     create_runtime_crate(false, &arm7_path, &arm7_code.to_string());
-    /*let mut saved_graph = dsengine_common::SavedNodeGraph {nodes: Vec::new()};
-    saved_graph.nodes.push(dsengine_common::SavedNode {
-        child_index: None,
-        sibling_index: None,
-        name: String::from("derp"),
-        transform: dsengine_common::SavedTransform { x: 0, y: 0 },
-        script_type_id: Some(core::num::NonZeroU32::new(1).unwrap()),
-        enabled: true
-    });
-    let mut prefabs = dsengine_common::SavedPrefabs(Vec::new());
-    prefabs.0.push(saved_graph);
-    let mut saved_graph = dsengine_common::SavedNodeGraph {nodes: Vec::new()};
-    saved_graph.nodes.push(dsengine_common::SavedNode {
-        child_index: None,
-        sibling_index: None,
-        name: String::from("flerp"),
-        transform: dsengine_common::SavedTransform { x: 0, y: 0 },
-        script_type_id: Some(core::num::NonZeroU32::new(2).unwrap()),
-        enabled: true
-    });
-    prefabs.0.push(saved_graph);
 
-    let a = dsengine_common::serialize_prefabs(&prefabs);
-    {
-        let mut prefab_file = File::create("../test/prefab_data.bin").unwrap();
-        prefab_file.write_all(&a).unwrap();
-    }
-    println!("{:?}", a);*/
     let serialised_graphs = dsengine_common::serialize_prefabs(&dsengine_common::SavedPrefabs(project_data.export_saved_graph()));
     let mut graph_file = std::fs::File::create(build_path.join("graph_data.bin")).unwrap();
     graph_file.write_all(&serialised_graphs).unwrap();
