@@ -4,10 +4,14 @@ mod project_loader;
 mod project_builder;
 mod project_data;
 mod inspector;
+mod output_log;
 
 use std::ffi::CString;
 
 fn main() {
+    log::set_boxed_logger(Box::new(output_log::Logger)).unwrap();
+    log::set_max_level(log::LevelFilter::Trace);
+
     let mut hierarchy_obj = hierarchy::Hierarchy::new();
     let mut proj_loader = project_loader::ProjectLoader::new();
     let mut project_data = project_data::ProjectData::new();
@@ -19,6 +23,7 @@ fn main() {
     let inspector_name = CString::new("Inspector").unwrap();
     let world_name = CString::new("World").unwrap();
     let graphs_name = CString::new("Graphs").unwrap();
+    let log_name = CString::new("Log").unwrap();
 
     ui::mainloop(move |ui, exit| {
         //ui.show_demo_window(&mut true);
@@ -48,6 +53,7 @@ fn main() {
                 imgui::sys::igDockBuilderDockWindow(hierarchy_name.as_ptr(), dock_id_hierarchy);
                 imgui::sys::igDockBuilderDockWindow(graphs_name.as_ptr(), dock_id_hierarchy);
                 imgui::sys::igDockBuilderDockWindow(files_name.as_ptr(), dock_id_files);
+                imgui::sys::igDockBuilderDockWindow(log_name.as_ptr(), dock_id_files);
                 imgui::sys::igDockBuilderDockWindow(inspector_name.as_ptr(), dock_id_inspector);
                 imgui::sys::igDockBuilderDockWindow(world_name.as_ptr(), tmp_id);
                 imgui::sys::igDockBuilderFinish(dockspace_id);
@@ -92,13 +98,14 @@ fn main() {
 
         inspector::draw_inspector(ui, &mut hierarchy_obj, &mut project_data);
         hierarchy_obj.draw_hierarchy(ui, &mut project_data);
+        ui.window("Files")
+        .build(|| {
+            ui.text("files go here");
+        });
+        output_log::draw_log(ui);
         ui.window("World")
             .build(|| {
                 ui.text("someday this will work");
-            });
-        ui.window("Files")
-            .build(|| {
-                ui.text("files go here");
             });
     });
 }

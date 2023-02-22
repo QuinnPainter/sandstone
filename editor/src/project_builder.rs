@@ -13,6 +13,7 @@ static RUST_TOOLCHAIN: &str = include_str!("runtime_files/rust-toolchain.toml");
 
 pub fn build(project_data: &mut ProjectData) {
     // todo: handle IO errors
+    log::info!("Starting build...");
     // Create build folder if it doesn't exist
     let build_path = project_data.path.join("build");
     std::fs::create_dir_all(&build_path).unwrap();
@@ -50,7 +51,7 @@ pub fn build(project_data: &mut ProjectData) {
         }
     }
 
-    println!("{:?}", user_script_ids);
+    log::info!("{:?}", user_script_ids);
     let (script_ids, script_names): (Vec<u32>, Vec<&str>) = user_script_ids.into_iter().unzip();
     let script_name_tokens = script_names.into_iter().map(|s| proc_macro2::TokenStream::from_str(s).unwrap());
 
@@ -97,8 +98,9 @@ pub fn build(project_data: &mut ProjectData) {
     let rom_path = build_path.join(project_data.name.clone() + ".nds");
     match build_rom(&rom_path, &arm9_path, &arm7_path, false) {
         Ok(_) => (),
-        Err(msg) => println!("{msg}")
+        Err(msg) => log::error!("{msg}")
     }
+    log::info!("Successfully built {}", rom_path.to_string_lossy());
 }
 
 pub fn clean_build(project_data: &mut ProjectData) {
