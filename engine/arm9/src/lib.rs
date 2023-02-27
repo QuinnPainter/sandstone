@@ -7,6 +7,7 @@ use ironds as nds;
 
 pub mod pool;
 pub mod hierarchy;
+pub mod node;
 
 pub use ironds; // re-export
 
