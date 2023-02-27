@@ -2,8 +2,8 @@ use std::time::Instant;
 
 use glow::HasContext;
 use glutin::{event_loop::EventLoop, WindowedContext};
-use imgui_winit_support::WinitPlatform;
 use imgui::Ui;
+use imgui_winit_support::WinitPlatform;
 
 const TITLE: &str = "dsengine";
 
@@ -15,9 +15,12 @@ pub fn mainloop<F: FnMut(&mut Ui, &mut bool) + 'static>(mut run_app: F) {
     // since it will give us access to a GL context
     let (event_loop, window) = create_window();
     let (mut winit_platform, mut imgui_context) = imgui_init(&window);
-    
+
     // Enable docking
-    imgui_context.io_mut().config_flags.set(imgui::ConfigFlags::DOCKING_ENABLE, true);
+    imgui_context
+        .io_mut()
+        .config_flags
+        .set(imgui::ConfigFlags::DOCKING_ENABLE, true);
 
     // OpenGL context from glow
     let gl = glow_context(&window);
@@ -50,7 +53,7 @@ pub fn mainloop<F: FnMut(&mut Ui, &mut bool) + 'static>(mut run_app: F) {
                 unsafe { ig_renderer.gl_context().clear(glow::COLOR_BUFFER_BIT) };
 
                 let ui = imgui_context.frame();
-                
+
                 run_app(ui, &mut exit);
                 if exit {
                     *control_flow = glutin::event_loop::ControlFlow::Exit;
