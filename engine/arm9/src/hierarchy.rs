@@ -165,7 +165,10 @@ impl Hierarchy {
 
     pub(crate) fn run_one_pending_script_start(&mut self) -> bool{
         if let Some(handle) = self.to_start_stack.pop() {
-            let mut context = ScriptContext { hierarchy: self };
+            let mut context = ScriptContext {
+                hierarchy: self,
+                handle,
+            };
             // this could return None if an object was immediately destroyed after creating it
             let mut script_data = if let Some(item) = context.hierarchy.try_borrow_mut(handle) {
                 if let Some(script_data) = item.script_data.take() {
@@ -188,9 +191,12 @@ impl Hierarchy {
     }
 
     pub(crate) fn run_script_update(&mut self) {
-        let mut context = ScriptContext { hierarchy: self };
-        for i in 0..context.hierarchy.vec_len() {
-            let handle = context.hierarchy.handle_from_index(i);
+        for i in 0..self.vec_len() {
+            let handle = self.handle_from_index(i);
+            let mut context = ScriptContext {
+                hierarchy: self,
+                handle,
+            };
             // this could return None if an object was immediately destroyed after creating it
             let mut script_data = if let Some(item) = context.hierarchy.try_borrow_mut(handle) {
                 if let Some(script_data) = item.script_data.take() {

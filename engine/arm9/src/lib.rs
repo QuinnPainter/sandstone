@@ -2,7 +2,7 @@
 #![feature(nonzero_ops)]
 
 extern crate alloc;
-use hierarchy::Hierarchy;
+use crate::{hierarchy::Hierarchy, pool::Handle, node::Node};
 use ironds as nds;
 
 pub mod pool;
@@ -40,7 +40,8 @@ extern "C" fn inter (f: nds::interrupt::IRQFlags) {
 }
 
 pub struct ScriptContext<'a> {
-    pub hierarchy: &'a mut Hierarchy
+    pub hierarchy: &'a mut Hierarchy,
+    pub handle: Handle<Node>,
 }
 
 pub trait Script: {
