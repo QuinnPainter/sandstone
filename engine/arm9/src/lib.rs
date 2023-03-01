@@ -27,6 +27,7 @@ pub fn main_loop() -> ! {
     //hierarchy.pretty_print_hierarchy_structure();
 
     loop {
+        hierarchy.run_extension_update();
         hierarchy.run_script_update();
         hierarchy.run_pending_script_starts();
 

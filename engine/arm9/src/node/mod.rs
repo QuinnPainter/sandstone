@@ -17,17 +17,21 @@ pub enum NodeExtensionHandle {
 }
 
 impl NodeExtensionHandle {
-    pub(crate) fn from_saved(pools: &mut NodeExtensionPools, saved_node_type: &dsengine_common::SavedNodeExtension) -> Self {
+    pub(crate) fn from_saved(
+        pools: &mut NodeExtensionPools,
+        node_handle: Handle<Node>,
+        saved_node_type: &dsengine_common::SavedNodeExtension) -> Self
+    {
         match saved_node_type {
             dsengine_common::SavedNodeExtension::None => NodeExtensionHandle::None,
             dsengine_common::SavedNodeExtension::Sprite(s) => {
-                NodeExtensionHandle::Sprite(pools.sprite_pool.add(sprite::SpriteNode{stuff:0}))
+                NodeExtensionHandle::Sprite(pools.sprite_pool.add(sprite::SpriteNode{stuff:0, node_handle}))
             }
         }
     }
 }
 
-pub struct NodeExtensionPools {
+pub(crate) struct NodeExtensionPools {
     pub sprite_pool: Pool<sprite::SpriteNode>,
 }
 

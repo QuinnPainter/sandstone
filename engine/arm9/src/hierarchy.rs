@@ -46,19 +46,22 @@ impl Hierarchy {
 
         // Push the nodes onto the object pool, with placeholder child, parent and sibling handles
         for node in &saved_graph.nodes {
-            new_handles.push(self.object_pool.add(Node {
+            let mut handle = self.object_pool.add(Node {
                 child_handle: None,
                 parent_handle: None,
                 sibling_handle: None,
                 name: node.name.clone(),
                 transform: Transform { x: node.transform.x, y: node.transform.y },
-                node_extension: NodeExtensionHandle::from_saved(&mut self.node_ext_pools, &node.node_extension),
+                node_extension: NodeExtensionHandle::None,
                 script_data: node.script_type_id.map(|id| NodeScriptData {
                     type_id: id,
                     script: run_script_factory(id)
                 }),
                 enabled: node.enabled
-            }));
+            });
+            self.object_pool.borrow_mut(handle).node_extension =
+                NodeExtensionHandle::from_saved(&mut self.node_ext_pools, handle, &node.node_extension);
+            new_handles.push(handle);
         }
         
         // Wire up the child, parent and sibling handles for the new nodes
@@ -223,6 +226,10 @@ impl Hierarchy {
                 item.script_data = Some(script_data);
             }
         }
+    }
+
+    pub(crate) fn run_extension_update(&mut self) {
+        crate::node::sprite::sprite_update(&self.object_pool, &self.node_ext_pools);
     }
 }
 
