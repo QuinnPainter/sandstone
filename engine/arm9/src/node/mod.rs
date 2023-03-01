@@ -1,6 +1,8 @@
 use core::num::NonZeroU32;
 use alloc::{string::String, boxed::Box};
-use crate::{Script, pool::Handle, hierarchy::HasTypeId};
+use crate::{Script, pool::{Pool, Handle}, hierarchy::HasTypeId};
+
+pub mod sprite;
 
 #[derive(Eq, PartialEq, Clone, Copy, Default, Debug)]
 pub struct Transform {
@@ -8,9 +10,38 @@ pub struct Transform {
     pub y: u32,
 }
 
+#[derive(Clone, Copy, Debug)]
+pub enum NodeExtensionHandle {
+    None,
+    Sprite(Handle<sprite::SpriteNode>),
+}
+
+impl NodeExtensionHandle {
+    pub(crate) fn from_saved(pools: &mut NodeExtensionPools, saved_node_type: &dsengine_common::SavedNodeExtension) -> Self {
+        match saved_node_type {
+            dsengine_common::SavedNodeExtension::None => NodeExtensionHandle::None,
+            dsengine_common::SavedNodeExtension::Sprite(s) => {
+                NodeExtensionHandle::Sprite(pools.sprite_pool.add(sprite::SpriteNode{stuff:0}))
+            }
+        }
+    }
+}
+
+pub struct NodeExtensionPools {
+    pub sprite_pool: Pool<sprite::SpriteNode>,
+}
+
+impl NodeExtensionPools {
+    pub const fn new() -> Self {
+        Self {
+            sprite_pool: Pool::new(),
+        }
+    }
+}
+
 pub struct NodeScriptData {
     pub type_id: NonZeroU32,
-    pub script: Box<dyn Script>
+    pub script: Box<dyn Script>,
 }
 
 pub struct Node {
@@ -19,6 +50,7 @@ pub struct Node {
     pub sibling_handle: Option<Handle<Node>>,
     pub name: String,
     pub transform: Transform,
+    pub node_extension: NodeExtensionHandle,
     pub script_data: Option<NodeScriptData>,
     pub enabled: bool,
 }

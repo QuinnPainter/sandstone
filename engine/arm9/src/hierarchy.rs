@@ -1,13 +1,19 @@
 use core::num::NonZeroU32;
 use alloc::{string::String, boxed::Box, vec::Vec};
-use crate::{Script, pool::{Pool, Handle}, ScriptContext, node::{Transform, Node, NodeScriptData}};
+use crate::{
+    Script,
+    ScriptContext,
+    pool::{Pool, Handle},
+    node::{Transform, Node, NodeScriptData, NodeExtensionHandle, NodeExtensionPools}
+};
 use dsengine_common::SavedPrefabs;
 
 pub struct Hierarchy {
     pub root: Handle<Node>,
     object_pool: Pool<Node>,
+    node_ext_pools: NodeExtensionPools,
     to_start_stack: Vec<Handle<Node>>,
-    saved_prefab_data: SavedPrefabs
+    saved_prefab_data: SavedPrefabs,
 }
 
 impl Hierarchy {
@@ -19,6 +25,7 @@ impl Hierarchy {
             sibling_handle: None,
             name: String::new(),
             transform: Transform::default(),
+            node_extension: NodeExtensionHandle::None,
             script_data: None,
             enabled: true
         });
@@ -26,6 +33,7 @@ impl Hierarchy {
         Self {
             root,
             object_pool,
+            node_ext_pools: NodeExtensionPools::new(),
             to_start_stack: Vec::new(),
             saved_prefab_data: dsengine_common::deserialize_prefabs(unsafe { PREFAB_DATA.unwrap() })
         }
@@ -44,6 +52,7 @@ impl Hierarchy {
                 sibling_handle: None,
                 name: node.name.clone(),
                 transform: Transform { x: node.transform.x, y: node.transform.y },
+                node_extension: NodeExtensionHandle::from_saved(&mut self.node_ext_pools, &node.node_extension),
                 script_data: node.script_type_id.map(|id| NodeScriptData {
                     type_id: id,
                     script: run_script_factory(id)
