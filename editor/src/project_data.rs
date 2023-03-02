@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 use std::num::NonZeroU32;
-use dsengine_common::{SavedNodeGraph, SavedNode, SavedTransform, SavedNodeExtension};
+use dsengine_common::{SavedNodeGraph, SavedNode, SavedTransform};
 
 pub struct ProjectData {
     pub path: PathBuf,
@@ -34,7 +34,7 @@ impl ProjectData {
                     sibling_index: None,
                     name: node.name.clone(),
                     transform: SavedTransform { x: node.transform.x, y: node.transform.y },
-                    node_extension: SavedNodeExtension::None,
+                    node_extension: node.node_extension.to_saved(),
                     script_type_id: node.script_type_id,
                     enabled: node.enabled
                 });

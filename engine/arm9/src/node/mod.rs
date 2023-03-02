@@ -13,26 +13,26 @@ pub struct Transform {
 #[derive(Clone, Copy, Debug)]
 pub enum NodeExtensionHandle {
     None,
-    Sprite(Handle<sprite::SpriteNode>),
+    Sprite(Handle<sprite::SpriteExtension>),
 }
 
 impl NodeExtensionHandle {
     pub(crate) fn from_saved(
         pools: &mut NodeExtensionPools,
         node_handle: Handle<Node>,
-        saved_node_type: &dsengine_common::SavedNodeExtension) -> Self
+        saved_extension: &dsengine_common::SavedNodeExtension) -> Self
     {
-        match saved_node_type {
+        match saved_extension {
             dsengine_common::SavedNodeExtension::None => NodeExtensionHandle::None,
             dsengine_common::SavedNodeExtension::Sprite(s) => {
-                NodeExtensionHandle::Sprite(pools.sprite_pool.add(sprite::SpriteNode{stuff:0, node_handle}))
+                NodeExtensionHandle::Sprite(pools.sprite_pool.add(sprite::SpriteExtension{stuff:0, node_handle}))
             }
         }
     }
 }
 
 pub(crate) struct NodeExtensionPools {
-    pub sprite_pool: Pool<sprite::SpriteNode>,
+    pub sprite_pool: Pool<sprite::SpriteExtension>,
 }
 
 impl NodeExtensionPools {

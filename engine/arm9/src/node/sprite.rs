@@ -1,7 +1,7 @@
 use crate::{pool::{Pool, Handle}, node::{Node, NodeExtensionPools}};
 use ironds::display::{obj, GfxEngine};
 
-pub struct SpriteNode {
+pub struct SpriteExtension {
     pub node_handle: Handle<Node>,
     pub stuff: u32,
 }

@@ -8,7 +8,7 @@ use imgui::Ui;
 use serde::{Serialize, Deserialize};
 use include_dir::{include_dir, Dir};
 use crate::project_data::ProjectData;
-use crate::hierarchy::{NodeGraph, Node, Transform, Hierarchy};
+use crate::hierarchy::{NodeGraph, Node, Transform, Hierarchy, NodeExtension};
 
 static TEMPLATE_CODE: Dir = include_dir!("$CARGO_MANIFEST_DIR/src/template_project_code");
 
@@ -151,6 +151,7 @@ fn load_project(path: &Path, project_data: &mut ProjectData, hierarchy: &mut Hie
                 sibling_index: node.sibling_index.map(nzu32_to_nzusize),
                 name: node.name,
                 transform: Transform { x: node.transform.x, y: node.transform.y },
+                node_extension: NodeExtension::from_saved(node.node_extension),
                 script_type_id: node.script_type_id,
                 enabled: node.enabled
             });

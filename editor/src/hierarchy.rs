@@ -9,12 +9,45 @@ pub struct Transform {
     pub y: u32
 }
 
+pub enum NodeExtension {
+    None,
+    Sprite(SpriteExtension),
+}
+
+impl std::fmt::Display for NodeExtension {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            NodeExtension::None => write!(f, "None"),
+            NodeExtension::Sprite(_) => write!(f, "Sprite"),
+        }
+    }
+}
+
+impl NodeExtension {
+    pub fn from_saved(saved_extension: dsengine_common::SavedNodeExtension) -> Self {
+        match saved_extension {
+            dsengine_common::SavedNodeExtension::None => NodeExtension::None,
+            dsengine_common::SavedNodeExtension::Sprite(s) => NodeExtension::Sprite(SpriteExtension {  }),
+        }
+    }
+
+    pub fn to_saved(&self) -> dsengine_common::SavedNodeExtension {
+        match self {
+            NodeExtension::None => dsengine_common::SavedNodeExtension::None,
+            NodeExtension::Sprite(_) => dsengine_common::SavedNodeExtension::Sprite(dsengine_common::SavedSpriteExtension{}),
+        }
+    }
+}
+
+pub struct SpriteExtension {}
+
 pub struct Node {
     pub child_index: Option<NonZeroUsize>,
     pub parent_index: Option<usize>,
     pub sibling_index: Option<NonZeroUsize>,
     pub name: String,
     pub transform: Transform,
+    pub node_extension: NodeExtension,
     pub script_type_id: Option<NonZeroU32>,
     pub enabled: bool
 }
@@ -72,6 +105,7 @@ impl Hierarchy {
                                 sibling_index: None,
                                 name: node_name,
                                 transform: Transform::default(),
+                                node_extension: NodeExtension::None,
                                 script_type_id: None,
                                 enabled: true
                             });
@@ -103,6 +137,7 @@ impl Hierarchy {
                         sibling_index: None,
                         name: self.new_graph_name_buffer.clone(),
                         transform: Transform::default(),
+                        node_extension: NodeExtension::None,
                         script_type_id: None,
                         enabled: true
                     });
