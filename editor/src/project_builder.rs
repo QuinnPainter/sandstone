@@ -97,10 +97,9 @@ pub fn build(project_data: &mut ProjectData) {
 
     let rom_path = build_path.join(project_data.name.clone() + ".nds");
     match build_rom(&rom_path, &arm9_path, &arm7_path, false) {
-        Ok(_) => (),
+        Ok(_) => log::info!("Successfully built {}", rom_path.to_string_lossy()),
         Err(msg) => log::error!("{msg}")
     }
-    log::info!("Successfully built {}", rom_path.to_string_lossy());
 }
 
 pub fn clean_build(project_data: &mut ProjectData) {
