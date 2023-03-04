@@ -1,4 +1,4 @@
-# DSengine
+# Sandstone
 Game engine for the Nintendo DS written in Rust, with Rust-based scripting. Built on [IronDS](https://github.com/QuinnPainter/ironds).  
 Still in early prototype stages.
 
