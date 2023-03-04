@@ -46,7 +46,7 @@ impl Hierarchy {
 
         // Push the nodes onto the object pool, with placeholder child, parent and sibling handles
         for node in &saved_graph.nodes {
-            let mut handle = self.object_pool.add(Node {
+            let handle = self.object_pool.add(Node {
                 child_handle: None,
                 parent_handle: None,
                 sibling_handle: None,

@@ -31,7 +31,7 @@ impl<T> Clone for Handle<T> {
         Self {
             index: self.index,
             generation: self.generation,
-            phantom_type: PhantomData::<T>
+            phantom_type: PhantomData::<T>,
         }
     }
 }
@@ -97,6 +97,36 @@ impl<T> Pool<T> {
             entry.data.as_mut()
         } else {
             None
+        }
+    }
+
+    #[must_use]
+    fn check_handle_valid(&self, handle: Handle<T>) -> bool {
+        if let Some(entry) = self.data_vec.get(handle.index) {
+            entry.generation == handle.generation && entry.data.is_some()
+        } else {
+            false
+        }
+    }
+
+    #[must_use]
+    pub fn borrow_many_mut<const N: usize>(&mut self, handles: [Handle<T>; N]) -> [&mut T; N]{
+        self.try_borrow_many_mut(handles).unwrap_or_else(|err| panic!("{err}"))
+    }
+
+    #[must_use]
+    pub fn try_borrow_many_mut<const N: usize>(&mut self, handles: [Handle<T>; N]) -> Result<[&mut T; N], PoolGetManyMutError<N>> {
+        for handle in handles {
+            if !self.check_handle_valid(handle) {
+                return Err(PoolGetManyMutError { source: None });
+            }
+        }
+        match self.data_vec.get_many_mut(handles.map(|h| h.index)) {
+            Ok(entries) => {
+                // SAFETY: we checked that e.data is Some above in the loop with check_handle_valid
+                Ok(entries.map(|e| unsafe { e.data.as_mut().unwrap_unchecked() }))
+            },
+            Err(err) => Err(PoolGetManyMutError { source: Some(err) })
         }
     }
 
@@ -286,3 +316,22 @@ impl<'a, T> Iterator for PoolIteratorMut<'a, T> {
         }
     }
 }
+
+pub struct PoolGetManyMutError<const N: usize> {
+    source: Option<core::slice::GetManyMutError<N>>
+}
+impl<const N: usize> core::fmt::Debug for PoolGetManyMutError<N> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("PoolGetManyMutError").field("source", &self.source).finish()
+    }
+}
+impl<const N: usize> core::fmt::Display for PoolGetManyMutError<N> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        if let Some(s) = &self.source {
+            f.write_fmt(format_args!("{s}"))
+        } else {
+            f.write_str("a handle pointed to an invalid entry")
+        }
+    }
+}
+impl<const N: usize> core::error::Error for PoolGetManyMutError<N> {}

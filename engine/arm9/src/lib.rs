@@ -1,5 +1,7 @@
 #![no_std]
 #![feature(nonzero_ops)]
+#![feature(get_many_mut)]
+#![feature(error_in_core)]
 
 extern crate alloc;
 use crate::{hierarchy::Hierarchy, pool::Handle, node::Node};
