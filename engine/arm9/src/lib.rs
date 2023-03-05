@@ -18,6 +18,23 @@ pub fn main_loop() -> ! {
     nds::interrupt::irq_enable(nds::interrupt::IRQFlags::VBLANK);
     nds::display::set_vcount_trigger(100);
 
+    // Make sure the 2D graphics engines are turned on
+    nds::display::power_on(nds::display::GfxPwr::ALL_2D);
+
+    // set brightness to default level
+    nds::display::set_brightness(nds::display::GfxEngine::MAIN, 0);
+    nds::display::set_brightness(nds::display::GfxEngine::SUB, 0);
+
+    nds::display::set_main_display_control(nds::display::DisplayControlMain::new()
+        .with_display_bg0(false)
+        .with_display_bg1(false)
+        .with_display_bg2(false)
+        .with_display_bg3(false)
+        .with_display_obj(true)
+        .with_tile_obj_mapping(true) // 1D mapping
+        .with_display_mode(1) // normal BG / OBJ display
+    );
+
     nds::display::console::init_default();
     nds::display::console::print("Hello from Rust on the DS!\n\n");
 
