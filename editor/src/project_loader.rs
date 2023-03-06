@@ -123,12 +123,15 @@ impl ProjectLoader {
     
 fn create_new_project(path: &Path, name: String, project_data: &mut ProjectData, hierarchy: &mut Hierarchy) {
     project_data.name = name;
-    project_data.path = path.to_path_buf();
+    project_data.set_path(path.to_path_buf());
     project_data.graphs = Vec::new();
     save_project(project_data);
 
     // Create user code crate
     TEMPLATE_CODE.extract(path.join("code").to_str().unwrap()).unwrap();
+
+    // Create assets folder
+    std::fs::create_dir_all(&path.join("assets")).unwrap();
 
     load_project(path, project_data, hierarchy);
 }
@@ -138,7 +141,7 @@ fn load_project(path: &Path, project_data: &mut ProjectData, hierarchy: &mut Hie
     let project_data_file = File::open(path.join("project_info.ron")).unwrap();
     let saved_project_data: SavedProjectData = ron::de::from_reader(project_data_file).unwrap();
 
-    project_data.path = path.to_path_buf();
+    project_data.set_path(path.to_path_buf());
     project_data.name = saved_project_data.name;
     project_data.graphs.clear();
     project_data.graphs.reserve(saved_project_data.prefabs.len());
@@ -160,11 +163,12 @@ fn load_project(path: &Path, project_data: &mut ProjectData, hierarchy: &mut Hie
     }
     hierarchy.current_graph_idx = 0;
     hierarchy.selected_node_idx = None;
+    project_data.find_graphical_assets();
 }
 
 pub fn save_project(project_data: &mut ProjectData) {
     // todo: handle IO errors
-    std::fs::create_dir_all(&project_data.path).unwrap();
+    std::fs::create_dir_all(&project_data.get_path()).unwrap();
     
     let saved_project_data = SavedProjectData {
         name: project_data.name.clone(),
@@ -172,7 +176,7 @@ pub fn save_project(project_data: &mut ProjectData) {
     };
     let ser_project_data = ron::ser::to_string_pretty(&saved_project_data, ron::ser::PrettyConfig::default()).unwrap();
 
-    let mut project_data_file = File::create(project_data.path.join("project_info.ron")).unwrap();
+    let mut project_data_file = File::create(project_data.get_path().join("project_info.ron")).unwrap();
     project_data_file.write_all(ser_project_data.as_bytes()).unwrap();
 }
 

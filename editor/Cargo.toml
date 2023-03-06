@@ -23,3 +23,4 @@ quote = "1"
 proc-macro2 = "1"
 include_dir = "0.7"
 log = { version = "0.4", features = ["std"] }
+notify = "5.1"

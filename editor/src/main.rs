@@ -94,6 +94,7 @@ fn main() {
             if ui.menu_item("About") {}
         });
 
+        project_data.check_file_scanner();
         proj_loader.update(ui, &mut project_data, &mut hierarchy_obj);
 
         inspector::draw_inspector(ui, &mut hierarchy_obj, &mut project_data);

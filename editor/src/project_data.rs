@@ -1,20 +1,69 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::num::NonZeroU32;
+use notify::Watcher;
 use dsengine_common::{SavedNodeGraph, SavedNode, SavedTransform};
 
 pub struct ProjectData {
-    pub path: PathBuf,
+    path: PathBuf,
     pub name: String,
-    pub graphs: Vec<crate::hierarchy::NodeGraph>
+    pub graphs: Vec<crate::hierarchy::NodeGraph>,
+    file_scanner_tx: std::sync::mpsc::Sender<Result<notify::Event, notify::Error>>,
+    file_scanner_rx: std::sync::mpsc::Receiver<Result<notify::Event, notify::Error>>,
+    file_scanner_watcher: Option<notify::INotifyWatcher>,
+    pub graphical_assets: Vec<PathBuf>,
 }
 
 impl ProjectData {
     pub fn new() -> Self {
+        let (tx, rx) =  std::sync::mpsc::channel();
         Self {
             path: PathBuf::new(),
             name: String::new(),
-            graphs: Vec::new()
+            graphs: Vec::new(),
+            file_scanner_tx: tx,
+            file_scanner_rx: rx,
+            file_scanner_watcher: None,
+            graphical_assets: Vec::new(),
         }
+    }
+
+    pub fn set_path(&mut self, path: PathBuf) {
+        self.path = path;
+        // recreate debouncer to clear previously watched paths
+        self.file_scanner_watcher = Some(notify::RecommendedWatcher::new(self.file_scanner_tx.clone(), notify::Config::default()).unwrap());
+        self.file_scanner_watcher
+            .as_mut()
+            .unwrap()
+            .watch(&self.path, notify::RecursiveMode::Recursive)
+            .unwrap();
+    }
+
+    pub fn get_path(&self) -> &Path {
+        &self.path
+    }
+
+    pub fn check_file_scanner(&mut self) {
+        let mut any_changes = false;
+        // Iterate over receiver to clear queue
+        for _ in self.file_scanner_rx.try_iter() { any_changes = true; }
+        if any_changes {
+            self.find_graphical_assets();
+        }
+    }
+
+    pub fn find_graphical_assets(&mut self) {
+        let asset_path = self.path.join("assets");
+        self.graphical_assets.clear();
+    
+        for entry in asset_path.read_dir().unwrap() {
+            let entry_path = entry.unwrap().path();
+            if let Some(extension) = entry_path.extension() {
+                if extension == "png" {
+                    self.graphical_assets.push(entry_path);
+                }
+            }
+        }
+        log::info!("Found graphical assets: {:?}", self.graphical_assets);
     }
 
     pub fn export_saved_graph(&self) -> Vec<SavedNodeGraph> {

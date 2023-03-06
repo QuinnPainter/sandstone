@@ -15,7 +15,7 @@ pub fn build(project_data: &mut ProjectData) {
     // todo: handle IO errors
     log::info!("Starting build...");
     // Create build folder if it doesn't exist
-    let build_path = project_data.path.join("build");
+    let build_path = project_data.get_path().join("build");
     std::fs::create_dir_all(&build_path).unwrap();
     let arm9_path = build_path.join("arm9_runtime");
     let arm7_path = build_path.join("arm7_runtime");
@@ -31,7 +31,7 @@ pub fn build(project_data: &mut ProjectData) {
         .args(["--target-dir", user_code_target_path.to_str().unwrap()])
         .arg("--")
         .args(["--output-format", "json"])
-        .current_dir(project_data.path.join("code"))
+        .current_dir(project_data.get_path().join("code"))
         .output().unwrap();
     // todo: would rather not hardcode this path
     let json_path = user_code_target_path.join("thumbv5te-none-eabi/doc/dsengine_user_code.json");
@@ -51,7 +51,7 @@ pub fn build(project_data: &mut ProjectData) {
         }
     }
 
-    log::info!("{:?}", user_script_ids);
+    log::info!("Found user scripts: {:?}", user_script_ids);
     let (script_ids, script_names): (Vec<u32>, Vec<&str>) = user_script_ids.into_iter().unzip();
     let script_name_tokens = script_names.into_iter().map(|s| proc_macro2::TokenStream::from_str(s).unwrap());
 
@@ -91,6 +91,8 @@ pub fn build(project_data: &mut ProjectData) {
     };
     create_runtime_crate(false, &arm7_path, &arm7_code.to_string());
 
+    convert_graphical_assets(&project_data);
+
     let serialised_graphs = dsengine_common::serialize_prefabs(&dsengine_common::SavedPrefabs(project_data.export_saved_graph()));
     let mut graph_file = std::fs::File::create(build_path.join("graph_data.bin")).unwrap();
     graph_file.write_all(&serialised_graphs).unwrap();
@@ -103,7 +105,7 @@ pub fn build(project_data: &mut ProjectData) {
 }
 
 pub fn clean_build(project_data: &mut ProjectData) {
-    let build_path = project_data.path.join("build");
+    let build_path = project_data.get_path().join("build");
     match std::fs::remove_dir_all(&build_path) {
         Ok(_) => (),
         // totally fine if the folder was not found, we were trying to delete it anyway!
@@ -175,4 +177,24 @@ fn create_runtime_crate(arm9: bool, path: &Path, code: &str) {
     }
     std::fs::write(path.join("src/main.rs"), code).unwrap();
 }
- 
+
+fn convert_graphical_assets(project_data: &ProjectData) {
+    let output_gfx_path = project_data.get_path().join("build/gfx");
+    std::fs::create_dir_all(&output_gfx_path).unwrap();
+
+    for asset_file_path in &project_data.graphical_assets {
+        let file_stem = asset_file_path.file_stem().unwrap();
+        let output_path_base = output_gfx_path.join(file_stem);
+        let output_gfx_path = output_path_base.with_extension("gfx");
+        let output_pal_path = output_path_base.with_extension("pal");
+
+        let _ = Command::new("superfamiconv")
+            .args(["--mode", "gba"])
+            .args(["--tile-width", "8"])
+            .args(["--tile-height", "8"])
+            .args(["--in-image", asset_file_path.to_str().unwrap()])
+            .args(["--out-tiles", output_gfx_path.to_str().unwrap()])
+            .args(["--out-palette", output_pal_path.to_str().unwrap()])
+            .output().unwrap();
+    }
+}
