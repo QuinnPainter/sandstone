@@ -41,13 +41,13 @@ fn main() {
 
                 let mut tmp_id = dockspace_id;
                 let dock_id_inspector = imgui::sys::igDockBuilderSplitNode(tmp_id,
-                    imgui::sys::ImGuiDir_Right, 0.20,
+                    imgui::sys::ImGuiDir_Right, 0.25,
                     std::ptr::null_mut::<u32>(), std::ptr::addr_of_mut!(tmp_id));
                 let dock_id_files = imgui::sys::igDockBuilderSplitNode(tmp_id,
                     imgui::sys::ImGuiDir_Down, 0.20,
                     std::ptr::null_mut::<u32>(), std::ptr::addr_of_mut!(tmp_id));
                 let dock_id_hierarchy = imgui::sys::igDockBuilderSplitNode(tmp_id,
-                    imgui::sys::ImGuiDir_Left, 0.20,
+                    imgui::sys::ImGuiDir_Left, 0.25,
                     std::ptr::null_mut::<u32>(), std::ptr::addr_of_mut!(tmp_id));
 
                 imgui::sys::igDockBuilderDockWindow(hierarchy_name.as_ptr(), dock_id_hierarchy);

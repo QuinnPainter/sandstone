@@ -20,8 +20,21 @@ pub fn draw_inspector(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut Pro
                             selected_node.node_extension = NodeExtension::None;
                         }
                         if ui.selectable("Sprite") {
-                            selected_node.node_extension = NodeExtension::Sprite(SpriteExtension{});
+                            selected_node.node_extension = NodeExtension::Sprite(SpriteExtension::default());
                         }
+                    }
+
+                    match &mut selected_node.node_extension {
+                        NodeExtension::None => (),
+                        NodeExtension::Sprite(s) => {
+                            if let Some(_cb) = ui.begin_combo("Graphic", &s.graphic_asset) {
+                                for g in project_data.graphical_assets.keys() {
+                                    if ui.selectable(g) {
+                                        s.graphic_asset = g.clone();
+                                    }
+                                }
+                            }
+                        },
                     }
 
                     let mut script_id: u32 = selected_node.script_type_id.map_or(0, u32::from);

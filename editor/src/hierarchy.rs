@@ -27,19 +27,22 @@ impl NodeExtension {
     pub fn from_saved(saved_extension: dsengine_common::SavedNodeExtension) -> Self {
         match saved_extension {
             dsengine_common::SavedNodeExtension::None => NodeExtension::None,
-            dsengine_common::SavedNodeExtension::Sprite(s) => NodeExtension::Sprite(SpriteExtension {  }),
+            dsengine_common::SavedNodeExtension::Sprite(s) => NodeExtension::Sprite(SpriteExtension { graphic_asset: s.graphic_asset }),
         }
     }
 
     pub fn to_saved(&self) -> dsengine_common::SavedNodeExtension {
         match self {
             NodeExtension::None => dsengine_common::SavedNodeExtension::None,
-            NodeExtension::Sprite(_) => dsengine_common::SavedNodeExtension::Sprite(dsengine_common::SavedSpriteExtension{}),
+            NodeExtension::Sprite(s) => dsengine_common::SavedNodeExtension::Sprite(dsengine_common::SavedSpriteExtension{ graphic_asset: s.graphic_asset.clone() }),
         }
     }
 }
 
-pub struct SpriteExtension {}
+#[derive(Default)]
+pub struct SpriteExtension {
+    pub graphic_asset: String,
+}
 
 pub struct Node {
     pub child_index: Option<NonZeroUsize>,

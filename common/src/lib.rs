@@ -6,6 +6,7 @@ use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct SavedSpriteExtension {
+    pub graphic_asset: String,
 }
 
 #[derive(Serialize, Deserialize)]
