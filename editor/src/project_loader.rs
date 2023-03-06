@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::mpsc;
 use std::thread;
 use std::path::{Path, PathBuf};
@@ -123,7 +124,7 @@ impl ProjectLoader {
     
 fn create_new_project(path: &Path, name: String, project_data: &mut ProjectData, hierarchy: &mut Hierarchy) {
     project_data.name = name;
-    project_data.set_path(path.to_path_buf());
+    project_data.set_path_without_watch(path.to_path_buf());
     project_data.graphs = Vec::new();
     save_project(project_data);
 
@@ -143,6 +144,7 @@ fn load_project(path: &Path, project_data: &mut ProjectData, hierarchy: &mut Hie
 
     project_data.set_path(path.to_path_buf());
     project_data.name = saved_project_data.name;
+    project_data.graphical_assets = saved_project_data.graphical_assets.iter().map(|(k, v)| (k.clone(), project_data.get_path().join(v))).collect();
     project_data.graphs.clear();
     project_data.graphs.reserve(saved_project_data.prefabs.len());
     for graph in saved_project_data.prefabs {
@@ -172,7 +174,8 @@ pub fn save_project(project_data: &mut ProjectData) {
     
     let saved_project_data = SavedProjectData {
         name: project_data.name.clone(),
-        prefabs: project_data.export_saved_graph()
+        prefabs: project_data.export_saved_graph(),
+        graphical_assets: project_data.graphical_assets.iter().map(|(k, v)| (k.clone(), v.strip_prefix(project_data.get_path()).unwrap().to_path_buf())).collect(),
     };
     let ser_project_data = ron::ser::to_string_pretty(&saved_project_data, ron::ser::PrettyConfig::default()).unwrap();
 
@@ -210,4 +213,5 @@ impl imgui::InputTextCallbackHandler for FileNameInputFilter {
 pub struct SavedProjectData {
     name: String,
     prefabs: Vec<dsengine_common::SavedNodeGraph>,
+    graphical_assets: HashMap<String, PathBuf>,
 }

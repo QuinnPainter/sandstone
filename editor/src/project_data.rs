@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::num::NonZeroU32;
 use notify::Watcher;
@@ -10,7 +11,7 @@ pub struct ProjectData {
     file_scanner_tx: std::sync::mpsc::Sender<Result<notify::Event, notify::Error>>,
     file_scanner_rx: std::sync::mpsc::Receiver<Result<notify::Event, notify::Error>>,
     file_scanner_watcher: Option<notify::INotifyWatcher>,
-    pub graphical_assets: Vec<PathBuf>,
+    pub graphical_assets: HashMap<String, PathBuf>,
 }
 
 impl ProjectData {
@@ -23,14 +24,20 @@ impl ProjectData {
             file_scanner_tx: tx,
             file_scanner_rx: rx,
             file_scanner_watcher: None,
-            graphical_assets: Vec::new(),
+            graphical_assets: HashMap::new(),
         }
+    }
+
+    pub fn set_path_without_watch(&mut self, path: PathBuf) {
+        self.path = path;
     }
 
     pub fn set_path(&mut self, path: PathBuf) {
         self.path = path;
-        // recreate debouncer to clear previously watched paths
-        self.file_scanner_watcher = Some(notify::RecommendedWatcher::new(self.file_scanner_tx.clone(), notify::Config::default()).unwrap());
+        // recreate watcher to clear previously watched paths
+        self.file_scanner_watcher = Some(notify::RecommendedWatcher::new(
+            self.file_scanner_tx.clone(),
+            notify::Config::default()).unwrap());
         self.file_scanner_watcher
             .as_mut()
             .unwrap()
@@ -59,7 +66,8 @@ impl ProjectData {
             let entry_path = entry.unwrap().path();
             if let Some(extension) = entry_path.extension() {
                 if extension == "png" {
-                    self.graphical_assets.push(entry_path);
+                    let file_name = entry_path.with_extension("").file_name().unwrap().to_str().unwrap().to_string();
+                    self.graphical_assets.insert(file_name, entry_path);
                 }
             }
         }

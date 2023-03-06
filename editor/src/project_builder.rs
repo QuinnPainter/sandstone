@@ -182,7 +182,7 @@ fn convert_graphical_assets(project_data: &ProjectData) {
     let output_gfx_path = project_data.get_path().join("build/gfx");
     std::fs::create_dir_all(&output_gfx_path).unwrap();
 
-    for asset_file_path in &project_data.graphical_assets {
+    for asset_file_path in project_data.graphical_assets.values() {
         let file_stem = asset_file_path.file_stem().unwrap();
         let output_path_base = output_gfx_path.join(file_stem);
         let output_gfx_path = output_path_base.with_extension("gfx");
