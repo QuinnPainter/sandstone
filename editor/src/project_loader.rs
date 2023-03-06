@@ -18,7 +18,7 @@ pub struct ProjectLoader {
     file_dialog_transmitter: mpsc::Sender<FileDialogReturnInfo>,
     file_dialog_receiver: mpsc::Receiver<FileDialogReturnInfo>,
     open_load_project_modal: bool,
-    close_load_project_modal: bool
+    close_load_project_modal: bool,
 }
 
 impl ProjectLoader {
@@ -30,7 +30,7 @@ impl ProjectLoader {
             file_dialog_transmitter: tx,
             file_dialog_receiver: rx,
             open_load_project_modal: true,
-            close_load_project_modal: false
+            close_load_project_modal: false,
         }
     }
 
@@ -188,7 +188,7 @@ fn nzu32_to_nzusize(x: NonZeroU32) -> NonZeroUsize {
 
 enum FileDialogReturnInfo {
     NewProject(Option<String>),
-    OpenProject(Option<String>)
+    OpenProject(Option<String>),
 }
 
 struct FileNameInputFilter;
@@ -209,5 +209,5 @@ impl imgui::InputTextCallbackHandler for FileNameInputFilter {
 #[derive(Serialize, Deserialize)]
 pub struct SavedProjectData {
     name: String,
-    prefabs: Vec<dsengine_common::SavedNodeGraph>
+    prefabs: Vec<dsengine_common::SavedNodeGraph>,
 }

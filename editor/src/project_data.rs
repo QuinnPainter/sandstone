@@ -85,7 +85,7 @@ impl ProjectData {
                     transform: SavedTransform { x: node.transform.x, y: node.transform.y },
                     node_extension: node.node_extension.to_saved(),
                     script_type_id: node.script_type_id,
-                    enabled: node.enabled
+                    enabled: node.enabled,
                 });
             }
     
