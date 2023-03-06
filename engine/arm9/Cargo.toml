@@ -6,6 +6,8 @@ edition = "2021"
 [dependencies]
 ironds = { git = "https://github.com/QuinnPainter/ironds", features = ["arm9"] }
 dsengine_common = { path = "../../common" }
+hashbrown = { version = "0.13", default-features = false, features = ["inline-more"] }
+rustc-hash = { version = "1.1", default-features = false }
 
 [profile.dev]
 opt-level = 3
