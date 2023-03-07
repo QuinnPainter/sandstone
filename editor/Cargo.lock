@@ -309,38 +309,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9ea835d29036a4087793836fa931b08837ad5e957da9e23886b29586fb9b6650"
 
 [[package]]
-name = "dsengine_common"
-version = "0.1.0"
-dependencies = [
- "postcard",
- "serde",
-]
-
-[[package]]
-name = "dsengine_editor"
-version = "0.1.0"
-dependencies = [
- "dsengine_common",
- "glow",
- "glutin",
- "home",
- "imgui",
- "imgui-glow-renderer",
- "imgui-winit-support",
- "include_dir",
- "ironds-romtool",
- "log",
- "notify",
- "proc-macro2",
- "quote",
- "ron",
- "serde",
- "serde_json",
- "stable-vec",
- "tinyfiledialogs",
-]
-
-[[package]]
 name = "dwrote"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1156,6 +1124,38 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
 dependencies = [
  "winapi-util",
+]
+
+[[package]]
+name = "sandstone_common"
+version = "0.1.0"
+dependencies = [
+ "postcard",
+ "serde",
+]
+
+[[package]]
+name = "sandstone_editor"
+version = "0.1.0"
+dependencies = [
+ "glow",
+ "glutin",
+ "home",
+ "imgui",
+ "imgui-glow-renderer",
+ "imgui-winit-support",
+ "include_dir",
+ "ironds-romtool",
+ "log",
+ "notify",
+ "proc-macro2",
+ "quote",
+ "ron",
+ "sandstone_common",
+ "serde",
+ "serde_json",
+ "stable-vec",
+ "tinyfiledialogs",
 ]
 
 [[package]]

@@ -24,7 +24,7 @@ pub fn build(project_data: &mut ProjectData) {
     let mut user_script_ids: Vec<(u32, &str)> = Vec::new();
     // unfortunately out-dir doesn't work here, so target-dir has to do.
     let user_code_target_path = build_path.join("user-code");
-    let _ = Command::new("rustup")
+    let rustdoc_command_output = Command::new("rustup")
         .args(["run", "nightly"])
         .arg("cargo")
         .arg("rustdoc")
@@ -33,8 +33,12 @@ pub fn build(project_data: &mut ProjectData) {
         .args(["--output-format", "json"])
         .current_dir(project_data.get_path().join("code"))
         .output().unwrap();
+    if !rustdoc_command_output.status.success() {
+        log::error!("Failed to run Rustdoc on user code:\n{}", String::from_utf8_lossy(&rustdoc_command_output.stderr));
+        return;
+    }
     // todo: would rather not hardcode this path
-    let json_path = user_code_target_path.join("thumbv5te-none-eabi/doc/dsengine_user_code.json");
+    let json_path = user_code_target_path.join("thumbv5te-none-eabi/doc/sandstone_user_code.json");
     let json_data: serde_json::Value = serde_json::from_slice(&std::fs::read(json_path).unwrap()).unwrap();
     // Root of the JSON is the Crate, this accesses the Items list
     // that contains all items in the crate in a flat list.
@@ -61,9 +65,9 @@ pub fn build(project_data: &mut ProjectData) {
         extern crate alloc;
         use core::num::NonZeroU32;
         use alloc::boxed::Box;
-        use dsengine_user_code as user_code;
+        use sandstone_user_code as user_code;
 
-        fn script_factory(id: NonZeroU32) -> Box<dyn dsengine::Script> {
+        fn script_factory(id: NonZeroU32) -> Box<dyn sandstone::Script> {
             match u32::from(id) {
                 #(#script_ids => Box::new(user_code::#script_name_tokens::default()),)*
                 _ => panic!("Invalid script ID: {}", id)
@@ -72,9 +76,9 @@ pub fn build(project_data: &mut ProjectData) {
 
         #[no_mangle]
         extern "C" fn main() -> ! {
-            dsengine::hierarchy::init_script_factory(script_factory);
-            dsengine::hierarchy::init_prefab_data(include_bytes!("../../graph_data.bin"));
-            dsengine::main_loop();
+            sandstone::hierarchy::init_script_factory(script_factory);
+            sandstone::hierarchy::init_prefab_data(include_bytes!("../../graph_data.bin"));
+            sandstone::main_loop();
         }
     };
     create_runtime_crate(true, &arm9_path, &arm9_code.to_string());
@@ -86,14 +90,14 @@ pub fn build(project_data: &mut ProjectData) {
 
         #[no_mangle]
         extern "C" fn main() -> ! {
-            dsengine_arm7::main_loop();
+            sandstone_arm7::main_loop();
         }
     };
     create_runtime_crate(false, &arm7_path, &arm7_code.to_string());
 
     convert_graphical_assets(&project_data);
 
-    let serialised_graphs = dsengine_common::serialize_prefabs(&dsengine_common::SavedPrefabs(project_data.export_saved_graph()));
+    let serialised_graphs = sandstone_common::serialize_prefabs(&sandstone_common::SavedPrefabs(project_data.export_saved_graph()));
     let mut graph_file = std::fs::File::create(build_path.join("graph_data.bin")).unwrap();
     graph_file.write_all(&serialised_graphs).unwrap();
 

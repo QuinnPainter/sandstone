@@ -3,15 +3,15 @@ extern crate alloc;
 
 use core::num::NonZeroU32;
 use alloc::string::ToString;
-use dsengine::{Script, ScriptContext};
-use dsengine::ironds::display::console;
+use sandstone::{Script, ScriptContext};
+use sandstone::ironds::display::console;
 
 #[derive(Default)]
 pub struct Obj1 {
     cntr: u32
 }
 
-impl dsengine::hierarchy::HasTypeId for Obj1 {
+impl sandstone::hierarchy::HasTypeId for Obj1 {
     fn type_id() -> NonZeroU32 {
         NonZeroU32::new(2).unwrap()
     }

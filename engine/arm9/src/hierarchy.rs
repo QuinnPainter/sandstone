@@ -6,7 +6,7 @@ use crate::{
     pool::{Pool, Handle},
     node::{Transform, Node, NodeScriptData, NodeExtensionHandle, NodeExtensionPools}
 };
-use dsengine_common::SavedPrefabs;
+use sandstone_common::SavedPrefabs;
 
 pub struct Hierarchy {
     pub root: Handle<Node>,
@@ -35,7 +35,7 @@ impl Hierarchy {
             object_pool,
             node_ext_pools: NodeExtensionPools::new(),
             to_start_stack: Vec::new(),
-            saved_prefab_data: dsengine_common::deserialize_prefabs(unsafe { PREFAB_DATA.unwrap() })
+            saved_prefab_data: sandstone_common::deserialize_prefabs(unsafe { PREFAB_DATA.unwrap() })
         }
     }
 

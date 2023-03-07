@@ -1,5 +1,5 @@
 [package]
-name = "dsengine_arm7"
+name = "sandstone_arm7"
 version = "0.1.0"
 edition = "2021"
 

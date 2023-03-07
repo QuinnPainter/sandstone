@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-dsengine = { git = "https://github.com/QuinnPainter/dsengine" }
-dsengine-user-code = { path = "../../code" }
+sandstone = { git = "https://github.com/QuinnPainter/sandstone" }
+sandstone-user-code = { path = "../../code" }
 
 [profile.dev]
 opt-level = 3

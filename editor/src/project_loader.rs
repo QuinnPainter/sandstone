@@ -212,6 +212,6 @@ impl imgui::InputTextCallbackHandler for FileNameInputFilter {
 #[derive(Serialize, Deserialize)]
 pub struct SavedProjectData {
     name: String,
-    prefabs: Vec<dsengine_common::SavedNodeGraph>,
+    prefabs: Vec<sandstone_common::SavedNodeGraph>,
     graphical_assets: HashMap<String, PathBuf>,
 }

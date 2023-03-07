@@ -20,11 +20,11 @@ impl NodeExtensionHandle {
     pub(crate) fn from_saved(
         pools: &mut NodeExtensionPools,
         node_handle: Handle<Node>,
-        saved_extension: &dsengine_common::SavedNodeExtension) -> Self
+        saved_extension: &sandstone_common::SavedNodeExtension) -> Self
     {
         match saved_extension {
-            dsengine_common::SavedNodeExtension::None => NodeExtensionHandle::None,
-            dsengine_common::SavedNodeExtension::Sprite(s) => {
+            sandstone_common::SavedNodeExtension::None => NodeExtensionHandle::None,
+            sandstone_common::SavedNodeExtension::Sprite(s) => {
                 NodeExtensionHandle::Sprite(pools.sprite_pool.add(sprite::SpriteExtension{stuff:0, node_handle}))
             }
         }

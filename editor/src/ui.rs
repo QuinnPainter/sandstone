@@ -5,7 +5,7 @@ use glutin::{event_loop::EventLoop, WindowedContext};
 use imgui::Ui;
 use imgui_winit_support::WinitPlatform;
 
-const TITLE: &str = "dsengine";
+const TITLE: &str = "sandstone";
 
 type Window = WindowedContext<glutin::PossiblyCurrent>;
 

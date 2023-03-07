@@ -1,12 +1,12 @@
 [package]
-name = "dsengine_editor"
+name = "sandstone_editor"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-dsengine_common = { path = "../common" }
+sandstone_common = { path = "../common" }
 ironds-romtool = { git = "https://github.com/QuinnPainter/ironds-romtool" }
 imgui = { version = "0.10.0", features = ["docking"] }
 imgui-winit-support = "0.10.0"

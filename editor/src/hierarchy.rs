@@ -24,17 +24,17 @@ impl std::fmt::Display for NodeExtension {
 }
 
 impl NodeExtension {
-    pub fn from_saved(saved_extension: dsengine_common::SavedNodeExtension) -> Self {
+    pub fn from_saved(saved_extension: sandstone_common::SavedNodeExtension) -> Self {
         match saved_extension {
-            dsengine_common::SavedNodeExtension::None => NodeExtension::None,
-            dsengine_common::SavedNodeExtension::Sprite(s) => NodeExtension::Sprite(SpriteExtension { graphic_asset: s.graphic_asset }),
+            sandstone_common::SavedNodeExtension::None => NodeExtension::None,
+            sandstone_common::SavedNodeExtension::Sprite(s) => NodeExtension::Sprite(SpriteExtension { graphic_asset: s.graphic_asset }),
         }
     }
 
-    pub fn to_saved(&self) -> dsengine_common::SavedNodeExtension {
+    pub fn to_saved(&self) -> sandstone_common::SavedNodeExtension {
         match self {
-            NodeExtension::None => dsengine_common::SavedNodeExtension::None,
-            NodeExtension::Sprite(s) => dsengine_common::SavedNodeExtension::Sprite(dsengine_common::SavedSpriteExtension{ graphic_asset: s.graphic_asset.clone() }),
+            NodeExtension::None => sandstone_common::SavedNodeExtension::None,
+            NodeExtension::Sprite(s) => sandstone_common::SavedNodeExtension::Sprite(sandstone_common::SavedSpriteExtension{ graphic_asset: s.graphic_asset.clone() }),
         }
     }
 }
