@@ -185,10 +185,10 @@ fn create_runtime_crate(arm9: bool, path: &Path, code: &str) {
     std::fs::write(path.join("src/main.rs"), code).unwrap();
 }
 
-fn convert_graphical_assets(project_data: &ProjectData) -> Vec<sandstone_common::SavedGraphic> {
+fn convert_graphical_assets(project_data: &ProjectData) -> sandstone_common::HashMap<String, sandstone_common::SavedGraphic> {
     let output_gfx_path = project_data.get_path().join("build/gfx");
     std::fs::create_dir_all(&output_gfx_path).unwrap();
-    let mut saved_graphics: Vec<sandstone_common::SavedGraphic> = Vec::with_capacity(project_data.graphical_assets.len());
+    let mut saved_graphics: sandstone_common::HashMap<String, sandstone_common::SavedGraphic> = sandstone_common::HashMap::default();
 
     for (name, asset_file_path) in project_data.graphical_assets.iter() {
         let file_stem = asset_file_path.file_stem().unwrap();
@@ -207,7 +207,7 @@ fn convert_graphical_assets(project_data: &ProjectData) -> Vec<sandstone_common:
 
         let tiles = std::fs::read(output_gfx_path).unwrap();
         let palette = std::fs::read(output_pal_path).unwrap();
-        saved_graphics.push(sandstone_common::SavedGraphic { name: name.clone(), tiles, palette })
+        saved_graphics.insert(name.clone(), sandstone_common::SavedGraphic { tiles, palette });
     }
     saved_graphics
 }

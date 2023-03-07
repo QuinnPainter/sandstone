@@ -14,10 +14,10 @@ pub mod node;
 pub use ironds; // re-export
 
 /// Type alias for using a Hashbrown HashMap with FxHash
-pub type HashMap<K, V> = hashbrown::HashMap<K, V, core::hash::BuildHasherDefault<rustc_hash::FxHasher>>;
+pub type HashMap<K, V> = sandstone_common::HashMap<K, V>;
 
 /// Type alias for using a Hashbrown HashSet with FxHash
-pub type HashSet<V> = hashbrown::HashSet<V, core::hash::BuildHasherDefault<rustc_hash::FxHasher>>;
+pub type HashSet<V> = sandstone_common::HashSet<V>;
 
 pub fn main_loop() -> ! {
     nds::interrupt::irq_set_handler(Some(inter));

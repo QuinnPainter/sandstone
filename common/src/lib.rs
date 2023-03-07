@@ -4,6 +4,9 @@ use alloc::{string::String, vec::Vec};
 use core::num::NonZeroU32;
 use serde::{Deserialize, Serialize};
 
+pub type HashMap<K, V> = hashbrown::HashMap<K, V, core::hash::BuildHasherDefault<rustc_hash::FxHasher>>;
+pub type HashSet<V> = hashbrown::HashSet<V, core::hash::BuildHasherDefault<rustc_hash::FxHasher>>;
+
 #[derive(Serialize, Deserialize)]
 pub struct SavedSpriteExtension {
     pub graphic_asset: String,
@@ -40,7 +43,6 @@ pub struct SavedNodeGraph {
 
 #[derive(Serialize, Deserialize)]
 pub struct SavedGraphic {
-    pub name: String,
     pub tiles: Vec<u8>,
     pub palette: Vec<u8>,
 }
@@ -48,7 +50,7 @@ pub struct SavedGraphic {
 #[derive(Serialize, Deserialize)]
 pub struct SavedPrefabs {
     pub graphs: Vec<SavedNodeGraph>,
-    pub graphics: Vec<SavedGraphic>,
+    pub graphics: HashMap<String, SavedGraphic>,
 }
 
 pub fn serialize<T>(h: &T) -> Vec<u8>

@@ -5,7 +5,14 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
+[dependencies.hashbrown]
+version = "0.13"
+default-features = false
+features = ["inline-more", "serde"]
+
+[dependencies.rustc-hash]
+version = "1.1"
+default-features = false
 
 [dependencies.postcard]
 # includes heapless-cas by default, we can't use atomic compare-and-swap
