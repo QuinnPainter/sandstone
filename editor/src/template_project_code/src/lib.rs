@@ -11,9 +11,10 @@ pub struct Obj1 {
     cntr: u32
 }
 
+#[doc = "{script_type_id=1}"]
 impl sandstone::hierarchy::HasTypeId for Obj1 {
     fn type_id() -> NonZeroU32 {
-        NonZeroU32::new(2).unwrap()
+        NonZeroU32::new(1).unwrap()
     }
 }
 
