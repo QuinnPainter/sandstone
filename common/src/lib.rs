@@ -41,10 +41,12 @@ pub struct SavedNodeGraph {
 #[derive(Serialize, Deserialize)]
 pub struct SavedPrefabs (pub Vec<SavedNodeGraph>);
 
-pub fn serialize_prefabs(h: &SavedPrefabs) -> Vec<u8> {
+pub fn serialize<T>(h: &T) -> Vec<u8>
+where T: serde::Serialize {
     postcard::to_allocvec(h).unwrap()
 }
 
-pub fn deserialize_prefabs(h: &[u8]) -> SavedPrefabs {
+pub fn deserialize<'a, T>(h: &'a [u8]) -> T
+where T: serde::Deserialize<'a> {
     postcard::from_bytes(h).unwrap()
 }

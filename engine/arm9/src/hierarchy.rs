@@ -35,7 +35,7 @@ impl Hierarchy {
             object_pool,
             node_ext_pools: NodeExtensionPools::new(),
             to_start_stack: Vec::new(),
-            saved_prefab_data: sandstone_common::deserialize_prefabs(unsafe { PREFAB_DATA.unwrap() })
+            saved_prefab_data: sandstone_common::deserialize(unsafe { PREFAB_DATA.unwrap() })
         }
     }
 

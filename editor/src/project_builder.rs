@@ -97,7 +97,7 @@ pub fn build(project_data: &mut ProjectData) {
 
     convert_graphical_assets(&project_data);
 
-    let serialised_graphs = sandstone_common::serialize_prefabs(&sandstone_common::SavedPrefabs(project_data.export_saved_graph()));
+    let serialised_graphs = sandstone_common::serialize(&sandstone_common::SavedPrefabs(project_data.export_saved_graph()));
     let mut graph_file = std::fs::File::create(build_path.join("graph_data.bin")).unwrap();
     graph_file.write_all(&serialised_graphs).unwrap();
 
