@@ -25,7 +25,10 @@ impl NodeExtensionHandle {
         match saved_extension {
             sandstone_common::SavedNodeExtension::None => NodeExtensionHandle::None,
             sandstone_common::SavedNodeExtension::Sprite(s) => {
-                NodeExtensionHandle::Sprite(pools.sprite_pool.add(sprite::SpriteExtension{stuff:0, node_handle}))
+                NodeExtensionHandle::Sprite(pools.sprite_pool.add(sprite::SpriteExtension {
+                    graphic_asset: s.graphic_asset.clone(),
+                    node_handle,
+                }))
             }
         }
     }

@@ -31,6 +31,8 @@ pub fn main_loop() -> ! {
     nds::display::set_brightness(nds::display::GfxEngine::MAIN, 0);
     nds::display::set_brightness(nds::display::GfxEngine::SUB, 0);
 
+    nds::display::map_vram_block_a(nds::display::vram_type::A::MAIN_OBJ_0);
+
     nds::display::set_main_display_control(nds::display::DisplayControlMain::new()
         .with_display_bg0(false)
         .with_display_bg1(false)
@@ -45,6 +47,7 @@ pub fn main_loop() -> ! {
     nds::display::console::print("Hello from Rust on the DS!\n\n");
 
     let mut hierarchy: Hierarchy = Hierarchy::new();
+    hierarchy.run_extension_init();
 
     // Load main scene
     hierarchy.spawn_prefab(0, hierarchy.root);

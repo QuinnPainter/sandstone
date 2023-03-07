@@ -10,10 +10,10 @@ use sandstone_common::SavedPrefabs;
 
 pub struct Hierarchy {
     pub root: Handle<Node>,
-    object_pool: Pool<Node>,
-    node_ext_pools: NodeExtensionPools,
+    pub(crate) object_pool: Pool<Node>,
+    pub(crate) node_ext_pools: NodeExtensionPools,
     to_start_stack: Vec<Handle<Node>>,
-    saved_prefab_data: SavedPrefabs,
+    pub(crate) saved_prefab_data: SavedPrefabs,
 }
 
 impl Hierarchy {
@@ -228,8 +228,12 @@ impl Hierarchy {
         }
     }
 
+    pub(crate) fn run_extension_init(&mut self) {
+        crate::node::sprite::sprite_init(&self);
+    }
+
     pub(crate) fn run_extension_update(&mut self) {
-        crate::node::sprite::sprite_update(&self.object_pool, &self.node_ext_pools);
+        crate::node::sprite::sprite_update(&self);
     }
 }
 
