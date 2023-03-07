@@ -1,8 +1,8 @@
 #![no_std]
 extern crate alloc;
-use core::num::NonZeroU32;
 use alloc::{string::String, vec::Vec};
-use serde::{Serialize, Deserialize};
+use core::num::NonZeroU32;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct SavedSpriteExtension {
@@ -18,7 +18,7 @@ pub enum SavedNodeExtension {
 #[derive(Serialize, Deserialize)]
 pub struct SavedTransform {
     pub x: u32,
-    pub y: u32
+    pub y: u32,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -30,23 +30,27 @@ pub struct SavedNode {
     pub transform: SavedTransform,
     pub node_extension: SavedNodeExtension,
     pub script_type_id: Option<NonZeroU32>,
-    pub enabled: bool
+    pub enabled: bool,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct SavedNodeGraph {
-    pub nodes: Vec<SavedNode>
+    pub nodes: Vec<SavedNode>,
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct SavedPrefabs (pub Vec<SavedNodeGraph>);
+pub struct SavedPrefabs(pub Vec<SavedNodeGraph>);
 
 pub fn serialize<T>(h: &T) -> Vec<u8>
-where T: serde::Serialize {
+where
+    T: serde::Serialize,
+{
     postcard::to_allocvec(h).unwrap()
 }
 
 pub fn deserialize<'a, T>(h: &'a [u8]) -> T
-where T: serde::Deserialize<'a> {
+where
+    T: serde::Deserialize<'a>,
+{
     postcard::from_bytes(h).unwrap()
 }
