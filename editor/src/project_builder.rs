@@ -95,9 +95,12 @@ pub fn build(project_data: &mut ProjectData) {
     };
     create_runtime_crate(false, &arm7_path, &arm7_code.to_string());
 
-    convert_graphical_assets(&project_data);
+    let graphical_assets = convert_graphical_assets(&project_data);
 
-    let serialised_graphs = sandstone_common::serialize(&sandstone_common::SavedPrefabs(project_data.export_saved_graph()));
+    let serialised_graphs = sandstone_common::serialize(&sandstone_common::SavedPrefabs{
+        graphs: project_data.export_saved_graph(),
+        graphics: graphical_assets,
+    });
     let mut graph_file = std::fs::File::create(build_path.join("graph_data.bin")).unwrap();
     graph_file.write_all(&serialised_graphs).unwrap();
 
@@ -182,11 +185,12 @@ fn create_runtime_crate(arm9: bool, path: &Path, code: &str) {
     std::fs::write(path.join("src/main.rs"), code).unwrap();
 }
 
-fn convert_graphical_assets(project_data: &ProjectData) {
+fn convert_graphical_assets(project_data: &ProjectData) -> Vec<sandstone_common::SavedGraphic> {
     let output_gfx_path = project_data.get_path().join("build/gfx");
     std::fs::create_dir_all(&output_gfx_path).unwrap();
+    let mut saved_graphics: Vec<sandstone_common::SavedGraphic> = Vec::with_capacity(project_data.graphical_assets.len());
 
-    for asset_file_path in project_data.graphical_assets.values() {
+    for (name, asset_file_path) in project_data.graphical_assets.iter() {
         let file_stem = asset_file_path.file_stem().unwrap();
         let output_path_base = output_gfx_path.join(file_stem);
         let output_gfx_path = output_path_base.with_extension("gfx");
@@ -200,5 +204,10 @@ fn convert_graphical_assets(project_data: &ProjectData) {
             .args(["--out-tiles", output_gfx_path.to_str().unwrap()])
             .args(["--out-palette", output_pal_path.to_str().unwrap()])
             .output().unwrap();
+
+        let tiles = std::fs::read(output_gfx_path).unwrap();
+        let palette = std::fs::read(output_pal_path).unwrap();
+        saved_graphics.push(sandstone_common::SavedGraphic { name: name.clone(), tiles, palette })
     }
+    saved_graphics
 }

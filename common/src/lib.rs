@@ -39,18 +39,28 @@ pub struct SavedNodeGraph {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct SavedPrefabs(pub Vec<SavedNodeGraph>);
+pub struct SavedGraphic {
+    pub name: String,
+    pub tiles: Vec<u8>,
+    pub palette: Vec<u8>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct SavedPrefabs {
+    pub graphs: Vec<SavedNodeGraph>,
+    pub graphics: Vec<SavedGraphic>,
+}
 
 pub fn serialize<T>(h: &T) -> Vec<u8>
 where
-    T: serde::Serialize,
+    T: Serialize,
 {
     postcard::to_allocvec(h).unwrap()
 }
 
 pub fn deserialize<'a, T>(h: &'a [u8]) -> T
 where
-    T: serde::Deserialize<'a>,
+    T: Deserialize<'a>,
 {
     postcard::from_bytes(h).unwrap()
 }
