@@ -190,8 +190,8 @@ fn convert_graphical_assets(project_data: &ProjectData) -> sandstone_common::Has
     std::fs::create_dir_all(&output_gfx_path).unwrap();
     let mut saved_graphics: sandstone_common::HashMap<String, sandstone_common::SavedGraphic> = sandstone_common::HashMap::default();
 
-    for (name, asset_file_path) in project_data.graphical_assets.iter() {
-        let file_stem = asset_file_path.file_stem().unwrap();
+    for (name, asset) in project_data.graphical_assets.iter() {
+        let file_stem = asset.path.file_stem().unwrap();
         let output_path_base = output_gfx_path.join(file_stem);
         let output_gfx_path = output_path_base.with_extension("gfx");
         let output_pal_path = output_path_base.with_extension("pal");
@@ -200,14 +200,14 @@ fn convert_graphical_assets(project_data: &ProjectData) -> sandstone_common::Has
             .args(["--mode", "gba"])
             .args(["--tile-width", "8"])
             .args(["--tile-height", "8"])
-            .args(["--in-image", asset_file_path.to_str().unwrap()])
+            .args(["--in-image", asset.path.to_str().unwrap()])
             .args(["--out-tiles", output_gfx_path.to_str().unwrap()])
             .args(["--out-palette", output_pal_path.to_str().unwrap()])
             .output().unwrap();
 
         let tiles = std::fs::read(output_gfx_path).unwrap();
         let palette = std::fs::read(output_pal_path).unwrap();
-        saved_graphics.insert(name.clone(), sandstone_common::SavedGraphic { tiles, palette });
+        saved_graphics.insert(name.clone(), sandstone_common::SavedGraphic { tiles, palette, size: asset.size });
     }
     saved_graphics
 }

@@ -1,7 +1,7 @@
 use std::num::{NonZeroUsize, NonZeroU32};
 use imgui::{Ui, TreeNodeFlags};
 use stable_vec::StableVec;
-use crate::project_data::ProjectData;
+use crate::{project_data::ProjectData, Selected};
 
 #[derive(Default)]
 pub struct Transform {
@@ -84,7 +84,7 @@ impl Hierarchy {
         }
     }
 
-    pub fn draw_hierarchy(&mut self, ui: &Ui, project_data: &mut ProjectData) {
+    pub fn draw_hierarchy(&mut self, ui: &Ui, project_data: &mut ProjectData, selected: &mut Selected) {
         ui.window("Hierarchy")
             .build(|| {
                 if ui.is_window_hovered() && ui.is_mouse_clicked(imgui::MouseButton::Right) {
@@ -116,7 +116,7 @@ impl Hierarchy {
                         }
                     }
                 }
-                self.draw_hierarchy_node(ui, project_data, 0);
+                self.draw_hierarchy_node(ui, project_data, selected, 0);
             });
         ui.window("Graphs")
             .build(|| {
@@ -127,6 +127,7 @@ impl Hierarchy {
                             .build() {
                             self.current_graph_idx = i;
                             self.selected_node_idx = None;
+                            *selected = Selected::None;
                         }
                     }
                 }
@@ -146,6 +147,7 @@ impl Hierarchy {
                     });
                     self.current_graph_idx = project_data.graphs.len();
                     self.selected_node_idx = None;
+                    *selected = Selected::None;
                     project_data.graphs.push(new_graph);
                     self.new_graph_name_buffer.clear();
                 }
@@ -176,7 +178,7 @@ impl Hierarchy {
         }
     }
 
-    fn draw_hierarchy_node(&mut self, ui: &Ui, project_data: &ProjectData, node_idx: usize) {
+    fn draw_hierarchy_node(&mut self, ui: &Ui, project_data: &ProjectData, selected: &mut Selected, node_idx: usize) {
         if let Some(graph) = project_data.graphs.get(self.current_graph_idx) {
             if let Some(node) = graph.0.get(node_idx) {
                 let mut tree_node_token: Option<imgui::TreeNodeToken> = None;
@@ -193,6 +195,7 @@ impl Hierarchy {
                     tree_node_token = ui.tree_node_config(format!("{}##TreeNode{}", node.name, node_idx).as_str()).flags(flags).push();
                     if ui.is_item_clicked() {
                         self.selected_node_idx = Some(NonZeroUsize::new(node_idx).unwrap());
+                        *selected = Selected::Node;
                     }
                     if let Some(tooltip) = ui.drag_drop_source_config("HierarchyDragDrop").begin_payload(node_idx) {
                         // The tooltip displayed when dragging
@@ -212,7 +215,7 @@ impl Hierarchy {
                     if let Some(mut cur_child_idx) = node.child_index {
                         loop {
                             let cur_child_idx_usize = usize::from(cur_child_idx);
-                            self.draw_hierarchy_node(ui, project_data, cur_child_idx_usize);
+                            self.draw_hierarchy_node(ui, project_data, selected, cur_child_idx_usize);
                             cur_child_idx = match graph.0[cur_child_idx_usize].sibling_index {
                                 Some(x) => x,
                                 None => break
@@ -225,9 +228,10 @@ impl Hierarchy {
         }
     }
 
-    pub fn delete_node(&mut self, project_data: &mut ProjectData, node_idx: NonZeroUsize) {
+    pub fn delete_node(&mut self, project_data: &mut ProjectData, selected: &mut Selected, node_idx: NonZeroUsize) {
         // Deselect node just in case it is deleted
         self.selected_node_idx = None;
+        *selected = Selected::None;
 
         let node_idx_usize = usize::from(node_idx);
         if let Some(graph) = project_data.graphs.get_mut(self.current_graph_idx) {

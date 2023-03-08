@@ -1,7 +1,7 @@
 use crate::{pool::Handle, node::Node, hierarchy::Hierarchy, HashMap};
 use alloc::string::String;
 use ironds::display::{obj, GfxEngine};
-use sandstone_common::SavedPrefabs;
+use sandstone_common::{SavedPrefabs, SpriteSize};
 
 // Assumes 16 palette / 16 colour mode.
 const SIZEOF_PALETTE: usize = 2 * 16;
@@ -20,6 +20,23 @@ pub(crate) struct SpriteExtensionHandler {
 struct SpriteVramMapping {
     tile_index: u16,
     pal_index: u8,
+}
+
+fn sprite_size_to_shape_and_size(ss: SpriteSize) -> (u8, u8) {
+    match ss {
+        SpriteSize::_8x8 => (0, 0),
+        SpriteSize::_16x16 => (0, 1),
+        SpriteSize::_32x32 => (0, 2),
+        SpriteSize::_64x64 => (0, 3),
+        SpriteSize::_16x8 => (1, 0),
+        SpriteSize::_32x8 => (1, 1),
+        SpriteSize::_32x16 => (1, 2),
+        SpriteSize::_64x32 => (1, 3),
+        SpriteSize::_8x16 => (2, 0),
+        SpriteSize::_8x32 => (2, 1),
+        SpriteSize::_16x32 => (2, 2),
+        SpriteSize::_32x64 => (2, 3),
+    }
 }
 
 impl SpriteExtensionHandler {
@@ -67,6 +84,7 @@ impl SpriteExtensionHandler {
             if let Some(sprite) = sprite {
                 let node = hierarchy.object_pool.borrow(sprite.node_handle);
                 let vram_mapping = self.sprite_vram_map[&sprite.graphic_asset];
+                let (shape, size) = sprite_size_to_shape_and_size(hierarchy.saved_prefab_data.graphics[&sprite.graphic_asset].size);
                 obj::set_sprite(GfxEngine::MAIN, i, obj::Sprite::NormalSprite(obj::NormalSprite::new()
                     .with_x(node.transform.x as u16)
                     .with_y(node.transform.y as u8)
@@ -76,8 +94,8 @@ impl SpriteExtensionHandler {
                     .with_mode(0) // Normal mode
                     .with_mosaic(false)
                     .with_palette_type(false) // 16/16
-                    .with_shape(0) // square
-                    .with_size(0) // 8x8
+                    .with_shape(shape) // square
+                    .with_size(size) // 8x8
                     .with_tile(vram_mapping.tile_index)
                     .with_priority(0)
                     .with_palette(vram_mapping.pal_index)

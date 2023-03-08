@@ -2,7 +2,8 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::num::NonZeroU32;
 use notify::Watcher;
-use sandstone_common::{SavedNodeGraph, SavedNode, SavedTransform};
+use sandstone_common::{SavedNodeGraph, SavedNode, SavedTransform, SpriteSize};
+use serde::{Deserialize, Serialize};
 
 pub struct ProjectData {
     path: PathBuf,
@@ -11,7 +12,21 @@ pub struct ProjectData {
     file_scanner_tx: std::sync::mpsc::Sender<Result<notify::Event, notify::Error>>,
     file_scanner_rx: std::sync::mpsc::Receiver<Result<notify::Event, notify::Error>>,
     file_scanner_watcher: Option<notify::INotifyWatcher>,
-    pub graphical_assets: HashMap<String, PathBuf>,
+    pub graphical_assets: HashMap<String, GraphicalAsset>,
+    pub selected_asset: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct GraphicalAsset {
+    pub path: PathBuf,
+    pub size: SpriteSize,
+}
+
+impl GraphicalAsset {
+    pub fn with_path(mut self, path: PathBuf) -> Self {
+        self.path = path;
+        self
+    }
 }
 
 impl ProjectData {
@@ -25,6 +40,7 @@ impl ProjectData {
             file_scanner_rx: rx,
             file_scanner_watcher: None,
             graphical_assets: HashMap::new(),
+            selected_asset: None,
         }
     }
 
@@ -60,14 +76,19 @@ impl ProjectData {
 
     pub fn find_graphical_assets(&mut self) {
         let asset_path = self.path.join("assets");
-        self.graphical_assets.clear();
+        let previous_assets = self.graphical_assets.clone();
     
         for entry in asset_path.read_dir().unwrap() {
             let entry_path = entry.unwrap().path();
             if let Some(extension) = entry_path.extension() {
                 if extension == "png" {
                     let file_name = entry_path.with_extension("").file_name().unwrap().to_str().unwrap().to_string();
-                    self.graphical_assets.insert(file_name, entry_path);
+                    let previous_entry = previous_assets.get(&file_name);
+                    let asset = GraphicalAsset {
+                        path: entry_path,
+                        size: if let Some(e) = previous_entry { e.size } else { SpriteSize::default() },
+                    };
+                    self.graphical_assets.insert(file_name, asset);
                 }
             }
         }
