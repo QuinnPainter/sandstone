@@ -200,6 +200,8 @@ fn convert_graphical_assets(project_data: &ProjectData) -> sandstone_common::Has
             .args(["--mode", "gba"])
             .args(["--tile-width", "8"])
             .args(["--tile-height", "8"])
+            .arg("--no-discard")
+            .arg("--no-flip")
             .args(["--in-image", asset.path.to_str().unwrap()])
             .args(["--out-tiles", output_gfx_path.to_str().unwrap()])
             .args(["--out-palette", output_pal_path.to_str().unwrap()])
