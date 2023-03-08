@@ -63,6 +63,10 @@ impl SpriteExtensionHandler {
         let mut cur_tile_ram_ptr = tile_ram_base;
         let mut cur_pal_ram_ptr = pal_ram_base;
         for (name, saved_graphic) in saved_prefab_data.graphics.iter() {
+            self.sprite_vram_map.insert(name.clone(), SpriteVramMapping {
+                tile_index: ((cur_tile_ram_ptr as usize - tile_ram_base as usize) / SIZEOF_TILE) as u16,
+                pal_index: ((cur_pal_ram_ptr as usize - pal_ram_base as usize) / SIZEOF_PALETTE) as u8,
+            });
             unsafe {
                 // todo: check for overflow of tile / palette ram
                 let tile_end = cur_tile_ram_ptr.add(saved_graphic.tiles.len());
@@ -72,10 +76,6 @@ impl SpriteExtensionHandler {
                 cur_tile_ram_ptr = align_to(tile_end, SIZEOF_TILE);
                 cur_pal_ram_ptr = align_to(pal_end, SIZEOF_PALETTE);
             }
-            self.sprite_vram_map.insert(name.clone(), SpriteVramMapping {
-                tile_index: ((cur_tile_ram_ptr as usize - tile_ram_base as usize) / SIZEOF_TILE) as u16,
-                pal_index: ((cur_pal_ram_ptr as usize - pal_ram_base as usize) / SIZEOF_PALETTE) as u8,
-            });
         }
     }
 
