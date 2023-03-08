@@ -4,7 +4,7 @@ use crate::{
     Script,
     ScriptContext,
     pool::{Pool, Handle},
-    node::{Transform, Node, NodeScriptData, NodeExtensionHandle, NodeExtensionPools}
+    node::{Transform, Node, NodeScriptData, NodeExtensionHandle, NodeExtensionPools, sprite::SpriteExtensionHandler}
 };
 use sandstone_common::SavedPrefabs;
 
@@ -14,6 +14,7 @@ pub struct Hierarchy {
     pub(crate) node_ext_pools: NodeExtensionPools,
     to_start_stack: Vec<Handle<Node>>,
     pub(crate) saved_prefab_data: SavedPrefabs,
+    sprite_handler: SpriteExtensionHandler,
 }
 
 impl Hierarchy {
@@ -35,7 +36,8 @@ impl Hierarchy {
             object_pool,
             node_ext_pools: NodeExtensionPools::new(),
             to_start_stack: Vec::new(),
-            saved_prefab_data: sandstone_common::deserialize(unsafe { PREFAB_DATA.unwrap() })
+            saved_prefab_data: sandstone_common::deserialize(unsafe { PREFAB_DATA.unwrap() }),
+            sprite_handler: SpriteExtensionHandler::new(),
         }
     }
 
@@ -229,11 +231,11 @@ impl Hierarchy {
     }
 
     pub(crate) fn run_extension_init(&mut self) {
-        crate::node::sprite::sprite_init(&self);
+        self.sprite_handler.sprite_init(&self.saved_prefab_data);
     }
 
     pub(crate) fn run_extension_update(&mut self) {
-        crate::node::sprite::sprite_update(&self);
+        self.sprite_handler.sprite_update(&self);
     }
 }
 
