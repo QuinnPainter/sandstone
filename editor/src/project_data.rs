@@ -76,7 +76,7 @@ impl ProjectData {
 
     pub fn find_graphical_assets(&mut self) {
         let asset_path = self.path.join("assets");
-        let previous_assets = self.graphical_assets.clone();
+        let previous_assets: HashMap<String, GraphicalAsset> = self.graphical_assets.drain().collect();
     
         for entry in asset_path.read_dir().unwrap() {
             let entry_path = entry.unwrap().path();
