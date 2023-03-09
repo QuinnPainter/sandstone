@@ -66,10 +66,19 @@ impl ProjectData {
     }
 
     pub fn check_file_scanner(&mut self) {
-        let mut any_changes = false;
+        let mut any_asset_changes = false;
         // Iterate over receiver to clear queue
-        for _ in self.file_scanner_rx.try_iter() { any_changes = true; }
-        if any_changes {
+        let assets_folder = self.path.join("assets");
+        for event in self.file_scanner_rx.try_iter() {
+            if let Ok(event) = event {
+                for path in event.paths {
+                    if path.starts_with(&assets_folder) {
+                        any_asset_changes = true;
+                    }
+                }
+            }
+        }
+        if any_asset_changes {
             self.find_graphical_assets();
         }
     }
