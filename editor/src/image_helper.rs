@@ -3,17 +3,14 @@ use glow::HasContext;
 use image::EncodableLayout;
 use imgui_glow_renderer::TextureMap;
 
-fn reload_texture(renderer: &mut imgui_glow_renderer::AutoRenderer, tex: imgui::TextureId, path: &Path) -> imgui::TextureId {
-    tex
-}
-
 pub fn load_texture(renderer: &mut imgui_glow_renderer::AutoRenderer, tex: Option<imgui::TextureId>, path: &Path) -> imgui::TextureId {
-    // Texture has been loaded already - should be reloaded instead of making a new texture
-    if let Some(tex) = tex {
-        return reload_texture(renderer, tex, path);
-    }
-
     let gl = renderer.gl_context();
+    
+    // Texture has been loaded already - should be unloaded before making a new texture
+    if let Some(tex) = tex {
+        unsafe { gl.delete_texture(renderer.texture_map().gl_texture(tex).unwrap()); }
+    }
+    
     let reader = image::io::Reader::open(path).unwrap();
     let image = reader.decode().unwrap();
     let image = image.into_rgba8();
