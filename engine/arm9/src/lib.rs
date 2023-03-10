@@ -39,6 +39,11 @@ pub fn main_loop() -> ! {
         .with_display_bg2(false)
         .with_display_bg3(false)
         .with_display_obj(true)
+        .with_bm_obj_1d_bound(0)
+        .with_obj_during_hblank(false)
+        .with_bg_ext_pal_enabled(false)
+        .with_obj_ext_pal_enabled(false)
+        .with_forced_blank(false)
         .with_tile_obj_mapping(true) // 1D mapping
         .with_display_mode(1) // normal BG / OBJ display
     );
