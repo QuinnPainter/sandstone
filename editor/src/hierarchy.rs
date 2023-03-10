@@ -5,8 +5,8 @@ use crate::{project_data::ProjectData, Selected};
 
 #[derive(Default)]
 pub struct Transform {
-    pub x: u32,
-    pub y: u32,
+    pub x: fixed::types::U20F12,
+    pub y: fixed::types::U20F12,
 }
 
 pub enum NodeExtension {

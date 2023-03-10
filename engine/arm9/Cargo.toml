@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 ironds = { git = "https://github.com/QuinnPainter/ironds", features = ["arm9"] }
 sandstone_common = { path = "../../common" }
+fixed = "1.23"
 
 [profile.dev]
 opt-level = 3

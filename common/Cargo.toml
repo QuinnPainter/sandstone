@@ -5,6 +5,9 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[dependencies]
+fixed = { version = "1.23", features = ["serde"] }
+
 [dependencies.hashbrown]
 version = "0.13"
 default-features = false

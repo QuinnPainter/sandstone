@@ -25,3 +25,4 @@ include_dir = "0.7"
 log = { version = "0.4", features = ["std"] }
 notify = "5.1"
 image = { version = "0.24", default-features = false, features = ["png"] }
+fixed = "1.23"
