@@ -11,7 +11,7 @@ pub struct ProjectData {
     pub graphs: Vec<crate::hierarchy::NodeGraph>,
     file_scanner_tx: std::sync::mpsc::Sender<Result<notify::Event, notify::Error>>,
     file_scanner_rx: std::sync::mpsc::Receiver<Result<notify::Event, notify::Error>>,
-    file_scanner_watcher: Option<notify::INotifyWatcher>,
+    file_scanner_watcher: Option<notify::RecommendedWatcher>,
     pub graphical_assets: HashMap<String, GraphicalAsset>,
     pub selected_asset: Option<String>,
 }
