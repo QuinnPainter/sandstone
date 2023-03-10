@@ -6,45 +6,46 @@ pub fn draw_world_editor(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut 
         .build(|| {
             let draw_list = ui.get_window_draw_list();
             let canvas_pos = ui.cursor_screen_pos();
-            
-            if let Some(graph) = project_data.graphs.get(hierarchy.current_graph_idx) {
-                if let Some(h) = graph.0.get(1) {
-                    match &h.node_extension {
-                        NodeExtension::Sprite(s) => {
-                            //println!("Showing {}", s.graphic_asset);
-                            let asset = &project_data.graphical_assets[&s.graphic_asset];
-                            let f: [f32; 2] = [canvas_pos[0] + 50.0, canvas_pos[1] + 50.0];
-                            draw_list.add_image(asset.texture, canvas_pos, f).build();
-                        },
-                        _ => {},
+
+            draw_node_recursive(ui, hierarchy, project_data, selected, 0, &draw_list, canvas_pos)
+        });
+}
+
+// todo: this recursive node logic is duplicated in Hierarchy. how to deduplicate?
+fn draw_node_recursive(
+    ui: &Ui,
+    hierarchy: &mut Hierarchy,
+    project_data: &ProjectData,
+    selected: &mut Selected,
+    node_idx: usize,
+    draw_list: &imgui::DrawListMut,
+    canvas_pos: [f32; 2],
+){
+    if let Some(graph) = project_data.graphs.get(hierarchy.current_graph_idx) {
+        if let Some(node) = graph.0.get(node_idx) {
+            match &node.node_extension {
+                NodeExtension::Sprite(s) => {
+                    if let Some(asset) = project_data.graphical_assets.get(&s.graphic_asset) {
+                        let (width, height) = asset.size.to_dimensions();
+                        let p_min = [canvas_pos[0] + node.transform.x as f32, canvas_pos[1] + node.transform.y as f32];
+                        let p_max = [p_min[0] + width as f32, p_min[1] + height as f32];
+                        draw_list.add_image(asset.texture.unwrap(), p_min, p_max).build();
                     }
+                },
+                _ => {},
+            }
+
+            // Draw child nodes recursively
+            if let Some(mut cur_child_idx) = node.child_index {
+                loop {
+                    let cur_child_idx_usize = usize::from(cur_child_idx);
+                    draw_node_recursive(ui, hierarchy, project_data, selected, cur_child_idx_usize, draw_list, canvas_pos);
+                    cur_child_idx = match graph.0[cur_child_idx_usize].sibling_index {
+                        Some(x) => x,
+                        None => break,
+                    };
                 }
             }
-            /*const RADIUS: f32 = 100.0;
-            const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
-            const F: [f32; 2] = [0.0, 0.0];
-            let canvas_pos = ui.cursor_screen_pos();
-            draw_list
-                .add_line(
-                    F,
-                    [canvas_pos[0] + RADIUS, canvas_pos[1] + RADIUS],
-                    RED,
-                )
-                .thickness(5.0)
-                .build();*/
-
-            //renderer.texture_map_mut()
-            //imgui_glow_renderer::TextureMap
-            //imgui::Texture
-            //ui.tex
-            //draw_list.add_image(texture_id, p_min, p_max)
-            /*unsafe {
-                let gl = renderer.gl_context();
-                //renderer.texture_map_mut()
-                let tex = gl.create_texture().unwrap();
-                gl.bind_texture(glow::TEXTURE_2D, Some(tex));
-                //gl.tex_image_2d(target, level, internal_format, width, height, border, format, ty, pixels)
-                gl.delete_texture(tex);
-            }*/
-        });
+        }
+    }
 }

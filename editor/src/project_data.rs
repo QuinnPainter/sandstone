@@ -21,12 +21,7 @@ pub struct GraphicalAsset {
     pub path: PathBuf,
     pub size: SpriteSize,
     #[serde(skip)]
-    #[serde(default = "default_tex_id")]
-    pub texture: imgui::TextureId,
-}
-
-const fn default_tex_id() -> imgui::TextureId {
-    imgui::TextureId::new(0)
+    pub texture: Option<imgui::TextureId>,
 }
 
 impl GraphicalAsset {
@@ -104,19 +99,19 @@ impl ProjectData {
                     let (size, texture) = if let Some(e) = previous_entry {
                         (
                             e.size,
-                            crate::image_helper::reload_texture(renderer, e.texture, &entry_path),
+                            crate::image_helper::load_texture(renderer, e.texture, &entry_path),
                         )
                     } else {
                         (
                             SpriteSize::default(),
-                            crate::image_helper::load_texture(renderer, &entry_path),
+                            crate::image_helper::load_texture(renderer, None, &entry_path),
                         )
                     };
 
                     let asset = GraphicalAsset {
                         path: entry_path,
                         size,
-                        texture,
+                        texture: Some(texture),
                     };
                     self.graphical_assets.insert(file_name, asset);
                 }

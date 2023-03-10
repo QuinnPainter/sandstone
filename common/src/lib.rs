@@ -43,6 +43,25 @@ impl core::fmt::Display for SpriteSize {
     }
 }
 
+impl SpriteSize {
+    pub fn to_dimensions(self) -> (u8, u8) {
+        match self {
+            SpriteSize::_8x8 => (8, 8),
+            SpriteSize::_16x16 => (16, 16),
+            SpriteSize::_32x32 => (32, 32),
+            SpriteSize::_64x64 => (64, 64),
+            SpriteSize::_16x8 => (16, 8),
+            SpriteSize::_32x8 => (32, 8),
+            SpriteSize::_32x16 => (32, 16),
+            SpriteSize::_64x32 => (64, 32),
+            SpriteSize::_8x16 => (8, 16),
+            SpriteSize::_8x32 => (8, 32),
+            SpriteSize::_16x32 => (16, 32),
+            SpriteSize::_32x64 => (32, 64),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct SavedSpriteExtension {
     pub graphic_asset: String,

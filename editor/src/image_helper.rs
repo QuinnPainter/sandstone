@@ -1,26 +1,32 @@
-use std::{fs::File, path::Path};
+use std::path::Path;
 use glow::HasContext;
+use image::EncodableLayout;
 use imgui_glow_renderer::TextureMap;
 
-pub fn reload_texture(renderer: &mut imgui_glow_renderer::AutoRenderer, tex: imgui::TextureId, path: &Path) -> imgui::TextureId {
+fn reload_texture(renderer: &mut imgui_glow_renderer::AutoRenderer, tex: imgui::TextureId, path: &Path) -> imgui::TextureId {
     tex
 }
 
-pub fn load_texture(renderer: &mut imgui_glow_renderer::AutoRenderer, path: &Path) -> imgui::TextureId {
+pub fn load_texture(renderer: &mut imgui_glow_renderer::AutoRenderer, tex: Option<imgui::TextureId>, path: &Path) -> imgui::TextureId {
+    // Texture has been loaded already - should be reloaded instead of making a new texture
+    if let Some(tex) = tex {
+        return reload_texture(renderer, tex, path);
+    }
+
     let gl = renderer.gl_context();
-    let decoder = png::Decoder::new(File::open(path).unwrap());
-    let mut reader = decoder.read_info().unwrap();
-    let image = {
-        let mut buf = vec![0u8; reader.output_buffer_size()];
-        reader.next_frame(&mut buf).unwrap();
-        buf
-    };
-    let (width, height) = reader.info().size();
+    let reader = image::io::Reader::open(path).unwrap();
+    let image = reader.decode().unwrap();
+    let image = image.into_rgba8();
+
+    let (width, height) = image.dimensions();
+    let image = image.as_bytes();
 
     let gl_texture = unsafe { gl.create_texture() }.expect("unable to create GL texture");
 
     unsafe {
         gl.bind_texture(glow::TEXTURE_2D, Some(gl_texture));
+        // These parameters determine how the image will be scaled.
+        // They are required (image will not display without setting them)
         gl.tex_parameter_i32(
             glow::TEXTURE_2D,
             glow::TEXTURE_MIN_FILTER,
@@ -40,7 +46,7 @@ pub fn load_texture(renderer: &mut imgui_glow_renderer::AutoRenderer, path: &Pat
             0,
             glow::RGBA,
             glow::UNSIGNED_BYTE,
-            Some(&image),
+            Some(image),
         )
     }
     renderer.texture_map_mut().register(gl_texture).unwrap()
