@@ -75,8 +75,8 @@ pub enum SavedNodeExtension {
 
 #[derive(Serialize, Deserialize)]
 pub struct SavedTransform {
-    pub x: fixed::types::U20F12,
-    pub y: fixed::types::U20F12,
+    pub x: fixed::types::I20F12,
+    pub y: fixed::types::I20F12,
 }
 
 #[derive(Serialize, Deserialize)]

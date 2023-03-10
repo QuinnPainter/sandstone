@@ -27,7 +27,7 @@ fn draw_node_recursive(
                 NodeExtension::Sprite(s) => {
                     if let Some(asset) = project_data.graphical_assets.get(&s.graphic_asset) {
                         let (width, height) = asset.size.to_dimensions();
-                        let p_min = [canvas_pos[0] + node.transform.x.to_num::<u32>() as f32, canvas_pos[1] + node.transform.y.to_num::<u32>() as f32];
+                        let p_min = [canvas_pos[0] + node.transform.x.to_num::<i32>() as f32, canvas_pos[1] + node.transform.y.to_num::<i32>() as f32];
                         let p_max = [p_min[0] + width as f32, p_min[1] + height as f32];
                         draw_list.add_image(asset.texture.unwrap(), p_min, p_max).build();
                     }

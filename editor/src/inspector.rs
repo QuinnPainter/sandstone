@@ -39,8 +39,8 @@ fn node_inspector(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut Project
 
             let mut pos: [f32; 2] = [selected_node.transform.x.to_num::<f32>(), selected_node.transform.y.to_num::<f32>()];
             imgui::Drag::new("Position").build_array(ui, &mut pos);
-            selected_node.transform.x = fixed::types::U20F12::from_num(pos[0]);
-            selected_node.transform.y = fixed::types::U20F12::from_num(pos[1]);
+            selected_node.transform.x = fixed::types::I20F12::from_num(pos[0]);
+            selected_node.transform.y = fixed::types::I20F12::from_num(pos[1]);
 
             if let Some(_cb) = ui.begin_combo("Extension", format!("{}", selected_node.node_extension)) {
                 if ui.selectable("None") {

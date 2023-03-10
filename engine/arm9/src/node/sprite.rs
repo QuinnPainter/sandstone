@@ -86,9 +86,10 @@ impl SpriteExtensionHandler {
                 let node = hierarchy.object_pool.borrow(sprite.node_handle);
                 let vram_mapping = self.sprite_vram_map[&sprite.graphic_asset];
                 let (shape, size) = sprite_size_to_shape_and_size(hierarchy.saved_prefab_data.graphics[&sprite.graphic_asset].size);
+                let (x, y) = (node.transform.x.to_num::<i32>(), node.transform.y.to_num::<i32>());
                 obj::set_sprite(GfxEngine::MAIN, i, obj::Sprite::NormalSprite(obj::NormalSprite::new()
-                    .with_x((node.transform.x.to_num::<u32>() & 0x1FF) as u16)
-                    .with_y((node.transform.y.to_num::<u32>() & 0xFF) as u8)
+                    .with_x((x & 0x1FF) as u16)
+                    .with_y((y & 0xFF) as u8)
                     .with_disable(false)
                     .with_h_flip(false)
                     .with_v_flip(false)
