@@ -12,6 +12,7 @@ pub mod hierarchy;
 pub mod node;
 
 pub use ironds; // re-export
+pub use fixed;
 
 /// Type alias for using a Hashbrown HashMap with FxHash
 pub type HashMap<K, V> = sandstone_common::HashMap<K, V>;
