@@ -6,7 +6,7 @@ use crate::{project_data::ProjectData, Selected};
 #[derive(Default)]
 pub struct Transform {
     pub x: u32,
-    pub y: u32
+    pub y: u32,
 }
 
 pub enum NodeExtension {
@@ -52,7 +52,7 @@ pub struct Node {
     pub transform: Transform,
     pub node_extension: NodeExtension,
     pub script_type_id: Option<NonZeroU32>,
-    pub enabled: bool
+    pub enabled: bool,
 }
 
 pub struct NodeGraph(pub StableVec<Node>);
@@ -66,7 +66,7 @@ pub struct Hierarchy {
     pub current_graph_idx: usize,
     pub selected_node_idx: Option<NonZeroUsize>,
     new_graph_name_buffer: String,
-    pending_node_moves: Vec<NodeMove>
+    pending_node_moves: Vec<NodeMove>,
 }
 
 struct NodeMove {
@@ -80,7 +80,7 @@ impl Hierarchy {
             current_graph_idx: 0,
             selected_node_idx: None,
             new_graph_name_buffer: String::new(),
-            pending_node_moves: Vec::new()
+            pending_node_moves: Vec::new(),
         }
     }
 
@@ -110,7 +110,7 @@ impl Hierarchy {
                                 transform: Transform::default(),
                                 node_extension: NodeExtension::None,
                                 script_type_id: None,
-                                enabled: true
+                                enabled: true,
                             });
                             Hierarchy::link_node(graph, NonZeroUsize::new(new_index).unwrap(), 0);
                         }
@@ -143,7 +143,7 @@ impl Hierarchy {
                         transform: Transform::default(),
                         node_extension: NodeExtension::None,
                         script_type_id: None,
-                        enabled: true
+                        enabled: true,
                     });
                     self.current_graph_idx = project_data.graphs.len();
                     self.selected_node_idx = None;
@@ -218,7 +218,7 @@ impl Hierarchy {
                             self.draw_hierarchy_node(ui, project_data, selected, cur_child_idx_usize);
                             cur_child_idx = match graph.0[cur_child_idx_usize].sibling_index {
                                 Some(x) => x,
-                                None => break
+                                None => break,
                             };
                         }
                     }
@@ -294,7 +294,7 @@ impl Hierarchy {
                 op(&mut graph.0[cur_child_idx_usize], cur_child_idx_usize);
                 cur_child_idx = match graph.0[cur_child_idx_usize].sibling_index {
                     Some(x) => x,
-                    None => break
+                    None => break,
                 }
             }
         }

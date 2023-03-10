@@ -101,15 +101,21 @@ impl ProjectData {
                     let file_name = entry_path.with_extension("").file_name().unwrap().to_str().unwrap().to_string();
                     let previous_entry = previous_assets.get(&file_name);
 
-                    let texture = if let Some(e) = previous_entry {
-                        crate::image_helper::reload_texture(renderer, e.texture, &entry_path)
+                    let (size, texture) = if let Some(e) = previous_entry {
+                        (
+                            e.size,
+                            crate::image_helper::reload_texture(renderer, e.texture, &entry_path),
+                        )
                     } else {
-                        crate::image_helper::load_texture(renderer, &entry_path)
+                        (
+                            SpriteSize::default(),
+                            crate::image_helper::load_texture(renderer, &entry_path),
+                        )
                     };
 
                     let asset = GraphicalAsset {
                         path: entry_path,
-                        size: if let Some(e) = previous_entry { e.size } else { SpriteSize::default() },
+                        size,
                         texture,
                     };
                     self.graphical_assets.insert(file_name, asset);

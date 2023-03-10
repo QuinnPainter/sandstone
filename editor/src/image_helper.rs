@@ -21,7 +21,7 @@ pub fn load_texture(renderer: &mut imgui_glow_renderer::AutoRenderer, path: &Pat
 
     unsafe {
         gl.bind_texture(glow::TEXTURE_2D, Some(gl_texture));
-        /*gl.tex_parameter_i32(
+        gl.tex_parameter_i32(
             glow::TEXTURE_2D,
             glow::TEXTURE_MIN_FILTER,
             glow::LINEAR as _,
@@ -30,15 +30,15 @@ pub fn load_texture(renderer: &mut imgui_glow_renderer::AutoRenderer, path: &Pat
             glow::TEXTURE_2D,
             glow::TEXTURE_MAG_FILTER,
             glow::LINEAR as _,
-        );*/
+        );
         gl.tex_image_2d(
             glow::TEXTURE_2D,
             0,
-            glow::SRGB as _, // image file has sRGB encoded colors
+            glow::RGBA as _,
             width as _,
             height as _,
             0,
-            glow::RGB,
+            glow::RGBA,
             glow::UNSIGNED_BYTE,
             Some(&image),
         )

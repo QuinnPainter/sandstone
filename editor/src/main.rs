@@ -7,6 +7,7 @@ mod inspector;
 mod files;
 mod image_helper;
 mod output_log;
+mod world_editor;
 
 use std::ffi::CString;
 
@@ -110,40 +111,6 @@ fn main() {
         hierarchy_obj.draw_hierarchy(ui, &mut project_data, &mut selected);
         files::draw_files(ui, &mut project_data, &mut selected);
         output_log::draw_log(ui);
-        ui.window("World")
-            .build(|| {
-                //ui.text("someday this will work");
-                let draw_list = ui.get_window_draw_list();
-
-                let (x, y): (f32, f32) = (0.5, 0.2);
-                draw_list.add_triangle([x, y], [x+50f32, y+60f32],[x+100f32, y+10f32], imgui::ImColor32::from_rgb(128, 20, 128)).filled(true).build();
-
-                const RADIUS: f32 = 100.0;
-                const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
-                const F: [f32; 2] = [0.0, 0.0];
-                let canvas_pos = ui.cursor_screen_pos();
-                draw_list
-                    .add_line(
-                        F,
-                        [canvas_pos[0] + RADIUS, canvas_pos[1] + RADIUS],
-                        RED,
-                    )
-                    .thickness(5.0)
-                    .build();
-
-                //renderer.texture_map_mut()
-                //imgui_glow_renderer::TextureMap
-                //imgui::Texture
-                //ui.tex
-                //draw_list.add_image(texture_id, p_min, p_max)
-                /*unsafe {
-                    let gl = renderer.gl_context();
-                    //renderer.texture_map_mut()
-                    let tex = gl.create_texture().unwrap();
-                    gl.bind_texture(glow::TEXTURE_2D, Some(tex));
-                    //gl.tex_image_2d(target, level, internal_format, width, height, border, format, ty, pixels)
-                    gl.delete_texture(tex);
-                }*/
-            });
+        world_editor::draw_world_editor(ui, &mut hierarchy_obj, &mut project_data, &mut selected);
     });
 }
