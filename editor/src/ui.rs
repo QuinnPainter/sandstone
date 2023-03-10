@@ -9,7 +9,7 @@ const TITLE: &str = "sandstone";
 
 type Window = WindowedContext<glutin::PossiblyCurrent>;
 
-pub fn mainloop<F: FnMut(&mut Ui, &mut bool) + 'static>(mut run_app: F) {
+pub fn mainloop<F: FnMut(&mut Ui, &mut imgui_glow_renderer::AutoRenderer, &mut bool) + 'static>(mut run_app: F) {
     // Common setup for creating a winit window and imgui context, not specifc
     // to this renderer at all except that glutin is used to create the window
     // since it will give us access to a GL context
@@ -54,7 +54,7 @@ pub fn mainloop<F: FnMut(&mut Ui, &mut bool) + 'static>(mut run_app: F) {
 
                 let ui = imgui_context.frame();
 
-                run_app(ui, &mut exit);
+                run_app(ui, &mut ig_renderer, &mut exit);
                 if exit {
                     *control_flow = glutin::event_loop::ControlFlow::Exit;
                 }

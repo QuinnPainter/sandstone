@@ -1162,6 +1162,7 @@ dependencies = [
  "ironds-romtool",
  "log",
  "notify",
+ "png",
  "proc-macro2",
  "quote",
  "ron",

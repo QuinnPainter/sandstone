@@ -20,6 +20,13 @@ pub struct ProjectData {
 pub struct GraphicalAsset {
     pub path: PathBuf,
     pub size: SpriteSize,
+    #[serde(skip)]
+    #[serde(default = "default_tex_id")]
+    pub texture: imgui::TextureId,
+}
+
+const fn default_tex_id() -> imgui::TextureId {
+    imgui::TextureId::new(0)
 }
 
 impl GraphicalAsset {
@@ -65,7 +72,7 @@ impl ProjectData {
         &self.path
     }
 
-    pub fn check_file_scanner(&mut self) {
+    pub fn check_file_scanner(&mut self, renderer: &mut imgui_glow_renderer::AutoRenderer) {
         let mut any_asset_changes = false;
         // Iterate over receiver to clear queue
         let assets_folder = self.path.join("assets");
@@ -79,11 +86,11 @@ impl ProjectData {
             }
         }
         if any_asset_changes {
-            self.find_graphical_assets();
+            self.find_graphical_assets(renderer);
         }
     }
 
-    pub fn find_graphical_assets(&mut self) {
+    pub fn find_graphical_assets(&mut self, renderer: &mut imgui_glow_renderer::AutoRenderer) {
         let asset_path = self.path.join("assets");
         let previous_assets: HashMap<String, GraphicalAsset> = self.graphical_assets.drain().collect();
     
@@ -93,9 +100,17 @@ impl ProjectData {
                 if extension == "png" {
                     let file_name = entry_path.with_extension("").file_name().unwrap().to_str().unwrap().to_string();
                     let previous_entry = previous_assets.get(&file_name);
+
+                    let texture = if let Some(e) = previous_entry {
+                        crate::image_helper::reload_texture(renderer, e.texture, &entry_path)
+                    } else {
+                        crate::image_helper::load_texture(renderer, &entry_path)
+                    };
+
                     let asset = GraphicalAsset {
                         path: entry_path,
                         size: if let Some(e) = previous_entry { e.size } else { SpriteSize::default() },
+                        texture,
                     };
                     self.graphical_assets.insert(file_name, asset);
                 }
