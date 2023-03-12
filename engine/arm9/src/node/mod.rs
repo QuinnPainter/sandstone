@@ -29,7 +29,10 @@ impl NodeExtensionHandle {
                     graphic_asset: s.graphic_asset.clone(),
                     node_handle,
                 }))
-            }
+            },
+            sandstone_common::SavedNodeExtension::Camera(_) => {
+                unimplemented!();
+            },
         }
     }
 }

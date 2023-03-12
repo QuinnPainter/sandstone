@@ -68,9 +68,16 @@ pub struct SavedSpriteExtension {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct SavedCameraExtension {
+    pub active_main: bool,
+    pub active_sub: bool,
+}
+
+#[derive(Serialize, Deserialize)]
 pub enum SavedNodeExtension {
     None,
     Sprite(SavedSpriteExtension),
+    Camera(SavedCameraExtension),
 }
 
 #[derive(Serialize, Deserialize)]

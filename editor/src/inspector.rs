@@ -1,5 +1,5 @@
 use imgui::Ui;
-use crate::{hierarchy::{Hierarchy, NodeExtension, SpriteExtension}, project_data::ProjectData, Selected};
+use crate::{hierarchy::{Hierarchy, NodeExtension, SpriteExtension, CameraExtension}, project_data::ProjectData, Selected};
 
 pub fn draw_inspector(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut ProjectData, selected: &mut Selected) {
     ui.window("Inspector")
@@ -49,6 +49,9 @@ fn node_inspector(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut Project
                 if ui.selectable("Sprite") {
                     selected_node.node_extension = NodeExtension::Sprite(SpriteExtension::default());
                 }
+                if ui.selectable("Camera") {
+                    selected_node.node_extension = NodeExtension::Camera(CameraExtension::default());
+                }
             }
 
             match &mut selected_node.node_extension {
@@ -62,6 +65,10 @@ fn node_inspector(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut Project
                             }
                         }
                     }
+                },
+                NodeExtension::Camera(c) => {
+                    ui.checkbox("Active for Main Engine", &mut c.active_main);
+                    ui.checkbox("Active for Sub Engine", &mut c.active_sub);
                 },
             }
 

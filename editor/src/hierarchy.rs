@@ -12,6 +12,7 @@ pub struct Transform {
 pub enum NodeExtension {
     None,
     Sprite(SpriteExtension),
+    Camera(CameraExtension),
 }
 
 impl std::fmt::Display for NodeExtension {
@@ -19,6 +20,7 @@ impl std::fmt::Display for NodeExtension {
         match self {
             NodeExtension::None => write!(f, "None"),
             NodeExtension::Sprite(_) => write!(f, "Sprite"),
+            NodeExtension::Camera(_) => write!(f, "Camera"),
         }
     }
 }
@@ -28,6 +30,7 @@ impl NodeExtension {
         match saved_extension {
             sandstone_common::SavedNodeExtension::None => NodeExtension::None,
             sandstone_common::SavedNodeExtension::Sprite(s) => NodeExtension::Sprite(SpriteExtension { graphic_asset: s.graphic_asset }),
+            sandstone_common::SavedNodeExtension::Camera(c) => NodeExtension::Camera(CameraExtension { active_main: c.active_main, active_sub: c.active_sub }),
         }
     }
 
@@ -35,6 +38,7 @@ impl NodeExtension {
         match self {
             NodeExtension::None => sandstone_common::SavedNodeExtension::None,
             NodeExtension::Sprite(s) => sandstone_common::SavedNodeExtension::Sprite(sandstone_common::SavedSpriteExtension{ graphic_asset: s.graphic_asset.clone() }),
+            NodeExtension::Camera(c) => sandstone_common::SavedNodeExtension::Camera(sandstone_common::SavedCameraExtension { active_main: c.active_main, active_sub: c.active_sub }),
         }
     }
 }
@@ -42,6 +46,12 @@ impl NodeExtension {
 #[derive(Default)]
 pub struct SpriteExtension {
     pub graphic_asset: String,
+}
+
+#[derive(Default)]
+pub struct CameraExtension {
+    pub active_main: bool,
+    pub active_sub: bool,
 }
 
 pub struct Node {
