@@ -13,6 +13,7 @@ pub enum NodeExtension {
     None,
     Sprite(SpriteExtension),
     Camera(CameraExtension),
+    RectCollider(RectColliderExtension),
 }
 
 impl std::fmt::Display for NodeExtension {
@@ -21,6 +22,7 @@ impl std::fmt::Display for NodeExtension {
             NodeExtension::None => write!(f, "None"),
             NodeExtension::Sprite(_) => write!(f, "Sprite"),
             NodeExtension::Camera(_) => write!(f, "Camera"),
+            NodeExtension::RectCollider(_) => write!(f, "Rect Collider"),
         }
     }
 }
@@ -31,14 +33,16 @@ impl NodeExtension {
             sandstone_common::SavedNodeExtension::None => NodeExtension::None,
             sandstone_common::SavedNodeExtension::Sprite(s) => NodeExtension::Sprite(SpriteExtension { graphic_asset: s.graphic_asset }),
             sandstone_common::SavedNodeExtension::Camera(c) => NodeExtension::Camera(CameraExtension { active_main: c.active_main, active_sub: c.active_sub }),
+            sandstone_common::SavedNodeExtension::RectCollider(c) => NodeExtension::RectCollider(RectColliderExtension { width: c.width, height: c.height })
         }
     }
 
     pub fn to_saved(&self) -> sandstone_common::SavedNodeExtension {
         match self {
             NodeExtension::None => sandstone_common::SavedNodeExtension::None,
-            NodeExtension::Sprite(s) => sandstone_common::SavedNodeExtension::Sprite(sandstone_common::SavedSpriteExtension{ graphic_asset: s.graphic_asset.clone() }),
+            NodeExtension::Sprite(s) => sandstone_common::SavedNodeExtension::Sprite(sandstone_common::SavedSpriteExtension { graphic_asset: s.graphic_asset.clone() }),
             NodeExtension::Camera(c) => sandstone_common::SavedNodeExtension::Camera(sandstone_common::SavedCameraExtension { active_main: c.active_main, active_sub: c.active_sub }),
+            NodeExtension::RectCollider(c) => sandstone_common::SavedNodeExtension::RectCollider(sandstone_common::SavedRectColliderExtension { width: c.width, height: c.height }),
         }
     }
 }
@@ -52,6 +56,12 @@ pub struct SpriteExtension {
 pub struct CameraExtension {
     pub active_main: bool,
     pub active_sub: bool,
+}
+
+#[derive(Default)]
+pub struct RectColliderExtension {
+    pub width: fixed::types::I20F12,
+    pub height: fixed::types::I20F12,
 }
 
 pub struct Node {
@@ -123,6 +133,8 @@ impl Hierarchy {
                                 enabled: true,
                             });
                             Hierarchy::link_node(graph, NonZeroUsize::new(new_index).unwrap(), 0);
+                            self.selected_node_idx = Some(NonZeroUsize::new(new_index).unwrap());
+                            *selected = Selected::Node;
                         }
                     }
                 }

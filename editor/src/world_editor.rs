@@ -5,6 +5,8 @@ const DS_SCREEN_X: u32 = 256;
 const DS_SCREEN_Y: u32 = 192;
 const CAM_OUTLINE_COLOUR: ImColor32 = ImColor32::from_rgba(100, 100, 100, 150);
 const CAM_OUTLINE_THICKNESS: f32 = 2.0;
+const COLLIDER_OUTLINE_COLOUR: ImColor32 = ImColor32::from_rgba(4, 217, 50, 200);
+const COLLIDER_OUTLINE_THICKNESS: f32 = 2.0;
 const SELECTED_OUTLINE_COLOUR: ImColor32 = ImColor32::from_rgba(13, 169, 252, 200);
 const SELECTED_OUTLINE_THICKNESS: f32 = 2.0;
 const BG_COLOUR: ImColor32 = ImColor32::from_rgb(30, 30, 30);
@@ -63,6 +65,16 @@ fn draw_node_recursive(
                         draw_selected_rect_around(draw_list, top_left, bottom_right);
                     }
                 }
+                NodeExtension::RectCollider(c) => {
+                    let top_left = node_canvas_pos;
+                    let bottom_right = [top_left[0] + c.width.to_num::<f32>(), top_left[1] + c.height.to_num::<f32>()];
+                    draw_list.add_rect(top_left, bottom_right, COLLIDER_OUTLINE_COLOUR)
+                        .thickness(COLLIDER_OUTLINE_THICKNESS)
+                        .build();
+                    if node_selected {
+                        draw_selected_rect_around(draw_list, top_left, bottom_right);
+                    }
+                },
                 _ => {
                     if node_selected {
                         draw_list.add_circle(node_canvas_pos, 2.0, SELECTED_OUTLINE_COLOUR)

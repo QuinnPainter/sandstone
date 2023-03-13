@@ -1,5 +1,5 @@
 use imgui::Ui;
-use crate::{hierarchy::{Hierarchy, NodeExtension, SpriteExtension, CameraExtension}, project_data::ProjectData, Selected};
+use crate::{hierarchy::{Hierarchy, NodeExtension, SpriteExtension, CameraExtension, RectColliderExtension}, project_data::ProjectData, Selected};
 
 pub fn draw_inspector(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut ProjectData, selected: &mut Selected) {
     ui.window("Inspector")
@@ -52,6 +52,9 @@ fn node_inspector(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut Project
                 if ui.selectable("Camera") {
                     selected_node.node_extension = NodeExtension::Camera(CameraExtension::default());
                 }
+                if ui.selectable("Rect Collider") {
+                    selected_node.node_extension = NodeExtension::RectCollider(RectColliderExtension::default());
+                }
             }
 
             match &mut selected_node.node_extension {
@@ -69,6 +72,14 @@ fn node_inspector(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut Project
                 NodeExtension::Camera(c) => {
                     ui.checkbox("Active for Main Engine", &mut c.active_main);
                     ui.checkbox("Active for Sub Engine", &mut c.active_sub);
+                },
+                NodeExtension::RectCollider(c) => {
+                    let mut dims: [f32; 2] = [c.width.to_num::<f32>(), c.height.to_num::<f32>()];
+                    imgui::Drag::new("Size")
+                        .range(0.0, fixed::types::I20F12::MAX.to_num::<f32>())
+                        .build_array(ui, &mut dims);
+                    c.width = fixed::types::I20F12::from_num(dims[0]);
+                    c.height = fixed::types::I20F12::from_num(dims[1]);
                 },
             }
 

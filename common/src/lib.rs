@@ -74,10 +74,17 @@ pub struct SavedCameraExtension {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct SavedRectColliderExtension {
+    pub width: fixed::types::I20F12,
+    pub height: fixed::types::I20F12,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub enum SavedNodeExtension {
     None,
     Sprite(SavedSpriteExtension),
     Camera(SavedCameraExtension),
+    RectCollider(SavedRectColliderExtension),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
