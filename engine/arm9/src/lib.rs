@@ -33,6 +33,7 @@ pub fn main_loop() -> ! {
     nds::display::set_brightness(nds::display::GfxEngine::SUB, 0);
 
     nds::display::map_vram_block_a(nds::display::vram_type::A::MAIN_OBJ_0);
+    nds::display::map_vram_block_d(nds::display::vram_type::D::SUB_OBJ);
 
     nds::display::set_main_display_control(nds::display::DisplayControlMain::new()
         .with_display_bg0(false)
@@ -49,8 +50,22 @@ pub fn main_loop() -> ! {
         .with_display_mode(1) // normal BG / OBJ display
     );
 
-    nds::display::console::init_default();
-    nds::display::console::print("Hello from Rust on the DS!\n\n");
+    nds::display::set_sub_display_control(nds::display::DisplayControlSub::new()
+        .with_display_bg0(false)
+        .with_display_bg1(false)
+        .with_display_bg2(false)
+        .with_display_bg3(false)
+        .with_display_obj(true)
+        .with_obj_during_hblank(false)
+        .with_bg_ext_pal_enabled(false)
+        .with_obj_ext_pal_enabled(false)
+        .with_forced_blank(false)
+        .with_tile_obj_mapping(true) // 1D mapping
+        .with_display_mode(1) // normal BG / OBJ display
+    );
+
+    //nds::display::console::init_default();
+    //nds::display::console::print("Hello from Rust on the DS!\n\n");
 
     let mut hierarchy: Hierarchy = Hierarchy::new();
     hierarchy.run_extension_init();

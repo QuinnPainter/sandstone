@@ -1,4 +1,4 @@
-use crate::{pool::Handle, node::Node, hierarchy::Hierarchy, HashMap};
+use crate::{pool::Handle, node::{Node, camera::{ActiveCameras, CameraExtension}}, hierarchy::Hierarchy, HashMap};
 use alloc::string::String;
 use ironds::display::{obj, GfxEngine};
 use sandstone_common::{SavedPrefabs, SpriteSize};
@@ -47,6 +47,21 @@ impl SpriteExtensionHandler {
     }
 
     pub fn sprite_init(&mut self, saved_prefab_data: &SavedPrefabs) {
+        self.sprite_init_for_engine(saved_prefab_data, GfxEngine::MAIN);
+        self.sprite_init_for_engine(saved_prefab_data, GfxEngine::SUB);
+    }
+
+    // this really should be happening in Vblank handler, given that OAM is only accessible during vblank
+    pub fn sprite_update(&self, hierarchy: &Hierarchy, cameras: ActiveCameras) {
+        if let Some(camera) = cameras.main {
+            self.sprite_update_for_engine(hierarchy, GfxEngine::MAIN, camera);
+        }
+        if let Some(camera) = cameras.sub {
+            self.sprite_update_for_engine(hierarchy, GfxEngine::SUB, camera);
+        }
+    }
+
+    fn sprite_init_for_engine(&mut self, saved_prefab_data: &SavedPrefabs, engine: GfxEngine) {
         #[inline(always)]
         fn align_to(ptr: *mut u8, align: usize) -> *mut u8 {
             let align_mask = align - 1;
@@ -58,8 +73,10 @@ impl SpriteExtensionHandler {
             }
         }
 
-        let tile_ram_base = ironds::mmio::OBJ_RAM_BASE_MAIN as *mut u8;
-        let pal_ram_base = ironds::mmio::OBJ_PALETTE_RAM_BASE_MAIN as *mut u8;
+        let (tile_ram_base, pal_ram_base) = match engine {
+            GfxEngine::MAIN => (ironds::mmio::OBJ_RAM_BASE_MAIN as *mut u8, ironds::mmio::OBJ_PALETTE_RAM_BASE_MAIN as *mut u8),
+            GfxEngine::SUB => (ironds::mmio::OBJ_RAM_BASE_SUB as *mut u8, ironds::mmio::OBJ_PALETTE_RAM_BASE_SUB as *mut u8),
+        };
         let mut cur_tile_ram_ptr = tile_ram_base;
         let mut cur_pal_ram_ptr = pal_ram_base;
         for (name, saved_graphic) in saved_prefab_data.graphics.iter() {
@@ -79,15 +96,14 @@ impl SpriteExtensionHandler {
         }
     }
 
-    // this really should be happening in Vblank handler, given that OAM is only accessible during vblank
-    pub fn sprite_update(&self, hierarchy: &Hierarchy) {
+    fn sprite_update_for_engine(&self, hierarchy: &Hierarchy, engine: GfxEngine, camera: Handle<CameraExtension>) {
         for (i, sprite) in (0..128).zip(hierarchy.node_ext_pools.sprite_pool.iter().map(|x| Some(x)).chain(core::iter::repeat(None))) {
             if let Some(sprite) = sprite {
                 let node = hierarchy.object_pool.borrow(sprite.node_handle);
                 let vram_mapping = self.sprite_vram_map[&sprite.graphic_asset];
                 let (shape, size) = sprite_size_to_shape_and_size(hierarchy.saved_prefab_data.graphics[&sprite.graphic_asset].size);
                 let (x, y) = (node.transform.x.to_num::<i32>(), node.transform.y.to_num::<i32>());
-                obj::set_sprite(GfxEngine::MAIN, i, obj::Sprite::NormalSprite(obj::NormalSprite::new()
+                obj::set_sprite(engine, i, obj::Sprite::NormalSprite(obj::NormalSprite::new()
                     .with_x((x & 0x1FF) as u16)
                     .with_y((y & 0xFF) as u8)
                     .with_disable(false)
@@ -103,7 +119,7 @@ impl SpriteExtensionHandler {
                     .with_palette(vram_mapping.pal_index)
                 ));
             } else {
-                obj::set_sprite(GfxEngine::MAIN, i, obj::DISABLED_SPRITE);
+                obj::set_sprite(engine, i, obj::DISABLED_SPRITE);
             }
         }
     }

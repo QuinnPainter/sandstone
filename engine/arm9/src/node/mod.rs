@@ -3,6 +3,7 @@ use alloc::{string::String, boxed::Box};
 use crate::{Script, pool::{Pool, Handle}, hierarchy::HasTypeId};
 
 pub mod sprite;
+pub mod camera;
 
 #[derive(Eq, PartialEq, Clone, Copy, Default, Debug)]
 pub struct Transform {
@@ -14,6 +15,7 @@ pub struct Transform {
 pub enum NodeExtensionHandle {
     None,
     Sprite(Handle<sprite::SpriteExtension>),
+    Camera(Handle<camera::CameraExtension>),
 }
 
 impl NodeExtensionHandle {
@@ -30,8 +32,12 @@ impl NodeExtensionHandle {
                     node_handle,
                 }))
             },
-            sandstone_common::SavedNodeExtension::Camera(_) => {
-                unimplemented!();
+            sandstone_common::SavedNodeExtension::Camera(c) => {
+                NodeExtensionHandle::Camera(pools.camera_pool.add(camera::CameraExtension {
+                    node_handle,
+                    active_main: c.active_main,
+                    active_sub: c.active_sub,
+                }))
             },
         }
     }
@@ -39,12 +45,14 @@ impl NodeExtensionHandle {
 
 pub(crate) struct NodeExtensionPools {
     pub sprite_pool: Pool<sprite::SpriteExtension>,
+    pub camera_pool: Pool<camera::CameraExtension>,
 }
 
 impl NodeExtensionPools {
     pub const fn new() -> Self {
         Self {
             sprite_pool: Pool::new(),
+            camera_pool: Pool::new(),
         }
     }
 }

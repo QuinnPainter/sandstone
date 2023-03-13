@@ -4,7 +4,7 @@ use crate::{
     Script,
     ScriptContext,
     pool::{Pool, Handle},
-    node::{Transform, Node, NodeScriptData, NodeExtensionHandle, NodeExtensionPools, sprite::SpriteExtensionHandler}
+    node::{Transform, Node, NodeScriptData, NodeExtensionHandle, NodeExtensionPools, sprite::SpriteExtensionHandler, camera::CameraExtensionHandler}
 };
 use sandstone_common::SavedPrefabs;
 
@@ -15,6 +15,7 @@ pub struct Hierarchy {
     to_start_stack: Vec<Handle<Node>>,
     pub(crate) saved_prefab_data: SavedPrefabs,
     sprite_handler: SpriteExtensionHandler,
+    camera_handler: CameraExtensionHandler,
 }
 
 impl Hierarchy {
@@ -38,6 +39,7 @@ impl Hierarchy {
             to_start_stack: Vec::new(),
             saved_prefab_data: sandstone_common::deserialize(unsafe { PREFAB_DATA.unwrap() }),
             sprite_handler: SpriteExtensionHandler::new(),
+            camera_handler: CameraExtensionHandler::new(),
         }
     }
 
@@ -236,7 +238,8 @@ impl Hierarchy {
     }
 
     pub(crate) fn run_extension_update(&mut self) {
-        self.sprite_handler.sprite_update(&self);
+        let cameras = self.camera_handler.get_active_cameras(&self);
+        self.sprite_handler.sprite_update(&self, cameras);
     }
 }
 
