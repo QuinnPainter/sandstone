@@ -46,10 +46,9 @@ impl Hierarchy {
     pub fn spawn_prefab(&mut self, index: u32, parent: Handle<Node>) {
         let saved_graph = self.saved_prefab_data.graphs.get(index as usize)
             .unwrap_or_else(|| panic!("Tried to spawn invalid prefab index: {index}"));
-        let mut new_handles: Vec<Handle<Node>> = Vec::new();
 
         // Push the nodes onto the object pool, with placeholder child, parent and sibling handles
-        for node in &saved_graph.nodes {
+        let new_handles: Vec<Handle<Node>> = saved_graph.nodes.iter().map(|node| {
             let handle = self.object_pool.add(Node {
                 child_handle: None,
                 parent_handle: None,
@@ -65,8 +64,8 @@ impl Hierarchy {
             });
             self.object_pool.borrow_mut(handle).node_extension =
                 NodeExtensionHandle::from_saved(&mut self.node_ext_pools, handle, &node.node_extension);
-            new_handles.push(handle);
-        }
+            handle
+        }).collect();
         
         // Wire up the child, parent and sibling handles for the new nodes
         let mut prefab_root: Option<Handle<Node>> = None;
@@ -74,14 +73,13 @@ impl Hierarchy {
             let node = self.object_pool.borrow_mut(*handle);
             node.child_handle = snode.child_index.map(|idx| new_handles[u32::from(idx) as usize]);
             node.sibling_handle = snode.sibling_index.map(|idx| new_handles[u32::from(idx) as usize]);
-            node.parent_handle = snode.parent_index.map(|idx| new_handles[idx as usize]).or({
+            node.parent_handle = snode.parent_index.map(|idx| new_handles[idx as usize]).or_else(|| {
                 prefab_root = Some(*handle);
                 Some(parent)
             });
             self.to_start_stack.push(*handle);
         }
         self.link_new_child(parent, prefab_root.expect("Tried to create prefab with no root node"));
-
     }
 
     /*pub fn add(&mut self, mut item: Node, parent: Handle<Node>) {
@@ -99,10 +97,11 @@ impl Hierarchy {
 
     pub fn pretty_print_hierarchy_structure(&self) {
         for node in &self.object_pool {
-            ironds::nocash::print("Node");
+            ironds::nocash::print(&node.name);
             ironds::nocash::print(alloc::format!("Child: {:?}", node.child_handle).as_str());
             ironds::nocash::print(alloc::format!("Sibling: {:?}", node.sibling_handle).as_str());
             ironds::nocash::print(alloc::format!("Parent: {:?}", node.parent_handle).as_str());
+            ironds::nocash::print("");
         }
     }
     
