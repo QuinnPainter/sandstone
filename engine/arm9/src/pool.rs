@@ -174,11 +174,15 @@ impl<T> Pool<T> {
     }
 
     #[must_use]
-    pub fn handle_from_index(&self, index: usize) -> Handle<T> {
-        Handle {
-            index,
-            generation: self.data_vec.get(index).expect("Called handle_from_index with out-of-bounds index").generation,
-            phantom_type: PhantomData::<T>
+    pub fn handle_from_index(&self, index: usize) -> Option<Handle<T>> {
+        if let Some(entry) = self.data_vec.get(index) {
+            Some(Handle {
+                index,
+                generation: entry.generation,
+                phantom_type: PhantomData::<T>,
+            })
+        } else {
+            None
         }
     }
 
