@@ -4,6 +4,7 @@ use crate::{Script, pool::{Pool, Handle}, hierarchy::HasTypeId};
 
 pub mod sprite;
 pub mod camera;
+pub mod rect_collider;
 
 #[derive(Eq, PartialEq, Clone, Copy, Default, Debug)]
 pub struct Transform {
@@ -16,6 +17,7 @@ pub enum NodeExtensionHandle {
     None,
     Sprite(Handle<sprite::SpriteExtension>),
     Camera(Handle<camera::CameraExtension>),
+    RectCollider(Handle<rect_collider::RectColliderExtension>),
 }
 
 impl NodeExtensionHandle {
@@ -39,6 +41,13 @@ impl NodeExtensionHandle {
                     active_sub: c.active_sub,
                 }))
             },
+            sandstone_common::SavedNodeExtension::RectCollider(c) => {
+                NodeExtensionHandle::RectCollider(pools.rect_collider_pool.add(rect_collider::RectColliderExtension {
+                    node_handle,
+                    width: c.width,
+                    height: c.height,
+                }))
+            },
         }
     }
 }
@@ -46,6 +55,7 @@ impl NodeExtensionHandle {
 pub(crate) struct NodeExtensionPools {
     pub sprite_pool: Pool<sprite::SpriteExtension>,
     pub camera_pool: Pool<camera::CameraExtension>,
+    pub rect_collider_pool: Pool<rect_collider::RectColliderExtension>,
 }
 
 impl NodeExtensionPools {
@@ -53,6 +63,7 @@ impl NodeExtensionPools {
         Self {
             sprite_pool: Pool::new(),
             camera_pool: Pool::new(),
+            rect_collider_pool: Pool::new(),
         }
     }
 }

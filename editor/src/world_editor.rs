@@ -58,7 +58,7 @@ impl WorldEditor {
                 }
 
                 if ui.is_mouse_dragging(imgui::MouseButton::Right) {
-                    let drag_delta = ui.io().mouse_delta;//ui.mouse_drag_delta_with_button(imgui::MouseButton::Right);
+                    let drag_delta = ui.io().mouse_delta;
                     self.editor_cam_pos = [self.editor_cam_pos[0] + drag_delta[0], self.editor_cam_pos[1] + drag_delta[1]];
                 }
 
@@ -80,7 +80,6 @@ impl WorldEditor {
     ){
         if let Some(graph) = project_data.graphs.get(hierarchy.current_graph_idx) {
             if let Some(node) = graph.0.get(node_idx) {
-                //let node_canvas_pos = world_to_canvas_pos(canvas_pos, (node.transform.x, node.transform.y));
                 let node_canvas_pos = [node.transform.x.to_num::<i32>() as f32, node.transform.y.to_num::<i32>() as f32];
                 let node_canvas_pos = [node_canvas_pos[0] + position[0], node_canvas_pos[1] + position[1]];
                 let node_selected = matches!(hierarchy.selected_node_idx, Some(x) if usize::from(x) == node_idx);
@@ -140,10 +139,6 @@ impl WorldEditor {
             }
         }
     }
-}
-
-fn world_to_canvas_pos(canvas_pos: [f32; 2], (x, y): (fixed::types::I20F12, fixed::types::I20F12)) ->[f32; 2] {
-    [canvas_pos[0] + x.to_num::<i32>() as f32, canvas_pos[1] + y.to_num::<i32>() as f32]
 }
 
 fn draw_selected_rect_around(draw_list: &imgui::DrawListMut, top_left: [f32; 2], bottom_right: [f32; 2]) {
