@@ -24,6 +24,7 @@ fn main() {
     let mut hierarchy_obj = hierarchy::Hierarchy::new();
     let mut proj_loader = project_loader::ProjectLoader::new();
     let mut project_data = project_data::ProjectData::new();
+    let mut world_editor = world_editor::WorldEditor::new();
     let mut selected = Selected::None;
     
     let mut first_loop = true;
@@ -111,6 +112,6 @@ fn main() {
         hierarchy_obj.draw_hierarchy(ui, &mut project_data, &mut selected);
         files::draw_files(ui, &mut project_data, &mut selected);
         output_log::draw_log(ui);
-        world_editor::draw_world_editor(ui, &mut hierarchy_obj, &mut project_data, &mut selected);
+        world_editor.draw_world_editor(ui, &mut hierarchy_obj, &mut project_data, &mut selected);
     });
 }
