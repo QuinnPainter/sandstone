@@ -23,7 +23,6 @@ pub type HashSet<V> = sandstone_common::HashSet<V>;
 pub fn main_loop() -> ! {
     nds::interrupt::irq_set_handler(Some(inter));
     nds::interrupt::irq_enable(nds::interrupt::IRQFlags::VBLANK);
-    nds::display::set_vcount_trigger(100);
 
     // Make sure the 2D graphics engines are turned on
     nds::display::power_on(nds::display::GfxPwr::ALL_2D);
@@ -76,6 +75,7 @@ pub fn main_loop() -> ! {
     //hierarchy.pretty_print_hierarchy_structure();
 
     loop {
+        hierarchy.update_global_positions();
         hierarchy.run_extension_update();
         hierarchy.run_script_update();
         hierarchy.run_pending_script_starts();

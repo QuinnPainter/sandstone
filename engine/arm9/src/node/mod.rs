@@ -82,6 +82,8 @@ pub struct Node {
     pub node_extension: NodeExtensionHandle,
     pub script_data: Option<NodeScriptData>,
     pub enabled: bool,
+    pub(crate) global_transform: Transform,
+    pub(crate) global_enabled: bool,
 }
 
 impl Node {

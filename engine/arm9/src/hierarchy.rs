@@ -29,7 +29,9 @@ impl Hierarchy {
             transform: Transform::default(),
             node_extension: NodeExtensionHandle::None,
             script_data: None,
-            enabled: true
+            enabled: true,
+            global_transform: Transform::default(),
+            global_enabled: false,
         });
 
         Self {
@@ -60,7 +62,9 @@ impl Hierarchy {
                     type_id: id,
                     script: run_script_factory(id)
                 }),
-                enabled: node.enabled
+                enabled: node.enabled,
+                global_transform: Transform::default(),
+                global_enabled: false,
             });
             self.object_pool.borrow_mut(handle).node_extension =
                 NodeExtensionHandle::from_saved(&mut self.node_ext_pools, handle, &node.node_extension);
@@ -231,6 +235,9 @@ impl Hierarchy {
             }
         }
     }
+
+    // Also updates the global "enabled" state.
+    pub(crate) fn update_global_positions(&mut self) {}
 
     pub(crate) fn run_extension_init(&mut self) {
         self.sprite_handler.sprite_init(&self.saved_prefab_data);
