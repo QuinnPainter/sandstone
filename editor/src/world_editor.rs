@@ -1,6 +1,13 @@
 use imgui::Ui;
 use crate::{hierarchy::{Hierarchy, NodeExtension}, project_data::ProjectData, Selected};
 
+const DS_SCREEN_X: u32 = 256;
+const DS_SCREEN_Y: u32 = 192;
+const CAM_OUTLINE_COLOUR: imgui::ImColor32 = imgui::ImColor32::from_rgba(100, 100, 100, 150);
+const CAM_OUTLINE_THICKNESS: f32 = 2.0;
+const SELECTED_OUTLINE_COLOUR: imgui::ImColor32 = imgui::ImColor32::from_rgba(13, 169, 252, 200);
+const SELECTED_OUTLINE_THICKNESS: f32 = 2.0;
+
 pub fn draw_world_editor(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut ProjectData, selected: &mut Selected) {
     ui.window("World")
         .build(|| {
@@ -23,16 +30,36 @@ fn draw_node_recursive(
 ){
     if let Some(graph) = project_data.graphs.get(hierarchy.current_graph_idx) {
         if let Some(node) = graph.0.get(node_idx) {
+            let node_canvas_pos = world_to_canvas_pos(canvas_pos, (node.transform.x, node.transform.y));
             match &node.node_extension {
                 NodeExtension::Sprite(s) => {
                     if let Some(asset) = project_data.graphical_assets.get(&s.graphic_asset) {
                         let (width, height) = asset.size.to_dimensions();
-                        let p_min = [canvas_pos[0] + node.transform.x.to_num::<i32>() as f32, canvas_pos[1] + node.transform.y.to_num::<i32>() as f32];
+                        let p_min = node_canvas_pos;
                         let p_max = [p_min[0] + width as f32, p_min[1] + height as f32];
                         draw_list.add_image(asset.texture.unwrap(), p_min, p_max).build();
+                        if matches!(hierarchy.selected_node_idx, Some(x) if usize::from(x) == node_idx) {
+                            draw_selected_rect_around(draw_list, p_min, p_max);
+                        }
                     }
                 },
-                _ => {},
+                NodeExtension::Camera(_) => {
+                    let top_left = node_canvas_pos;
+                    let bottom_right = [top_left[0] + DS_SCREEN_X as f32, top_left[1] + DS_SCREEN_Y as f32];
+                    draw_list.add_rect(top_left, bottom_right, CAM_OUTLINE_COLOUR)
+                        .thickness(CAM_OUTLINE_THICKNESS)
+                        .build();
+                    if matches!(hierarchy.selected_node_idx, Some(x) if usize::from(x) == node_idx) {
+                        draw_selected_rect_around(draw_list, top_left, bottom_right);
+                    }
+                }
+                _ => {
+                    if matches!(hierarchy.selected_node_idx, Some(x) if usize::from(x) == node_idx) {
+                        draw_list.add_circle(node_canvas_pos, 2.0, SELECTED_OUTLINE_COLOUR)
+                            .filled(true)
+                            .build();
+                    }
+                },
             }
 
             // Draw child nodes recursively
@@ -48,4 +75,16 @@ fn draw_node_recursive(
             }
         }
     }
+}
+
+fn world_to_canvas_pos(canvas_pos: [f32; 2], (x, y): (fixed::types::I20F12, fixed::types::I20F12)) ->[f32; 2] {
+    [canvas_pos[0] + x.to_num::<i32>() as f32, canvas_pos[1] + y.to_num::<i32>() as f32]
+}
+
+fn draw_selected_rect_around(draw_list: &imgui::DrawListMut, top_left: [f32; 2], bottom_right: [f32; 2]) {
+    let top_left = top_left.map(|x| x - SELECTED_OUTLINE_THICKNESS);
+    let bottom_right = bottom_right.map(|x| x + SELECTED_OUTLINE_THICKNESS);
+    draw_list.add_rect(top_left, bottom_right, SELECTED_OUTLINE_COLOUR)
+        .thickness(SELECTED_OUTLINE_THICKNESS)
+        .build();
 }
