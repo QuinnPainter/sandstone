@@ -62,31 +62,31 @@ impl SpriteSize {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SavedSpriteExtension {
     pub graphic_asset: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SavedCameraExtension {
     pub active_main: bool,
     pub active_sub: bool,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum SavedNodeExtension {
     None,
     Sprite(SavedSpriteExtension),
     Camera(SavedCameraExtension),
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SavedTransform {
     pub x: fixed::types::I20F12,
     pub y: fixed::types::I20F12,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SavedNode {
     pub child_index: Option<NonZeroU32>,
     pub parent_index: Option<u32>, // not technically necessary to save, but makes things easier when deserialising
@@ -98,19 +98,19 @@ pub struct SavedNode {
     pub enabled: bool,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SavedNodeGraph {
     pub nodes: Vec<SavedNode>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SavedGraphic {
     pub tiles: Vec<u8>,
     pub palette: Vec<u8>,
     pub size: SpriteSize,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SavedPrefabs {
     pub graphs: Vec<SavedNodeGraph>,
     pub graphics: HashMap<String, SavedGraphic>,
