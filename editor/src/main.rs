@@ -54,17 +54,20 @@ fn main() {
                 let dock_id_inspector = imgui::sys::igDockBuilderSplitNode(tmp_id,
                     imgui::sys::ImGuiDir_Right, 0.25,
                     std::ptr::null_mut::<u32>(), std::ptr::addr_of_mut!(tmp_id));
-                let dock_id_files = imgui::sys::igDockBuilderSplitNode(tmp_id,
-                    imgui::sys::ImGuiDir_Down, 0.20,
-                    std::ptr::null_mut::<u32>(), std::ptr::addr_of_mut!(tmp_id));
-                let dock_id_hierarchy = imgui::sys::igDockBuilderSplitNode(tmp_id,
+                let mut dock_id_hierarchy = imgui::sys::igDockBuilderSplitNode(tmp_id,
                     imgui::sys::ImGuiDir_Left, 0.25,
                     std::ptr::null_mut::<u32>(), std::ptr::addr_of_mut!(tmp_id));
+                let dock_id_log = imgui::sys::igDockBuilderSplitNode(tmp_id,
+                    imgui::sys::ImGuiDir_Down, 0.25,
+                    std::ptr::null_mut::<u32>(), std::ptr::addr_of_mut!(tmp_id));
+                let dock_id_files = imgui::sys::igDockBuilderSplitNode(dock_id_hierarchy,
+                    imgui::sys::ImGuiDir_Down, 0.30,
+                    std::ptr::null_mut::<u32>(), std::ptr::addr_of_mut!(dock_id_hierarchy));
 
                 imgui::sys::igDockBuilderDockWindow(hierarchy_name.as_ptr(), dock_id_hierarchy);
                 imgui::sys::igDockBuilderDockWindow(graphs_name.as_ptr(), dock_id_hierarchy);
                 imgui::sys::igDockBuilderDockWindow(files_name.as_ptr(), dock_id_files);
-                imgui::sys::igDockBuilderDockWindow(log_name.as_ptr(), dock_id_files);
+                imgui::sys::igDockBuilderDockWindow(log_name.as_ptr(), dock_id_log);
                 imgui::sys::igDockBuilderDockWindow(inspector_name.as_ptr(), dock_id_inspector);
                 imgui::sys::igDockBuilderDockWindow(world_name.as_ptr(), tmp_id);
                 imgui::sys::igDockBuilderFinish(dockspace_id);
