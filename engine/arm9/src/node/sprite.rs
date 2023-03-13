@@ -101,40 +101,38 @@ impl SpriteExtensionHandler {
         let camera_node = hierarchy.object_pool.borrow(camera.node_handle);
         let (cam_x, cam_y) = (camera_node.transform.x, camera_node.transform.y);
 
-        for (i, sprite) in (0..128).zip(hierarchy.node_ext_pools.sprite_pool.iter().map(|x| Some(x)).chain(core::iter::repeat(None))) {
-            if let Some(sprite) = sprite {
-                let node = hierarchy.object_pool.borrow(sprite.node_handle);
-                let vram_mapping = self.sprite_vram_map[&sprite.graphic_asset];
-                let (shape, size) = sprite_size_to_shape_and_size(hierarchy.saved_prefab_data.graphics[&sprite.graphic_asset].size);
+        let mut cur_sprite_index = 0;
+        for sprite in hierarchy.node_ext_pools.sprite_pool.iter() {
+            let node = hierarchy.object_pool.borrow(sprite.node_handle);
+            let vram_mapping = self.sprite_vram_map[&sprite.graphic_asset];
+            let (shape, size) = sprite_size_to_shape_and_size(hierarchy.saved_prefab_data.graphics[&sprite.graphic_asset].size);
 
-                let screen_x = node.transform.x - cam_x;
-                let screen_y = node.transform.y - cam_y;
-                // todo: free up sprite slot if sprite is offscreen
-                if screen_y < 192 && screen_y > -64 && screen_x < 256 && screen_x > -128 {
-                    let screen_x = (screen_x.to_num::<i32>() & 0x1FF) as u16;
-                    let screen_y = (screen_y.to_num::<i32>() & 0xFF) as u8;
+            let screen_x = node.transform.x - cam_x;
+            let screen_y = node.transform.y - cam_y;
+            if screen_y < 192 && screen_y > -64 && screen_x < 256 && screen_x > -128 {
+                let screen_x = (screen_x.to_num::<i32>() & 0x1FF) as u16;
+                let screen_y = (screen_y.to_num::<i32>() & 0xFF) as u8;
 
-                    obj::set_sprite(engine, i, obj::Sprite::NormalSprite(obj::NormalSprite::new()
-                        .with_x(screen_x)
-                        .with_y(screen_y)
-                        .with_disable(false)
-                        .with_h_flip(false)
-                        .with_v_flip(false)
-                        .with_mode(0) // Normal mode
-                        .with_mosaic(false)
-                        .with_palette_type(false) // 16/16
-                        .with_shape(shape) // square
-                        .with_size(size) // 8x8
-                        .with_tile(vram_mapping.tile_index)
-                        .with_priority(0)
-                        .with_palette(vram_mapping.pal_index)
-                    ));
-                } else {
-                    obj::set_sprite(engine, i, obj::DISABLED_SPRITE);
-                }
-            } else {
-                obj::set_sprite(engine, i, obj::DISABLED_SPRITE);
+                obj::set_sprite(engine, cur_sprite_index, obj::Sprite::NormalSprite(obj::NormalSprite::new()
+                    .with_x(screen_x)
+                    .with_y(screen_y)
+                    .with_disable(false)
+                    .with_h_flip(false)
+                    .with_v_flip(false)
+                    .with_mode(0) // Normal mode
+                    .with_mosaic(false)
+                    .with_palette_type(false) // 16/16
+                    .with_shape(shape) // square
+                    .with_size(size) // 8x8
+                    .with_tile(vram_mapping.tile_index)
+                    .with_priority(0)
+                    .with_palette(vram_mapping.pal_index)
+                ));
+                cur_sprite_index += 1;
             }
+        }
+        for i in cur_sprite_index..128 {
+            obj::set_sprite(engine, i, obj::DISABLED_SPRITE);
         }
     }
 }
