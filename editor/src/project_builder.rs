@@ -95,7 +95,10 @@ pub fn build(project_data: &mut ProjectData) {
     };
     create_runtime_crate(false, &arm7_path, &arm7_code.to_string());
 
-    let graphical_assets = convert_graphical_assets(&project_data);
+    let graphical_assets = match convert_graphical_assets(&project_data) {
+        Ok(data) => data,
+        Err(msg) => { log::error!("{msg}"); return; }
+    };
 
     let serialised_graphs = sandstone_common::serialize(&sandstone_common::SavedPrefabs{
         graphs: project_data.export_saved_graph(),
@@ -185,7 +188,7 @@ fn create_runtime_crate(arm9: bool, path: &Path, code: &str) {
     std::fs::write(path.join("src/main.rs"), code).unwrap();
 }
 
-fn convert_graphical_assets(project_data: &ProjectData) -> sandstone_common::HashMap<String, sandstone_common::SavedGraphic> {
+fn convert_graphical_assets(project_data: &ProjectData) -> Result<sandstone_common::HashMap<String, sandstone_common::SavedGraphic>, String> {
     let output_gfx_path = project_data.get_path().join("build/gfx");
     std::fs::create_dir_all(&output_gfx_path).unwrap();
     let mut saved_graphics: sandstone_common::HashMap<String, sandstone_common::SavedGraphic> = sandstone_common::HashMap::default();
@@ -196,7 +199,7 @@ fn convert_graphical_assets(project_data: &ProjectData) -> sandstone_common::Has
         let output_gfx_path = output_path_base.with_extension("gfx");
         let output_pal_path = output_path_base.with_extension("pal");
 
-        let _ = Command::new("superfamiconv")
+        let conv_output = Command::new("superfamiconv")
             .args(["--mode", "gba"])
             .args(["--tile-width", "8"])
             .args(["--tile-height", "8"])
@@ -206,10 +209,13 @@ fn convert_graphical_assets(project_data: &ProjectData) -> sandstone_common::Has
             .args(["--out-tiles", output_gfx_path.to_str().unwrap()])
             .args(["--out-palette", output_pal_path.to_str().unwrap()])
             .output().unwrap();
+        if !conv_output.status.success() {
+            return Err(String::from_utf8_lossy(&conv_output.stderr).to_string());
+        }
 
         let tiles = std::fs::read(output_gfx_path).unwrap();
         let palette = std::fs::read(output_pal_path).unwrap();
         saved_graphics.insert(name.clone(), sandstone_common::SavedGraphic { tiles, palette, size: asset.size });
     }
-    saved_graphics
+    Ok(saved_graphics)
 }
