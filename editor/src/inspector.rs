@@ -87,8 +87,11 @@ fn node_inspector(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut Project
             ui.input_scalar("Script ID", &mut script_id).build();
             selected_node.script_type_id = std::num::NonZeroU32::new(script_id);
 
-            if ui.button("Delete") {
-                hierarchy.delete_node(project_data, selected, selected_index);
+            // Root node cannot be deleted
+            if let Some(selected_index) = std::num::NonZeroUsize::new(selected_index) {
+                if ui.button("Delete") {
+                    hierarchy.delete_node(project_data, selected, selected_index);
+                }
             }
         }
     }

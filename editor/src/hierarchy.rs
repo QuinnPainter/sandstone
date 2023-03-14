@@ -84,7 +84,7 @@ impl NodeGraph {
 
 pub struct Hierarchy {
     pub current_graph_idx: usize,
-    pub selected_node_idx: Option<NonZeroUsize>,
+    pub selected_node_idx: Option<usize>,
     new_graph_name_buffer: String,
     pending_node_moves: Vec<NodeMove>,
 }
@@ -133,7 +133,7 @@ impl Hierarchy {
                                 enabled: true,
                             });
                             Hierarchy::link_node(graph, NonZeroUsize::new(new_index).unwrap(), 0);
-                            self.selected_node_idx = Some(NonZeroUsize::new(new_index).unwrap());
+                            self.selected_node_idx = Some(new_index);
                             *selected = Selected::Node;
                         }
                     }
@@ -203,20 +203,20 @@ impl Hierarchy {
     fn draw_hierarchy_node(&mut self, ui: &Ui, project_data: &ProjectData, selected: &mut Selected, node_idx: usize) {
         if let Some(graph) = project_data.graphs.get(self.current_graph_idx) {
             if let Some(node) = graph.0.get(node_idx) {
-                let mut tree_node_token: Option<imgui::TreeNodeToken> = None;
-                // Root node is not drawn
-                if node_idx != 0 {
+                let mut _tree_node_token: Option<imgui::TreeNodeToken> = None;
+                // Draw node
+                {
                     let mut flags = TreeNodeFlags::empty();
                     flags.set(TreeNodeFlags::OPEN_ON_ARROW, true);
                     flags.set(TreeNodeFlags::DEFAULT_OPEN, true);
                     flags.set(TreeNodeFlags::LEAF, node.child_index.is_none());
                     // could change this to is_some_and if that gets stablised
                     // flags.set(TreeNodeFlags::SELECTED, selected_node_idx.is_some_and(|x| usize::from(x) == node_idx));
-                    flags.set(TreeNodeFlags::SELECTED, matches!(self.selected_node_idx, Some(x) if usize::from(x) == node_idx));
+                    flags.set(TreeNodeFlags::SELECTED, matches!(self.selected_node_idx, Some(x) if x == node_idx));
                     
-                    tree_node_token = ui.tree_node_config(format!("{}##TreeNode{}", node.name, node_idx).as_str()).flags(flags).push();
+                    _tree_node_token = ui.tree_node_config(format!("{}##TreeNode{}", node.name, node_idx).as_str()).flags(flags).push();
                     if ui.is_item_clicked() {
-                        self.selected_node_idx = Some(NonZeroUsize::new(node_idx).unwrap());
+                        self.selected_node_idx = Some(node_idx);
                         *selected = Selected::Node;
                     }
                     if let Some(tooltip) = ui.drag_drop_source_config("HierarchyDragDrop").begin_payload(node_idx) {
@@ -232,7 +232,7 @@ impl Hierarchy {
                         target.pop();
                     }
                 }
-                if node_idx == 0 || tree_node_token.is_some() {
+                if let Some(t) = _tree_node_token {
                     // Draw child nodes recursively
                     if let Some(mut cur_child_idx) = node.child_index {
                         loop {
@@ -244,8 +244,8 @@ impl Hierarchy {
                             };
                         }
                     }
+                    t.pop();
                 }
-                if let Some(t) = tree_node_token { t.pop(); }
             }
         }
     }
