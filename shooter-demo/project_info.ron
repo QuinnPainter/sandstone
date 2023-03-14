@@ -1,0 +1,228 @@
+(
+    name: "shooter-demo",
+    prefabs: [
+        (
+            nodes: [
+                (
+                    child_index: Some(7),
+                    parent_index: None,
+                    sibling_index: None,
+                    name: "Main Scene",
+                    transform: (
+                        x: (
+                            bits: 0,
+                        ),
+                        y: (
+                            bits: 0,
+                        ),
+                    ),
+                    node_extension: None,
+                    script_type_id: None,
+                    enabled: true,
+                ),
+                (
+                    child_index: Some(3),
+                    parent_index: Some(0),
+                    sibling_index: None,
+                    name: "Player",
+                    transform: (
+                        x: (
+                            bits: 344064,
+                        ),
+                        y: (
+                            bits: 1122304,
+                        ),
+                    ),
+                    node_extension: Sprite((
+                        graphic_asset: "playerShip2_small",
+                    )),
+                    script_type_id: Some(1),
+                    enabled: true,
+                ),
+                (
+                    child_index: None,
+                    parent_index: Some(0),
+                    sibling_index: Some(4),
+                    name: "BottomCamera",
+                    transform: (
+                        x: (
+                            bits: 0,
+                        ),
+                        y: (
+                            bits: 786432,
+                        ),
+                    ),
+                    node_extension: Camera((
+                        active_main: false,
+                        active_sub: true,
+                    )),
+                    script_type_id: None,
+                    enabled: true,
+                ),
+                (
+                    child_index: None,
+                    parent_index: Some(1),
+                    sibling_index: None,
+                    name: "PlayerCollider",
+                    transform: (
+                        x: (
+                            bits: -8192,
+                        ),
+                        y: (
+                            bits: 16384,
+                        ),
+                    ),
+                    node_extension: RectCollider((
+                        width: (
+                            bits: 143360,
+                        ),
+                        height: (
+                            bits: 98304,
+                        ),
+                    )),
+                    script_type_id: None,
+                    enabled: true,
+                ),
+                (
+                    child_index: None,
+                    parent_index: Some(0),
+                    sibling_index: Some(1),
+                    name: "TopCamera",
+                    transform: (
+                        x: (
+                            bits: 0,
+                        ),
+                        y: (
+                            bits: 0,
+                        ),
+                    ),
+                    node_extension: Camera((
+                        active_main: true,
+                        active_sub: false,
+                    )),
+                    script_type_id: None,
+                    enabled: true,
+                ),
+                (
+                    child_index: None,
+                    parent_index: Some(0),
+                    sibling_index: Some(2),
+                    name: "Enemy 1",
+                    transform: (
+                        x: (
+                            bits: 221184,
+                        ),
+                        y: (
+                            bits: 372736,
+                        ),
+                    ),
+                    node_extension: Sprite((
+                        graphic_asset: "enemyRed3",
+                    )),
+                    script_type_id: None,
+                    enabled: true,
+                ),
+                (
+                    child_index: None,
+                    parent_index: Some(0),
+                    sibling_index: Some(5),
+                    name: "Enemy 2",
+                    transform: (
+                        x: (
+                            bits: 385024,
+                        ),
+                        y: (
+                            bits: 372736,
+                        ),
+                    ),
+                    node_extension: Sprite((
+                        graphic_asset: "enemyRed3",
+                    )),
+                    script_type_id: None,
+                    enabled: true,
+                ),
+                (
+                    child_index: None,
+                    parent_index: Some(0),
+                    sibling_index: Some(6),
+                    name: "Enemy 3",
+                    transform: (
+                        x: (
+                            bits: 548864,
+                        ),
+                        y: (
+                            bits: 372736,
+                        ),
+                    ),
+                    node_extension: Sprite((
+                        graphic_asset: "enemyRed3",
+                    )),
+                    script_type_id: None,
+                    enabled: true,
+                ),
+            ],
+        ),
+        (
+            nodes: [
+                (
+                    child_index: None,
+                    parent_index: None,
+                    sibling_index: None,
+                    name: "Menu Scene",
+                    transform: (
+                        x: (
+                            bits: 0,
+                        ),
+                        y: (
+                            bits: 0,
+                        ),
+                    ),
+                    node_extension: None,
+                    script_type_id: None,
+                    enabled: true,
+                ),
+            ],
+        ),
+        (
+            nodes: [
+                (
+                    child_index: None,
+                    parent_index: None,
+                    sibling_index: None,
+                    name: "Bullet",
+                    transform: (
+                        x: (
+                            bits: 0,
+                        ),
+                        y: (
+                            bits: 0,
+                        ),
+                    ),
+                    node_extension: Sprite((
+                        graphic_asset: "laserBlue04",
+                    )),
+                    script_type_id: Some(2),
+                    enabled: true,
+                ),
+            ],
+        ),
+    ],
+    graphical_assets: {
+        "laserBlue04": (
+            path: "assets/laserBlue04.png",
+            size: _8x16,
+        ),
+        "playerShip2_small": (
+            path: "assets/playerShip2_small.png",
+            size: _32x32,
+        ),
+        "enemyRed3": (
+            path: "assets/enemyRed3.png",
+            size: _32x32,
+        ),
+        "playerShip2_blue": (
+            path: "assets/playerShip2_blue.png",
+            size: _64x64,
+        ),
+    },
+)
