@@ -277,6 +277,7 @@ impl<'a, T> IntoIterator for &'a mut Pool<T> {
     }
 }
 
+#[derive(Clone)]
 pub struct PoolIterator<'a, T> {
     ptr: *const PoolEntry<T>,
     end: *const PoolEntry<T>,

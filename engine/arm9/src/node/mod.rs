@@ -46,6 +46,7 @@ impl NodeExtensionHandle {
                     node_handle,
                     width: c.width,
                     height: c.height,
+                    intersect_list: alloc::vec::Vec::new(),
                 }))
             },
         }

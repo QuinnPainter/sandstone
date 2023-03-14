@@ -19,7 +19,7 @@ impl CameraExtensionHandler {
         Self {}
     }
 
-    pub fn get_active_cameras<'a>(&self, hierarchy: &Hierarchy) -> ActiveCameras {
+    pub fn get_active_cameras(&self, hierarchy: &Hierarchy) -> ActiveCameras {
         let mut active_cams = ActiveCameras {
             main: None,
             sub: None,

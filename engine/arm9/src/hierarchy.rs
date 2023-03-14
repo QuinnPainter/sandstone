@@ -4,7 +4,7 @@ use crate::{
     Script,
     ScriptContext,
     pool::{Pool, Handle},
-    node::{Transform, Node, NodeScriptData, NodeExtensionHandle, NodeExtensionPools, sprite::SpriteExtensionHandler, camera::CameraExtensionHandler}
+    node::{Transform, Node, NodeScriptData, NodeExtensionHandle, NodeExtensionPools, sprite::SpriteExtensionHandler, camera::CameraExtensionHandler, rect_collider}
 };
 use sandstone_common::SavedPrefabs;
 
@@ -272,8 +272,9 @@ impl Hierarchy {
     }
 
     pub(crate) fn run_extension_update(&mut self) {
-        let cameras = self.camera_handler.get_active_cameras(&self);
-        self.sprite_handler.sprite_update(&self, cameras);
+        rect_collider::check_collisions(self);
+        let cameras = self.camera_handler.get_active_cameras(self);
+        self.sprite_handler.sprite_update(self, cameras);
     }
 }
 

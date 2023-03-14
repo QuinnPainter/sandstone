@@ -1,37 +1,57 @@
+use fixed::types::*;
+use alloc::vec::Vec;
 use crate::{pool::Handle, node::Node, hierarchy::Hierarchy};
 
+#[derive(Clone)]
 pub struct RectColliderExtension {
     pub node_handle: Handle<Node>,
-    pub width: fixed::types::I20F12,
-    pub height: fixed::types::I20F12,
+    pub width: I20F12,
+    pub height: I20F12,
+    pub intersect_list: Vec<Handle<Node>>, // todo: put this on the stack?
 }
 
-/*#[derive(Clone, Copy)]
-pub(crate) struct ActiveCameras {
-    pub main: Option<Handle<CameraExtension>>,
-    pub sub: Option<Handle<CameraExtension>>,
-}
-
-pub(crate) struct CameraExtensionHandler {}
-
-impl CameraExtensionHandler {
-    pub fn new() -> Self {
-        Self {}
-    }
-
-    pub fn get_active_cameras<'a>(&self, hierarchy: &Hierarchy) -> ActiveCameras {
-        let mut active_cams = ActiveCameras {
-            main: None,
-            sub: None,
-        };
-        // todo: what to do when multiple active cameras for screen? priority system?
-        for i in 0..hierarchy.node_ext_pools.camera_pool.vec_len() {
-            if let Some(handle) = hierarchy.node_ext_pools.camera_pool.handle_from_index(i) {
-                let cam = hierarchy.node_ext_pools.camera_pool.borrow(handle);
-                if cam.active_main { active_cams.main = Some(handle); }
-                if cam.active_sub { active_cams.sub = Some(handle); }
+pub fn check_collisions(hierarchy: &mut Hierarchy) {
+    // Compare every element against every other, without unnecessary checks.
+    for i in 0..hierarchy.node_ext_pools.rect_collider_pool.vec_len() {
+        if let Some(handle) = hierarchy.node_ext_pools.rect_collider_pool.handle_from_index(i) {
+            let (col_t, mut col) = hierarchy.node_ext_pools.rect_collider_pool.take(handle);
+            col.intersect_list.clear();
+            if hierarchy.borrow(col.node_handle).global_enabled {
+                for j in i+1..hierarchy.node_ext_pools.rect_collider_pool.vec_len() {
+                    if let Some(handle_other) = hierarchy.node_ext_pools.rect_collider_pool.handle_from_index(j) {
+                        let col_other = hierarchy.node_ext_pools.rect_collider_pool.borrow(handle_other);
+                        if hierarchy.borrow(col_other.node_handle).global_enabled {
+                            if check_collision(hierarchy, &col, col_other) {
+                                col.intersect_list.push(col_other.node_handle);
+                            }
+                        }
+                    }
+                }
             }
+            hierarchy.node_ext_pools.rect_collider_pool.put_back(col_t, col);
         }
-        active_cams
     }
-}*/
+}
+
+fn check_collision(hierarchy: &Hierarchy, col1: &RectColliderExtension, col2: &RectColliderExtension) -> bool {
+    let r1 = extents_of_collider(hierarchy, col1);
+    let r2 = extents_of_collider(hierarchy, col2);
+    !(r1.min_x > r2.max_x || r1.max_x < r2.min_x || r1.min_y > r2.max_y || r1.max_y < r2.min_y)
+}
+
+fn extents_of_collider(hierarchy: &Hierarchy, col: &RectColliderExtension) -> RectExtents {
+    let node = hierarchy.borrow(col.node_handle);
+    RectExtents {
+        min_x: node.global_transform.x,
+        max_x: node.global_transform.x + col.width,
+        min_y: node.global_transform.y,
+        max_y: node.global_transform.y + col.height,
+    }
+}
+
+struct RectExtents {
+    min_x: I20F12,
+    max_x: I20F12,
+    min_y: I20F12,
+    max_y: I20F12,
+}
