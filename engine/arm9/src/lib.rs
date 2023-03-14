@@ -2,6 +2,7 @@
 #![feature(nonzero_ops)]
 #![feature(get_many_mut)]
 #![feature(error_in_core)]
+#![feature(decl_macro)]
 
 extern crate alloc;
 use crate::{hierarchy::Hierarchy, pool::Handle, node::Node};
@@ -97,4 +98,13 @@ pub struct ScriptContext<'a> {
 pub trait Script: {
     fn update(&mut self, context: &mut ScriptContext);
     fn start(&mut self, context: &mut ScriptContext);
+}
+
+pub macro register_script ($script:ident, $num:literal) {
+    #[doc = concat!("{script_type_id=", $num, "}")]
+    impl sandstone::hierarchy::HasTypeId for $script {
+        fn type_id() -> core::num::NonZeroU32 {
+            core::num::NonZeroU32::new($num).unwrap()
+        }
+    }
 }
