@@ -45,7 +45,7 @@ impl Hierarchy {
         }
     }
 
-    pub fn spawn_prefab(&mut self, index: u32, parent: Handle<Node>) {
+    pub fn spawn_prefab(&mut self, index: u32, parent: Handle<Node>) -> Handle<Node> {
         let saved_graph = self.saved_prefab_data.graphs.get(index as usize)
             .unwrap_or_else(|| panic!("Tried to spawn invalid prefab index: {index}"));
 
@@ -83,7 +83,9 @@ impl Hierarchy {
             });
             self.to_start_stack.push(*handle);
         }
-        self.link_new_child(parent, prefab_root.expect("Tried to create prefab with no root node"));
+        let prefab_root = prefab_root.expect("Tried to create prefab with no root node");
+        self.link_new_child(parent, prefab_root);
+        prefab_root
     }
 
     /*pub fn add(&mut self, mut item: Node, parent: Handle<Node>) {
