@@ -28,8 +28,10 @@ impl CameraExtensionHandler {
         for i in 0..hierarchy.node_ext_pools.camera_pool.vec_len() {
             if let Some(handle) = hierarchy.node_ext_pools.camera_pool.handle_from_index(i) {
                 let cam = hierarchy.node_ext_pools.camera_pool.borrow(handle);
-                if cam.active_main { active_cams.main = Some(handle); }
-                if cam.active_sub { active_cams.sub = Some(handle); }
+                if hierarchy.borrow(cam.node_handle).global_enabled {
+                    if cam.active_main { active_cams.main = Some(handle); }
+                    if cam.active_sub { active_cams.sub = Some(handle); }
+                }
             }
         }
         active_cams

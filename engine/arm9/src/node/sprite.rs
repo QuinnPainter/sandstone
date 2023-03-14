@@ -99,16 +99,18 @@ impl SpriteExtensionHandler {
     fn sprite_update_for_engine(&self, hierarchy: &Hierarchy, engine: GfxEngine, camera: Handle<CameraExtension>) {
         let camera = hierarchy.node_ext_pools.camera_pool.borrow(camera);
         let camera_node = hierarchy.object_pool.borrow(camera.node_handle);
-        let (cam_x, cam_y) = (camera_node.transform.x, camera_node.transform.y);
+        let (cam_x, cam_y) = (camera_node.global_transform.x, camera_node.global_transform.y);
 
         let mut cur_sprite_index = 0;
         for sprite in hierarchy.node_ext_pools.sprite_pool.iter() {
             let node = hierarchy.object_pool.borrow(sprite.node_handle);
+            if node.global_enabled == false { continue; }
+
             let vram_mapping = self.sprite_vram_map[&sprite.graphic_asset];
             let (shape, size) = sprite_size_to_shape_and_size(hierarchy.saved_prefab_data.graphics[&sprite.graphic_asset].size);
 
-            let screen_x = node.transform.x - cam_x;
-            let screen_y = node.transform.y - cam_y;
+            let screen_x = node.global_transform.x - cam_x;
+            let screen_y = node.global_transform.y - cam_y;
             if screen_y < 192 && screen_y > -64 && screen_x < 256 && screen_x > -128 {
                 let screen_x = (screen_x.to_num::<i32>() & 0x1FF) as u16;
                 let screen_y = (screen_y.to_num::<i32>() & 0xFF) as u8;

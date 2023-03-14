@@ -218,6 +218,8 @@ impl Hierarchy {
                 };
                 // this could return None if an object was immediately destroyed after creating it
                 let mut script_data = if let Some(item) = context.hierarchy.try_borrow_mut(handle) {
+                    // return early - node is disabled
+                    if item.global_enabled == false { continue; }
                     if let Some(script_data) = item.script_data.take() {
                         script_data
                     } else {
@@ -237,7 +239,31 @@ impl Hierarchy {
     }
 
     // Also updates the global "enabled" state.
-    pub(crate) fn update_global_positions(&mut self) {}
+    pub(crate) fn update_global_positions(&mut self) {
+        let root = self.borrow(self.root);
+        self.update_global_position_recursive(self.root, root.transform, root.enabled);
+    }
+
+    fn update_global_position_recursive(&mut self, handle: Handle<Node>, transform: Transform, enabled: bool) {
+        let node = self.borrow_mut(handle);
+        let new_enabled = node.enabled && enabled;
+        let new_transform = Transform {
+            x: node.transform.x + transform.x,
+            y: node.transform.y + transform.y,
+        };
+        node.global_enabled = new_enabled;
+        node.global_transform = new_transform;
+        // Update child nodes recursively
+        if let Some(mut cur_child_handle) = node.child_handle {
+            loop {
+                self.update_global_position_recursive(cur_child_handle, new_transform, new_enabled);
+                cur_child_handle = match self.borrow(cur_child_handle).sibling_handle {
+                    Some(x) => x,
+                    None => break,
+                };
+            }
+        }
+    }
 
     pub(crate) fn run_extension_init(&mut self) {
         self.sprite_handler.sprite_init(&self.saved_prefab_data);
