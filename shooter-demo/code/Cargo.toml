@@ -6,4 +6,5 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-sandstone = { git = "https://github.com/QuinnPainter/sandstone" }
+#sandstone = { git = "https://github.com/QuinnPainter/sandstone" }
+sandstone = { path = "../../engine/arm9" }

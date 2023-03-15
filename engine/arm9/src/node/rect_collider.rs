@@ -11,11 +11,13 @@ pub struct RectColliderExtension {
 }
 
 pub fn check_collisions(hierarchy: &mut Hierarchy) {
+    for col in hierarchy.node_ext_pools.rect_collider_pool.iter_mut() {
+        col.intersect_list.clear();
+    }
     // Compare every element against every other, without unnecessary checks.
     for i in 0..hierarchy.node_ext_pools.rect_collider_pool.vec_len() {
         if let Some(handle) = hierarchy.node_ext_pools.rect_collider_pool.handle_from_index(i) {
             let (col_t, mut col) = hierarchy.node_ext_pools.rect_collider_pool.take(handle);
-            col.intersect_list.clear();
             if hierarchy.borrow(col.node_handle).global_enabled {
                 for j in i+1..hierarchy.node_ext_pools.rect_collider_pool.vec_len() {
                     if let Some(handle_other) = hierarchy.node_ext_pools.rect_collider_pool.handle_from_index(j) {
