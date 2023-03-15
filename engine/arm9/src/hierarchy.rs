@@ -157,42 +157,6 @@ impl Hierarchy {
             ironds::nocash::print("");
         }
     }
-    
-    /*#[inline(always)]
-    #[must_use]
-    pub fn vec_len(&self) -> usize {
-        self.object_pool.vec_len()
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn borrow(&self, handle: Handle<Node>) -> &Node {
-        self.object_pool.borrow(handle)
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn try_borrow(&self, handle: Handle<Node>) -> Option<&Node> {
-        self.object_pool.try_borrow(handle)
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn borrow_mut(&mut self, handle: Handle<Node>) -> &mut Node {
-        self.object_pool.borrow_mut(handle)
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn try_borrow_mut(&mut self, handle: Handle<Node>) -> Option<&mut Node> {
-        self.object_pool.try_borrow_mut(handle)
-    }
-
-    #[inline]
-    #[must_use]
-    pub fn handle_from_index(&self, index: usize) -> Option<Handle<Node>> {
-        self.object_pool.handle_from_index(index)
-    }*/
 
     // todo: recursive search?
     // could have fast path for situation where search root is graph root node
