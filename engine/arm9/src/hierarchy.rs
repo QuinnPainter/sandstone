@@ -8,6 +8,14 @@ use crate::{
 };
 use sandstone_common::SavedPrefabs;
 
+pub trait HierarchyPoolTrait<T> {
+    fn borrow(&self, handle: Handle<T>) -> &T;
+    fn try_borrow(&self, handle: Handle<T>) -> Option<&T>;
+    fn borrow_mut(&mut self, handle: Handle<T>) -> &mut T;
+    fn try_borrow_mut(&mut self, handle: Handle<T>) -> Option<&mut T>;
+    fn handle_from_index(&self, index: usize) -> Option<Handle<T>>;
+}
+
 pub struct Hierarchy {
     pub root: Handle<Node>,
     pub(crate) object_pool: Pool<Node>,
@@ -17,6 +25,45 @@ pub struct Hierarchy {
     sprite_handler: SpriteExtensionHandler,
     camera_handler: CameraExtensionHandler,
 }
+
+macro hierarchy_pool_methods ($t:ty, $( $pool:ident ).+) {
+    impl HierarchyPoolTrait<$t> for Hierarchy {
+        #[inline]
+        #[must_use]
+        fn borrow(&self, handle: Handle<$t>) -> &$t {
+            self.$($pool.)+borrow(handle)
+        }
+
+        #[inline]
+        #[must_use]
+        fn try_borrow(&self, handle: Handle<$t>) -> Option<&$t> {
+            self.$($pool.)+try_borrow(handle)
+        }
+    
+        #[inline]
+        #[must_use]
+        fn borrow_mut(&mut self, handle: Handle<$t>) -> &mut $t {
+            self.$($pool.)+borrow_mut(handle)
+        }
+    
+        #[inline]
+        #[must_use]
+        fn try_borrow_mut(&mut self, handle: Handle<$t>) -> Option<&mut $t> {
+            self.$($pool.)+try_borrow_mut(handle)
+        }
+    
+        #[inline]
+        #[must_use]
+        fn handle_from_index(&self, index: usize) -> Option<Handle<$t>> {
+            self.$($pool.)+handle_from_index(index)
+        }
+    }
+}
+
+hierarchy_pool_methods!(Node, object_pool);
+hierarchy_pool_methods!(crate::node::sprite::SpriteExtension, node_ext_pools.sprite_pool);
+hierarchy_pool_methods!(crate::node::camera::CameraExtension, node_ext_pools.camera_pool);
+hierarchy_pool_methods!(crate::node::rect_collider::RectColliderExtension, node_ext_pools.rect_collider_pool);
 
 impl Hierarchy {
     pub fn new() -> Self {
@@ -111,7 +158,7 @@ impl Hierarchy {
         }
     }
     
-    #[inline(always)]
+    /*#[inline(always)]
     #[must_use]
     pub fn vec_len(&self) -> usize {
         self.object_pool.vec_len()
@@ -145,7 +192,7 @@ impl Hierarchy {
     #[must_use]
     pub fn handle_from_index(&self, index: usize) -> Option<Handle<Node>> {
         self.object_pool.handle_from_index(index)
-    }
+    }*/
 
     // todo: recursive search?
     // could have fast path for situation where search root is graph root node
@@ -212,7 +259,7 @@ impl Hierarchy {
     }
 
     pub(crate) fn run_script_update(&mut self) {
-        for i in 0..self.vec_len() {
+        for i in 0..self.object_pool.vec_len() {
             if let Some(handle) = self.handle_from_index(i) {
                 let mut context = ScriptContext {
                     hierarchy: self,

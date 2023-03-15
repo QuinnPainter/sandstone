@@ -1,6 +1,6 @@
 use fixed::types::*;
 use alloc::vec::Vec;
-use crate::{pool::Handle, node::Node, hierarchy::Hierarchy};
+use crate::{pool::Handle, node::Node, hierarchy::{Hierarchy, HierarchyPoolTrait}};
 
 #[derive(Clone)]
 pub struct RectColliderExtension {

@@ -1,4 +1,4 @@
-use crate::{pool::Handle, node::Node, hierarchy::Hierarchy};
+use crate::{pool::Handle, node::Node, hierarchy::{Hierarchy, HierarchyPoolTrait}};
 
 pub struct CameraExtension {
     pub node_handle: Handle<Node>,
