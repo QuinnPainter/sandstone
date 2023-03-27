@@ -79,8 +79,7 @@ impl Script for BulletScript {
             }
         }
         if died {
-            let node = context.hierarchy.borrow_mut(context.handle);
-            node.enabled = false;
+            context.hierarchy.destroy_node(context.handle);
         }
     }
 }

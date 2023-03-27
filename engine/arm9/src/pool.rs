@@ -189,9 +189,21 @@ impl<T> Pool<T> {
         }
     }
 
+    // Only fails if index out of range.
     #[must_use]
     pub fn handle_from_index(&self, index: usize) -> Option<Handle<T>> {
-        if let Some(entry) = self.data_vec.get(index) {
+        let entry = self.data_vec.get(index)?;
+        Some(Handle {
+            index,
+            generation: entry.generation,
+            phantom_type: PhantomData::<T>,
+        })
+    }
+
+    // Makes sure the index points to a valid entry.
+    pub fn handle_from_index_checked(&self, index: usize) -> Option<Handle<T>> {
+        let entry = self.data_vec.get(index)?;
+        if entry.data.is_some() {
             Some(Handle {
                 index,
                 generation: entry.generation,

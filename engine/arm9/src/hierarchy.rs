@@ -295,7 +295,9 @@ impl Hierarchy {
     }
 
     pub(crate) fn process_pending_destroys(&mut self) {
-        for root_handle in self.to_destroy_stack.drain(..) {
+        // unlink parent and sibling
+        while let Some(root_handle) = self.to_destroy_stack.pop() {
+            self.unlink_node(root_handle);
             let mut handle = root_handle;
             // Recursively delete children of node
             loop {
@@ -307,6 +309,36 @@ impl Hierarchy {
                     Some(x) => x,
                     None => break,
                 };
+            }
+        }
+    }
+
+    fn unlink_node(&mut self, handle: Handle<Node>) {
+        let node = self.object_pool.borrow(handle);
+        let sibling_handle = node.sibling_handle;
+        let parent_handle =
+            node.parent_handle.unwrap_or_else(|| panic!("Tried to unlink root node"));
+        let parent = self.object_pool.borrow_mut(parent_handle);
+        if parent.child_handle.unwrap() == handle {
+            parent.child_handle = sibling_handle;
+        } else {
+            self.loop_over_children(parent_handle, |node, _| {
+                if node.sibling_handle == Some(handle) {
+                    node.sibling_handle = sibling_handle;
+                }
+            });
+        }
+    }
+
+    fn loop_over_children<F: FnMut(&mut Node, Handle<Node>)>(&mut self, handle: Handle<Node>, mut op: F) {
+        if let Some(mut cur_child_handle) = self.object_pool.borrow(handle).child_handle {
+            loop {
+                let cur_child = self.object_pool.borrow_mut(cur_child_handle);
+                op(cur_child, cur_child_handle);
+                cur_child_handle = match cur_child.sibling_handle {
+                    Some(x) => x,
+                    None => break,
+                }
             }
         }
     }

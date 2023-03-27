@@ -16,11 +16,11 @@ pub fn check_collisions(hierarchy: &mut Hierarchy) {
     }
     // Compare every element against every other, without unnecessary checks.
     for i in 0..hierarchy.node_ext_pools.rect_collider_pool.vec_len() {
-        if let Some(handle) = hierarchy.node_ext_pools.rect_collider_pool.handle_from_index(i) {
+        if let Some(handle) = hierarchy.node_ext_pools.rect_collider_pool.handle_from_index_checked(i) {
             let (col_t, mut col) = hierarchy.node_ext_pools.rect_collider_pool.take(handle);
             if hierarchy.borrow(col.node_handle).global_enabled {
                 for j in i+1..hierarchy.node_ext_pools.rect_collider_pool.vec_len() {
-                    if let Some(handle_other) = hierarchy.node_ext_pools.rect_collider_pool.handle_from_index(j) {
+                    if let Some(handle_other) = hierarchy.node_ext_pools.rect_collider_pool.handle_from_index_checked(j) {
                         let (col_other_t, mut col_other) = hierarchy.node_ext_pools.rect_collider_pool.take(handle_other);
                         if hierarchy.borrow(col_other.node_handle).global_enabled {
                             if check_collision(hierarchy, &col, &col_other) {
