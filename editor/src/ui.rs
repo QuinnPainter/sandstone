@@ -1,3 +1,5 @@
+// Comes from the imgui-rs glow example
+// https://github.com/imgui-rs/imgui-rs/blob/main/imgui-glow-renderer/examples/glow_01_basic.rs
 use std::time::Instant;
 
 use glow::HasContext;

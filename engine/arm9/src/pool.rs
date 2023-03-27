@@ -15,7 +15,6 @@ struct PoolEntry<T> {
     data: Option<T>
 }
 
-#[derive(PartialEq, Eq)]
 pub struct Handle<T> {
     index: usize,
     generation: NonZeroU32, // making this nonzero makes Option<Handle> more efficient using niche optimisation
@@ -36,6 +35,13 @@ impl<T> Clone for Handle<T> {
     }
 }
 impl<T> Copy for Handle<T> {}
+
+impl<T> PartialEq for Handle<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.index == other.index && self.generation == other.generation
+    }
+}
+impl<T> Eq for Handle<T> {}
 
 impl<T> Debug for Handle<T> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -146,6 +152,16 @@ impl<T> Pool<T> {
         } else {
             None
         }
+    }
+
+    #[inline]
+    pub fn remove(&mut self, handle: Handle<T>) {
+        self.try_remove(handle).unwrap_or_else(|| panic!("Tried to remove from pool with an invalid handle: {handle:?}"));
+    }
+
+    #[inline]
+    pub fn try_remove(&mut self, handle: Handle<T>) -> Option<()> {
+        self.try_take(handle).map(|_| ())
     }
 
     // try_take without generation. Used by hierarchy update loop.

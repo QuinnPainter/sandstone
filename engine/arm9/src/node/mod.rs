@@ -1,5 +1,5 @@
 use core::num::NonZeroU32;
-use alloc::{string::String, boxed::Box};
+use alloc::{string::String, boxed::Box, vec::Vec};
 use crate::{Script, pool::{Pool, Handle}, hierarchy::HasTypeId};
 
 pub mod sprite;
@@ -20,39 +20,6 @@ pub enum NodeExtensionHandle {
     RectCollider(Handle<rect_collider::RectColliderExtension>),
 }
 
-impl NodeExtensionHandle {
-    pub(crate) fn from_saved(
-        pools: &mut NodeExtensionPools,
-        node_handle: Handle<Node>,
-        saved_extension: &sandstone_common::SavedNodeExtension) -> Self
-    {
-        match saved_extension {
-            sandstone_common::SavedNodeExtension::None => NodeExtensionHandle::None,
-            sandstone_common::SavedNodeExtension::Sprite(s) => {
-                NodeExtensionHandle::Sprite(pools.sprite_pool.add(sprite::SpriteExtension {
-                    graphic_asset: s.graphic_asset.clone(),
-                    node_handle,
-                }))
-            },
-            sandstone_common::SavedNodeExtension::Camera(c) => {
-                NodeExtensionHandle::Camera(pools.camera_pool.add(camera::CameraExtension {
-                    node_handle,
-                    active_main: c.active_main,
-                    active_sub: c.active_sub,
-                }))
-            },
-            sandstone_common::SavedNodeExtension::RectCollider(c) => {
-                NodeExtensionHandle::RectCollider(pools.rect_collider_pool.add(rect_collider::RectColliderExtension {
-                    node_handle,
-                    width: c.width,
-                    height: c.height,
-                    intersect_list: alloc::vec::Vec::new(),
-                }))
-            },
-        }
-    }
-}
-
 pub(crate) struct NodeExtensionPools {
     pub sprite_pool: Pool<sprite::SpriteExtension>,
     pub camera_pool: Pool<camera::CameraExtension>,
@@ -66,6 +33,46 @@ impl NodeExtensionPools {
             camera_pool: Pool::new(),
             rect_collider_pool: Pool::new(),
         }
+    }
+
+    pub(crate) fn add_from_saved(
+        &mut self,
+        node_handle: Handle<Node>,
+        saved_extension: &sandstone_common::SavedNodeExtension) -> NodeExtensionHandle
+    {
+        match saved_extension {
+            sandstone_common::SavedNodeExtension::None => NodeExtensionHandle::None,
+            sandstone_common::SavedNodeExtension::Sprite(s) => {
+                NodeExtensionHandle::Sprite(self.sprite_pool.add(sprite::SpriteExtension {
+                    node_handle,
+                    graphic_asset: s.graphic_asset.clone(),
+                }))
+            },
+            sandstone_common::SavedNodeExtension::Camera(c) => {
+                NodeExtensionHandle::Camera(self.camera_pool.add(camera::CameraExtension {
+                    node_handle,
+                    active_main: c.active_main,
+                    active_sub: c.active_sub,
+                }))
+            },
+            sandstone_common::SavedNodeExtension::RectCollider(c) => {
+                NodeExtensionHandle::RectCollider(self.rect_collider_pool.add(rect_collider::RectColliderExtension {
+                    node_handle,
+                    width: c.width,
+                    height: c.height,
+                    intersect_list: Vec::new(),
+                }))
+            },
+        }
+    }
+
+    pub(crate) fn destroy_extension(&mut self, handle: NodeExtensionHandle) {
+        match handle {
+            NodeExtensionHandle::None => Some(()),
+            NodeExtensionHandle::Sprite(h) => { self.sprite_pool.try_remove(h) },
+            NodeExtensionHandle::Camera(h) => { self.camera_pool.try_remove(h) },
+            NodeExtensionHandle::RectCollider(h) => { self.rect_collider_pool.try_remove(h)},
+        }.expect("Tried to destroy extension with invalid handle");
     }
 }
 

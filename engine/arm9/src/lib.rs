@@ -80,6 +80,7 @@ pub fn main_loop() -> ! {
         hierarchy.run_extension_update();
         hierarchy.run_script_update();
         hierarchy.run_pending_script_starts();
+        hierarchy.process_pending_destroys();
 
         nds::interrupt::wait_for_vblank();
     }

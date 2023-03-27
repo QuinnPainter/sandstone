@@ -21,6 +21,7 @@ pub struct Hierarchy {
     pub(crate) object_pool: Pool<Node>,
     pub(crate) node_ext_pools: NodeExtensionPools,
     to_start_stack: Vec<Handle<Node>>,
+    to_destroy_stack: Vec<Handle<Node>>,
     pub(crate) saved_prefab_data: SavedPrefabs,
     sprite_handler: SpriteExtensionHandler,
     camera_handler: CameraExtensionHandler,
@@ -86,6 +87,7 @@ impl Hierarchy {
             object_pool,
             node_ext_pools: NodeExtensionPools::new(),
             to_start_stack: Vec::new(),
+            to_destroy_stack: Vec::new(),
             saved_prefab_data: sandstone_common::deserialize(unsafe { PREFAB_DATA.unwrap() }),
             sprite_handler: SpriteExtensionHandler::new(),
             camera_handler: CameraExtensionHandler::new(),
@@ -114,7 +116,7 @@ impl Hierarchy {
                 global_enabled: false,
             });
             self.object_pool.borrow_mut(handle).node_extension =
-                NodeExtensionHandle::from_saved(&mut self.node_ext_pools, handle, &node.node_extension);
+                self.node_ext_pools.add_from_saved(handle, &node.node_extension);
             handle
         }).collect();
         
@@ -189,6 +191,10 @@ impl Hierarchy {
             }
             cur_node_handle = cur_node.sibling_handle?;
         }
+    }
+
+    pub fn destroy_node(&mut self, handle: Handle<Node>) {
+        self.to_destroy_stack.push(handle);
     }
 
     pub(crate) fn run_pending_script_starts(&mut self) {
@@ -286,6 +292,23 @@ impl Hierarchy {
         rect_collider::check_collisions(self);
         let cameras = self.camera_handler.get_active_cameras(self);
         self.sprite_handler.sprite_update(self, cameras);
+    }
+
+    pub(crate) fn process_pending_destroys(&mut self) {
+        for root_handle in self.to_destroy_stack.drain(..) {
+            let mut handle = root_handle;
+            // Recursively delete children of node
+            loop {
+                let Some((_t, node)) = self.object_pool.try_take(handle) else {
+                    panic!("Tried to destroy node with invalid handle");
+                };
+                self.node_ext_pools.destroy_extension(node.node_extension);
+                handle = match if handle == root_handle {node.child_handle} else {node.sibling_handle} {
+                    Some(x) => x,
+                    None => break,
+                };
+            }
+        }
     }
 }
 
