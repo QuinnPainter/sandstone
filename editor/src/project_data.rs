@@ -13,7 +13,6 @@ pub struct ProjectData {
     file_scanner_rx: std::sync::mpsc::Receiver<Result<notify::Event, notify::Error>>,
     file_scanner_watcher: Option<notify::RecommendedWatcher>,
     pub graphical_assets: HashMap<String, GraphicalAsset>,
-    pub selected_asset: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -42,7 +41,6 @@ impl ProjectData {
             file_scanner_rx: rx,
             file_scanner_watcher: None,
             graphical_assets: HashMap::new(),
-            selected_asset: None,
         }
     }
 

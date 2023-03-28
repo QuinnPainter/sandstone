@@ -82,7 +82,7 @@ impl WorldEditor {
             if let Some(node) = graph.0.get(node_idx) {
                 let node_canvas_pos = [node.transform.x.to_num::<i32>() as f32, node.transform.y.to_num::<i32>() as f32];
                 let node_canvas_pos = [node_canvas_pos[0] + position[0], node_canvas_pos[1] + position[1]];
-                let node_selected = matches!(hierarchy.selected_node_idx, Some(x) if usize::from(x) == node_idx);
+                let node_selected = matches!(selected, &mut Selected::Node(x) if x == node_idx);
 
                 match &node.node_extension {
                     NodeExtension::Sprite(s) => {

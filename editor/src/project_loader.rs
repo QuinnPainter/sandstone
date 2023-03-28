@@ -8,6 +8,7 @@ use std::num::{NonZeroU32, NonZeroUsize};
 use imgui::Ui;
 use serde::{Serialize, Deserialize};
 use include_dir::{include_dir, Dir};
+use crate::Selected;
 use crate::project_data::{ProjectData, GraphicalAsset};
 use crate::hierarchy::{NodeGraph, Node, Transform, Hierarchy, NodeExtension};
 
@@ -55,7 +56,7 @@ impl ProjectLoader {
         });
     }
 
-    pub fn update(&mut self, ui: &Ui, project_data: &mut ProjectData, hierarchy: &mut Hierarchy, renderer: &mut imgui_glow_renderer::AutoRenderer) {
+    pub fn update(&mut self, ui: &Ui, project_data: &mut ProjectData, hierarchy: &mut Hierarchy, renderer: &mut imgui_glow_renderer::AutoRenderer, selected: &mut Selected) {
         // Draw the "Load Project" popup modal
         ui.modal_popup_config("Load Project").resizable(false).always_auto_resize(true).build(|| {
             if let Some(tab_bar_token) = ui.tab_bar("tabs") {
@@ -77,7 +78,7 @@ impl ProjectLoader {
                     text_wrap_token.end();
                     ui.spacing();
                     if ui.button("Create") {
-                        create_new_project(&total_path, self.new_project_name_buffer.clone(), project_data, hierarchy, renderer);
+                        create_new_project(&total_path, self.new_project_name_buffer.clone(), project_data, hierarchy, renderer, selected);
                         ui.close_current_popup();
                     }
                     tab_token.end();
@@ -113,7 +114,7 @@ impl ProjectLoader {
                     self.new_project_path_buffer = path;
                 }
                 FileDialogReturnInfo::OpenProject(Some(path)) => {
-                    load_project(Path::new(&path), project_data, hierarchy, renderer);
+                    load_project(Path::new(&path), project_data, hierarchy, renderer, selected);
                     self.close_load_project_modal = true;
                 }
                 _ => {}
@@ -122,7 +123,7 @@ impl ProjectLoader {
     }
 }
     
-fn create_new_project(path: &Path, name: String, project_data: &mut ProjectData, hierarchy: &mut Hierarchy, renderer: &mut imgui_glow_renderer::AutoRenderer) {
+fn create_new_project(path: &Path, name: String, project_data: &mut ProjectData, hierarchy: &mut Hierarchy, renderer: &mut imgui_glow_renderer::AutoRenderer, selected: &mut Selected) {
     project_data.name = name;
     project_data.set_path_without_watch(path.to_path_buf());
     project_data.graphs = Vec::new();
@@ -134,10 +135,10 @@ fn create_new_project(path: &Path, name: String, project_data: &mut ProjectData,
     // Create assets folder
     std::fs::create_dir_all(&path.join("assets")).unwrap();
 
-    load_project(path, project_data, hierarchy, renderer);
+    load_project(path, project_data, hierarchy, renderer, selected);
 }
 
-fn load_project(path: &Path, project_data: &mut ProjectData, hierarchy: &mut Hierarchy, renderer: &mut imgui_glow_renderer::AutoRenderer) {
+fn load_project(path: &Path, project_data: &mut ProjectData, hierarchy: &mut Hierarchy, renderer: &mut imgui_glow_renderer::AutoRenderer, selected: &mut Selected) {
     // todo: handle IO errors
     let project_data_file = File::open(path.join("project_info.ron")).unwrap();
     let saved_project_data: SavedProjectData = ron::de::from_reader(project_data_file).unwrap();
@@ -164,7 +165,7 @@ fn load_project(path: &Path, project_data: &mut ProjectData, hierarchy: &mut Hie
         project_data.graphs.push(new_graph);
     }
     hierarchy.current_graph_idx = 0;
-    hierarchy.selected_node_idx = None;
+    *selected = Selected::None;
     project_data.find_graphical_assets(renderer);
 }
 

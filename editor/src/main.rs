@@ -13,8 +13,8 @@ use std::ffi::CString;
 
 pub enum Selected {
     None,
-    Node,
-    File,
+    Node(usize),
+    File(String),
 }
 
 fn main() {
@@ -109,7 +109,7 @@ fn main() {
         });
 
         project_data.check_file_scanner(renderer);
-        proj_loader.update(ui, &mut project_data, &mut hierarchy_obj, renderer);
+        proj_loader.update(ui, &mut project_data, &mut hierarchy_obj, renderer, &mut selected);
 
         inspector::draw_inspector(ui, &mut hierarchy_obj, &mut project_data, &mut selected);
         hierarchy_obj.draw_hierarchy(ui, &mut project_data, &mut selected);

@@ -6,14 +6,14 @@ pub fn draw_inspector(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut Pro
         .build(|| {
             match *selected {
                 Selected::None => {},
-                Selected::File => { file_inspector(ui, project_data); },
-                Selected::Node => { node_inspector(ui, hierarchy, project_data, selected); },
+                Selected::File(_) => { file_inspector(ui, project_data, selected); },
+                Selected::Node(_) => { node_inspector(ui, hierarchy, project_data, selected); },
             }
         });
 }
 
-fn file_inspector(ui: &Ui, project_data: &mut ProjectData) {
-    if let Some(selected_asset_name) = &mut project_data.selected_asset {
+fn file_inspector(ui: &Ui, project_data: &mut ProjectData, selected: &mut Selected) {
+    if let Selected::File(selected_asset_name) = selected {
         if let Some(selected_asset) = project_data.graphical_assets.get_mut(selected_asset_name) {
             // Combo box for Size
             if let Some(_cb) = ui.begin_combo("Size", format!("{}", selected_asset.size)) {
@@ -32,7 +32,7 @@ fn file_inspector(ui: &Ui, project_data: &mut ProjectData) {
 
 fn node_inspector(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut ProjectData, selected: &mut Selected) {
     if let Some(graph) = project_data.graphs.get_mut(hierarchy.current_graph_idx) {
-        if let Some(selected_index) = hierarchy.selected_node_idx {
+        if let &mut Selected::Node(selected_index) = selected {
             let selected_node = &mut graph.0[selected_index.into()];
             ui.input_text("Name", &mut selected_node.name).build();
             ui.checkbox("Enabled", &mut selected_node.enabled);

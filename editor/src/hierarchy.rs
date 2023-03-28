@@ -84,7 +84,6 @@ impl NodeGraph {
 
 pub struct Hierarchy {
     pub current_graph_idx: usize,
-    pub selected_node_idx: Option<usize>,
     new_graph_name_buffer: String,
     pending_node_moves: Vec<NodeMove>,
 }
@@ -98,7 +97,6 @@ impl Hierarchy {
     pub fn new() -> Self {
         Self {
             current_graph_idx: 0,
-            selected_node_idx: None,
             new_graph_name_buffer: String::new(),
             pending_node_moves: Vec::new(),
         }
@@ -133,8 +131,7 @@ impl Hierarchy {
                                 enabled: true,
                             });
                             Hierarchy::link_node(graph, NonZeroUsize::new(new_index).unwrap(), 0);
-                            self.selected_node_idx = Some(new_index);
-                            *selected = Selected::Node;
+                            *selected = Selected::Node(new_index);
                         }
                     }
                 }
@@ -148,7 +145,6 @@ impl Hierarchy {
                             .selected(self.current_graph_idx == i)
                             .build() {
                             self.current_graph_idx = i;
-                            self.selected_node_idx = None;
                             *selected = Selected::None;
                         }
                     }
@@ -168,7 +164,6 @@ impl Hierarchy {
                         enabled: true,
                     });
                     self.current_graph_idx = project_data.graphs.len();
-                    self.selected_node_idx = None;
                     *selected = Selected::None;
                     project_data.graphs.push(new_graph);
                     self.new_graph_name_buffer.clear();
@@ -212,12 +207,11 @@ impl Hierarchy {
                     flags.set(TreeNodeFlags::LEAF, node.child_index.is_none());
                     // could change this to is_some_and if that gets stablised
                     // flags.set(TreeNodeFlags::SELECTED, selected_node_idx.is_some_and(|x| usize::from(x) == node_idx));
-                    flags.set(TreeNodeFlags::SELECTED, matches!(self.selected_node_idx, Some(x) if x == node_idx));
+                    flags.set(TreeNodeFlags::SELECTED, matches!(selected, &mut Selected::Node(x) if x == node_idx));
                     
                     _tree_node_token = ui.tree_node_config(format!("{}##TreeNode{}", node.name, node_idx).as_str()).flags(flags).push();
                     if ui.is_item_clicked() {
-                        self.selected_node_idx = Some(node_idx);
-                        *selected = Selected::Node;
+                        *selected = Selected::Node(node_idx);
                     }
                     if let Some(tooltip) = ui.drag_drop_source_config("HierarchyDragDrop").begin_payload(node_idx) {
                         // The tooltip displayed when dragging
@@ -252,7 +246,6 @@ impl Hierarchy {
 
     pub fn delete_node(&mut self, project_data: &mut ProjectData, selected: &mut Selected, node_idx: NonZeroUsize) {
         // Deselect node just in case it is deleted
-        self.selected_node_idx = None;
         *selected = Selected::None;
 
         let node_idx_usize = usize::from(node_idx);
