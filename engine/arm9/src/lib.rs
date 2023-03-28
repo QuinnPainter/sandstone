@@ -71,7 +71,7 @@ pub fn main_loop() -> ! {
     hierarchy.run_extension_init();
 
     // Load main scene
-    hierarchy.spawn_prefab(0, hierarchy.root);
+    hierarchy.spawn_prefab(&hierarchy.saved_prefab_data.main_graph.clone(), hierarchy.root);
     hierarchy.run_pending_script_starts();
     //hierarchy.pretty_print_hierarchy_structure();
 

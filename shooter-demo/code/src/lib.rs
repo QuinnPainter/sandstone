@@ -37,7 +37,7 @@ impl Script for PlayerScript {
             let mut transform = node.transform;
             transform.x += I20F12::lit("12"); // center
 
-            let handle = context.hierarchy.spawn_prefab(2, context.hierarchy.root);
+            let handle = context.hierarchy.spawn_prefab("Bullet", context.hierarchy.root);
             let bullet = context.hierarchy.borrow_mut(handle);
             bullet.transform = transform;
             self.shoot_cooldown = 0;

@@ -94,9 +94,9 @@ impl Hierarchy {
         }
     }
 
-    pub fn spawn_prefab(&mut self, index: u32, parent: Handle<Node>) -> Handle<Node> {
-        let saved_graph = self.saved_prefab_data.graphs.get(index as usize)
-            .unwrap_or_else(|| panic!("Tried to spawn invalid prefab index: {index}"));
+    pub fn spawn_prefab(&mut self, name: &str, parent: Handle<Node>) -> Handle<Node> {
+        let saved_graph = self.saved_prefab_data.graphs.get(name)
+            .unwrap_or_else(|| panic!("Tried to spawn invalid prefab: {name}"));
 
         // Push the nodes onto the object pool, with placeholder child, parent and sibling handles
         let new_handles: Vec<Handle<Node>> = saved_graph.nodes.iter().map(|node| {
