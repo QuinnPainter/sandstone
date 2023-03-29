@@ -63,7 +63,7 @@ impl WorldEditor {
                 }
 
                 let start_pos = [self.editor_cam_pos[0] + canvas_pos[0], self.editor_cam_pos[1] + canvas_pos[1]];
-                Self::draw_node_recursive(ui, hierarchy, project_data, selected, 0, &draw_list, canvas_pos, start_pos);
+                Self::draw_node_recursive(ui, hierarchy, project_data, selected, 0, &draw_list, start_pos);
             });
     }
 
@@ -75,7 +75,6 @@ impl WorldEditor {
         selected: &mut Selected,
         node_idx: usize,
         draw_list: &imgui::DrawListMut,
-        canvas_pos: [f32; 2],
         position: [f32; 2],
     ){
         if let Some(graph) = project_data.graphs.get(hierarchy.current_graph_idx) {
@@ -129,7 +128,7 @@ impl WorldEditor {
                 if let Some(mut cur_child_idx) = node.child_index {
                     loop {
                         let cur_child_idx_usize = usize::from(cur_child_idx);
-                        Self::draw_node_recursive(ui, hierarchy, project_data, selected, cur_child_idx_usize, draw_list, canvas_pos, node_canvas_pos);
+                        Self::draw_node_recursive(ui, hierarchy, project_data, selected, cur_child_idx_usize, draw_list, node_canvas_pos);
                         cur_child_idx = match graph.0[cur_child_idx_usize].sibling_index {
                             Some(x) => x,
                             None => break,

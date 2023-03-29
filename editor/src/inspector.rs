@@ -32,7 +32,7 @@ fn file_inspector(ui: &Ui, project_data: &mut ProjectData, selected: &mut Select
 fn node_inspector(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut ProjectData, selected: &mut Selected) {
     let &mut Selected::Node(selected_index) = selected else { return; };
     let Some(graph) = project_data.graphs.get_mut(hierarchy.current_graph_idx)  else { return; };
-    let selected_node = &mut graph.0[selected_index.into()];
+    let selected_node = &mut graph.0[selected_index];
     ui.input_text("Name", &mut selected_node.name).build();
     ui.checkbox("Enabled", &mut selected_node.enabled);
 
@@ -100,9 +100,7 @@ fn graph_inspector(ui: &Ui, project_data: &mut ProjectData, selected: &mut Selec
     ui.input_text("Name", &mut node.name).build();
     if project_data.main_graph == Some(selected_index as u32) {
         ui.text("This is the Main Graph");
-    } else {
-        if ui.button("Set as Main Graph") {
-            project_data.main_graph = Some(selected_index as u32);
-        }
+    } else if ui.button("Set as Main Graph") {
+        project_data.main_graph = Some(selected_index as u32);
     }
 }

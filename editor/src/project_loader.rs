@@ -133,7 +133,7 @@ fn create_new_project(path: &Path, name: String, project_data: &mut ProjectData,
     TEMPLATE_CODE.extract(path.join("code").to_str().unwrap()).unwrap();
 
     // Create assets folder
-    std::fs::create_dir_all(&path.join("assets")).unwrap();
+    std::fs::create_dir_all(path.join("assets")).unwrap();
 
     load_project(path, project_data, hierarchy, renderer, selected);
 }
@@ -172,7 +172,7 @@ fn load_project(path: &Path, project_data: &mut ProjectData, hierarchy: &mut Hie
 
 pub fn save_project(project_data: &mut ProjectData) {
     // todo: handle IO errors
-    std::fs::create_dir_all(&project_data.get_path()).unwrap();
+    std::fs::create_dir_all(project_data.get_path()).unwrap();
     
     let saved_project_data = SavedProjectData {
         name: project_data.name.clone(),

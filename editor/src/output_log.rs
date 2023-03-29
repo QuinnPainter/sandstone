@@ -7,7 +7,7 @@ pub fn draw_log(ui: &Ui) {
         .build(|| {
             let log_data = LOG_DATA.lock().unwrap();
             for t in &log_data.log_lines {
-                ui.text(&t);
+                ui.text(t);
             }
         });
 }

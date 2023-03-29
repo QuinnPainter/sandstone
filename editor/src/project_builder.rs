@@ -95,7 +95,7 @@ pub fn build(project_data: &mut ProjectData) {
     };
     create_runtime_crate(false, &arm7_path, &arm7_code.to_string());
 
-    let graphical_assets = match convert_graphical_assets(&project_data) {
+    let graphical_assets = match convert_graphical_assets(project_data) {
         Ok(data) => data,
         Err(msg) => { log::error!("{msg}"); return; }
     };
@@ -122,7 +122,7 @@ pub fn build(project_data: &mut ProjectData) {
 
 pub fn clean_build(project_data: &mut ProjectData) {
     let build_path = project_data.get_path().join("build");
-    match std::fs::remove_dir_all(&build_path) {
+    match std::fs::remove_dir_all(build_path) {
         Ok(_) => (),
         // totally fine if the folder was not found, we were trying to delete it anyway!
         Err(err) if err.kind() == std::io::ErrorKind::NotFound => (),
@@ -175,7 +175,7 @@ fn create_runtime_crate(arm9: bool, path: &Path, code: &str) {
     // Regenerate crate if it doesn't exist
     if !path.join("Cargo.toml").exists() {
         // Even if the cargo toml is missing, folder may still exist. in that case, delete it so we get a clean slate
-        match std::fs::remove_dir_all(&path) {
+        match std::fs::remove_dir_all(path) {
             Ok(_) => (),
             // totally fine if the folder was not found, we were trying to delete it anyway!
             Err(err) if err.kind() == std::io::ErrorKind::NotFound => (),
