@@ -15,6 +15,7 @@ pub enum Selected {
     None,
     Node(usize),
     File(String),
+    Graph(usize),
 }
 
 fn main() {

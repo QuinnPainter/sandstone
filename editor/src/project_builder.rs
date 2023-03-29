@@ -99,10 +99,15 @@ pub fn build(project_data: &mut ProjectData) {
         Ok(data) => data,
         Err(msg) => { log::error!("{msg}"); return; }
     };
+    let graphs = project_data.export_saved_graph();
+    let Some(main_graph_idx) = project_data.main_graph else {
+        log::error!("Failed: No main graph has been set");
+        return;
+    };
 
     let serialised_graphs = sandstone_common::serialize(&sandstone_common::SavedPrefabs{
-        main_graph: String::from("Graph"),
-        graphs: project_data.export_saved_graph().into_iter().map(|x| (x.nodes[0].name.clone(), x)).collect(),
+        main_graph: graphs[main_graph_idx as usize].nodes[0].name.clone(),
+        graphs: graphs.into_iter().map(|x| (x.nodes[0].name.clone(), x)).collect(),
         graphics: graphical_assets,
     });
     let mut graph_file = std::fs::File::create(build_path.join("graph_data.bin")).unwrap();

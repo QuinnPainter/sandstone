@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 pub struct ProjectData {
     path: PathBuf,
     pub name: String,
+    pub main_graph: Option<u32>,
     pub graphs: Vec<crate::hierarchy::NodeGraph>,
     file_scanner_tx: std::sync::mpsc::Sender<Result<notify::Event, notify::Error>>,
     file_scanner_rx: std::sync::mpsc::Receiver<Result<notify::Event, notify::Error>>,
@@ -36,6 +37,7 @@ impl ProjectData {
         Self {
             path: PathBuf::new(),
             name: String::new(),
+            main_graph: None,
             graphs: Vec::new(),
             file_scanner_tx: tx,
             file_scanner_rx: rx,
@@ -119,9 +121,8 @@ impl ProjectData {
     }
 
     pub fn export_saved_graph(&self) -> Vec<SavedNodeGraph> {
-        let mut all_saved_graphs: Vec<SavedNodeGraph> = Vec::with_capacity(self.graphs.len());
         let mut old_indices: Vec<usize> = Vec::new();
-        for graph in &self.graphs {
+        self.graphs.iter().map(|graph| {
             old_indices.clear();
             old_indices.resize(graph.0.find_last_index().map_or(0, |x| x + 1), 0);
             let mut saved_graph = SavedNodeGraph { nodes: Vec::with_capacity(graph.0.num_elements()) };
@@ -147,8 +148,7 @@ impl ProjectData {
                 snode.parent_index = node.parent_index.map(|x| old_indices[x] as u32);
                 snode.sibling_index = node.sibling_index.map(|x| NonZeroU32::new(old_indices[usize::from(x)] as u32).unwrap());
             }
-            all_saved_graphs.push(saved_graph);
-        }
-        all_saved_graphs
+            saved_graph
+        }).collect()
     }
 }

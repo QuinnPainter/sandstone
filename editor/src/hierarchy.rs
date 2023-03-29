@@ -145,7 +145,7 @@ impl Hierarchy {
                             .selected(self.current_graph_idx == i)
                             .build() {
                             self.current_graph_idx = i;
-                            *selected = Selected::None;
+                            *selected = Selected::Graph(i);
                         }
                     }
                 }
@@ -164,7 +164,7 @@ impl Hierarchy {
                         enabled: true,
                     });
                     self.current_graph_idx = project_data.graphs.len();
-                    *selected = Selected::None;
+                    *selected = Selected::Graph(self.current_graph_idx);
                     project_data.graphs.push(new_graph);
                     self.new_graph_name_buffer.clear();
                 }

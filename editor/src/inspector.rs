@@ -8,6 +8,7 @@ pub fn draw_inspector(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut Pro
                 Selected::None => {},
                 Selected::File(_) => { file_inspector(ui, project_data, selected); },
                 Selected::Node(_) => { node_inspector(ui, hierarchy, project_data, selected); },
+                Selected::Graph(_) => { graph_inspector(ui, project_data, selected); },
             }
         });
 }
@@ -89,6 +90,19 @@ fn node_inspector(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut Project
     if let Some(selected_index) = std::num::NonZeroUsize::new(selected_index) {
         if ui.button("Delete") {
             hierarchy.delete_node(project_data, selected, selected_index);
+        }
+    }
+}
+
+fn graph_inspector(ui: &Ui, project_data: &mut ProjectData, selected: &mut Selected) {
+    let &mut Selected::Graph(selected_index) = selected else { return; };
+    let Some(node) = project_data.graphs[selected_index].0.get_mut(0) else { return; };
+    ui.input_text("Name", &mut node.name).build();
+    if project_data.main_graph == Some(selected_index as u32) {
+        ui.text("This is the Main Graph");
+    } else {
+        if ui.button("Set as Main Graph") {
+            project_data.main_graph = Some(selected_index as u32);
         }
     }
 }
