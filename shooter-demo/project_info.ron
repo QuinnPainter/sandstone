@@ -257,16 +257,16 @@
         ),
     ],
     graphical_assets: {
-        "playerShip2_small": (
-            path: "assets/playerShip2_small.png",
-            size: _32x32,
-        ),
         "laserBlue04": (
             path: "assets/laserBlue04.png",
             size: _8x16,
         ),
         "enemyRed3": (
             path: "assets/enemyRed3.png",
+            size: _32x32,
+        ),
+        "playerShip2_small": (
+            path: "assets/playerShip2_small.png",
             size: _32x32,
         ),
         "playerShip2_blue": (

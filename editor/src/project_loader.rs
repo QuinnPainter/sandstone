@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::sync::mpsc;
 use std::thread;
 use std::path::{Path, PathBuf};
@@ -8,6 +7,7 @@ use std::num::{NonZeroU32, NonZeroUsize};
 use imgui::Ui;
 use serde::{Serialize, Deserialize};
 use include_dir::{include_dir, Dir};
+use sandstone_common::HashMap;
 use crate::Selected;
 use crate::project_data::{ProjectData, GraphicalAsset};
 use crate::hierarchy::{NodeGraph, Node, Transform, Hierarchy, NodeExtension};

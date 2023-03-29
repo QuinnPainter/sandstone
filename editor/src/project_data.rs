@@ -1,8 +1,7 @@
-use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::num::NonZeroU32;
 use notify::Watcher;
-use sandstone_common::{SavedNodeGraph, SavedNode, SavedTransform, SpriteSize};
+use sandstone_common::{HashMap, SavedNodeGraph, SavedNode, SavedTransform, SpriteSize};
 use serde::{Deserialize, Serialize};
 
 pub struct ProjectData {
@@ -42,7 +41,7 @@ impl ProjectData {
             file_scanner_tx: tx,
             file_scanner_rx: rx,
             file_scanner_watcher: None,
-            graphical_assets: HashMap::new(),
+            graphical_assets: HashMap::default(),
         }
     }
 
