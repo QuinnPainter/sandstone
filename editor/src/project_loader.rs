@@ -204,11 +204,7 @@ impl imgui::InputTextCallbackHandler for FileNameInputFilter {
         // https://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words
         // Could be more restrictive and change this to a whitelist.
         const INVALID_CHARS: [char; 11] = ['/', '\\', '?', '%', '*', '*', ':', '|', '"', '<', '>'];
-        if INVALID_CHARS.contains(&c) {
-            None
-        } else {
-            Some(c)
-        }
+        (!INVALID_CHARS.contains(&c)).then_some(c)
     }
 }
 
