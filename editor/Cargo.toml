@@ -8,10 +8,10 @@ edition = "2021"
 [dependencies]
 sandstone_common = { path = "../common" }
 ironds-romtool = { git = "https://github.com/QuinnPainter/ironds-romtool" }
-imgui = { version = "0.10.0", features = ["docking"] }
-imgui-winit-support = "0.10.0"
-imgui-glow-renderer = "0.10.0"
-glow = "0.10.0"
+imgui = { version = "0.11.0", features = ["docking"] }
+imgui-winit-support = "0.11.0"
+imgui-glow-renderer = "0.11.0"
+glow = "0.12.0"
 glutin = "0.29.1"
 ron = "0.8.0"
 tinyfiledialogs = "3.0"

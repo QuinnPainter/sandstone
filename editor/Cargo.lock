@@ -489,9 +489,9 @@ dependencies = [
 
 [[package]]
 name = "glow"
-version = "0.10.0"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "945be163fdb893227410c8b44c2412dade922585b262d1daa6a7e96135217d4c"
+checksum = "4e007a07a24de5ecae94160f141029e9a347282cfe25d1d58d85d845cf3130f1"
 dependencies = [
  "js-sys",
  "slotmap",
@@ -619,9 +619,9 @@ dependencies = [
 
 [[package]]
 name = "imgui"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2cea19ca90247d9c994663a9f68edd9792b26ad0af390ceb8b43e881c90121bc"
+checksum = "122d677d0efcd64ca15f12907beaf46b26bbd2cdc855ee5b227f29cf50f75bb5"
 dependencies = [
  "bitflags",
  "cfg-if",
@@ -632,9 +632,9 @@ dependencies = [
 
 [[package]]
 name = "imgui-glow-renderer"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1869b1faf0289de52028596ff2bc16a7e485900e0403fc6cbd1accf28c25cbed"
+checksum = "15334602cc59b50210529885eb1db8571dc41bc08521be0de648cfb206bc1dff"
 dependencies = [
  "glow",
  "imgui",
@@ -643,9 +643,9 @@ dependencies = [
 
 [[package]]
 name = "imgui-sys"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "612ceabf43b8c293b165f987539018b3fe6e30dd8af0c890dee1461c75250adb"
+checksum = "d785272a57cb8058a53a1e6f376f48e2ec4f40fbc6a9bb197dabf7b6b59c03bf"
 dependencies = [
  "cc",
  "cfg-if",
@@ -655,9 +655,9 @@ dependencies = [
 
 [[package]]
 name = "imgui-winit-support"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5fde5f2092b5852a838ef13eb5dfbd58c18aa8754bbea45cffabd53efb584f3a"
+checksum = "edae4bfce64634fa013aec131f5d5f1c80df8aa0bddc0e0a9845ad57036b6987"
 dependencies = [
  "imgui",
  "winit",
