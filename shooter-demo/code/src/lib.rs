@@ -4,6 +4,7 @@ extern crate alloc;
 use sandstone::{Script, ScriptContext};
 use sandstone::fixed::types::*;
 use sandstone::hierarchy::HierarchyPoolTrait;
+use sandstone::ironds as ds;
 
 const SPEED: I20F12 = I20F12::lit("1.5");
 const SHOOT_COOLDOWN_RELOAD: u32 = 10;
@@ -20,24 +21,27 @@ impl Script for PlayerScript {
 
     fn update(&mut self, context: &mut ScriptContext) {
         let node = context.hierarchy.borrow_mut(context.handle);
-        let keys = sandstone::ironds::input::read_keys();
-        if keys.contains(sandstone::ironds::input::Buttons::UP) {
+        let keys = ds::input::read_keys();
+        if keys.contains(ds::input::Buttons::UP) {
             node.transform.y -= SPEED;
         }
-        if keys.contains(sandstone::ironds::input::Buttons::DOWN) {
+        if keys.contains(ds::input::Buttons::DOWN) {
             node.transform.y += SPEED;
         }
-        if keys.contains(sandstone::ironds::input::Buttons::LEFT) {
+        if keys.contains(ds::input::Buttons::LEFT) {
             node.transform.x -= SPEED;
         }
-        if keys.contains(sandstone::ironds::input::Buttons::RIGHT) {
+        if keys.contains(ds::input::Buttons::RIGHT) {
             node.transform.x += SPEED;
         }
-        if keys.contains(sandstone::ironds::input::Buttons::A) && self.shoot_cooldown > SHOOT_COOLDOWN_RELOAD {
+        if keys.contains(ds::input::Buttons::A) &&
+            self.shoot_cooldown > SHOOT_COOLDOWN_RELOAD
+        {
             let mut transform = node.transform;
             transform.x += I20F12::lit("12"); // center
 
-            let handle = context.hierarchy.spawn_prefab("Bullet", context.hierarchy.root);
+            let handle = context.hierarchy.spawn_prefab(
+                "Bullet", context.hierarchy.root);
             let bullet = context.hierarchy.borrow_mut(handle);
             bullet.transform = transform;
             self.shoot_cooldown = 0;
@@ -72,9 +76,9 @@ impl Script for BulletScript {
         let mut died = false;
         let collider = context.hierarchy.borrow(collider_handle);
         for intersecting_node_handle in collider.intersect_list.iter() {
-            sandstone::ironds::nocash::print(&context.hierarchy.borrow(*intersecting_node_handle).name);
+            ds::nocash::print(&context.hierarchy.borrow(*intersecting_node_handle).name);
             if context.hierarchy.borrow(*intersecting_node_handle).name.contains("Enemy") {
-                sandstone::ironds::nocash::print("died");
+                ds::nocash::print("died");
                 died = true;
             }
         }
