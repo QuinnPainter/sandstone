@@ -94,6 +94,23 @@ impl Hierarchy {
         }
     }
 
+    /// Shortcut to set_scene for the main scene.
+    pub fn set_scene_main(&mut self) {
+        // SAFETY: this isn't normally allowed because accessing self.saved_prefab_data and set_scene
+        // at the same time is 2 borrows. this is safe as long as set_scene doesn't modify saved_prefab_data.main_graph
+        // Is there a way to avoid this jank, without doing a clone?
+        self.set_scene(unsafe {&*(self.saved_prefab_data.main_graph.as_str() as *const str)});
+    }
+
+    /// Destroys the current scene, and starts the new one.
+    /// As destroys are processed at the end of the frame, there will be a brief period where both scenes are loaded.
+    pub fn set_scene(&mut self, name: &str) {
+        if let Some(old_scene_root) = self.borrow(self.root).child_handle {
+            self.destroy_node(old_scene_root);
+        }
+        self.spawn_prefab(name, self.root);
+    }
+
     pub fn spawn_prefab(&mut self, name: &str, parent: Handle<Node>) -> Handle<Node> {
         let saved_graph = self.saved_prefab_data.graphs.get(name)
             .unwrap_or_else(|| panic!("Tried to spawn invalid prefab: {name}"));
