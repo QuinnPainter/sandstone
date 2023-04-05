@@ -25,6 +25,7 @@ pub struct Hierarchy {
     pub(crate) saved_prefab_data: SavedPrefabs,
     sprite_handler: SpriteExtensionHandler,
     camera_handler: CameraExtensionHandler,
+    script_factory: fn(NonZeroU32) -> Box<dyn Script>,
 }
 
 macro hierarchy_pool_methods ($t:ty, $( $pool:ident ).+) {
@@ -67,7 +68,7 @@ hierarchy_pool_methods!(crate::node::camera::CameraExtension, node_ext_pools.cam
 hierarchy_pool_methods!(crate::node::rect_collider::RectColliderExtension, node_ext_pools.rect_collider_pool);
 
 impl Hierarchy {
-    pub fn new() -> Self {
+    pub fn new(prefab_data_raw: &[u8], script_factory: fn(NonZeroU32) -> Box<dyn Script>) -> Self {
         let mut object_pool: Pool<Node> = Pool::new();
         let root = object_pool.add(Node {
             child_handle: None,
@@ -88,9 +89,10 @@ impl Hierarchy {
             node_ext_pools: NodeExtensionPools::new(),
             to_start_stack: Vec::new(),
             to_destroy_stack: Vec::new(),
-            saved_prefab_data: sandstone_common::deserialize(unsafe { PREFAB_DATA.unwrap() }),
+            saved_prefab_data: sandstone_common::deserialize(prefab_data_raw),
             sprite_handler: SpriteExtensionHandler::new(),
             camera_handler: CameraExtensionHandler::new(),
+            script_factory,
         }
     }
 
@@ -126,7 +128,7 @@ impl Hierarchy {
                 node_extension: NodeExtensionHandle::None,
                 script_data: node.script_type_id.map(|id| NodeScriptData {
                     type_id: id,
-                    script: run_script_factory(id)
+                    script: (self.script_factory)(id),
                 }),
                 enabled: node.enabled,
                 global_transform: Transform::default(),
@@ -358,27 +360,6 @@ impl Hierarchy {
                 }
             }
         }
-    }
-}
-
-static mut PREFAB_DATA: Option<&[u8]> = None;
-
-pub fn init_prefab_data(data: &'static [u8]) {
-    unsafe { PREFAB_DATA = Some(data); }
-}
-
-static mut SCRIPT_FACTORY: Option<fn(NonZeroU32) -> Box<dyn Script>> = None;
-
-pub fn init_script_factory(f: fn(NonZeroU32) -> Box<dyn Script>) {
-    unsafe { SCRIPT_FACTORY = Some(f); }
-}
-
-#[inline]
-#[must_use]
-pub (crate) fn run_script_factory(id: NonZeroU32) -> Box<dyn Script> {
-    unsafe {
-        debug_assert_ne!(SCRIPT_FACTORY, None, "Cannot use Script Factory before initialisation!");
-        SCRIPT_FACTORY.unwrap_unchecked()(id)
     }
 }
 

@@ -76,9 +76,8 @@ pub fn build(project_data: &mut ProjectData) {
 
         #[no_mangle]
         extern "C" fn main() -> ! {
-            sandstone::hierarchy::init_script_factory(script_factory);
-            sandstone::hierarchy::init_prefab_data(include_bytes!("../../graph_data.bin"));
-            sandstone::main_loop();
+            let prefab_data_raw = include_bytes!("../../graph_data.bin");
+            sandstone::main_loop(prefab_data_raw, script_factory);
         }
     };
     create_runtime_crate(true, &arm9_path, &arm9_code.to_string());
