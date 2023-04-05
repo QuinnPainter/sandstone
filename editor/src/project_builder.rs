@@ -76,7 +76,7 @@ pub fn build(project_data: &mut ProjectData) {
 
         #[no_mangle]
         extern "C" fn main() -> ! {
-            let prefab_data_raw = include_bytes!("../../graph_data.bin");
+            let prefab_data_raw = include_bytes!("../../game_data.bin");
             sandstone::main_loop(prefab_data_raw, script_factory);
         }
     };
@@ -104,13 +104,13 @@ pub fn build(project_data: &mut ProjectData) {
         return;
     };
 
-    let serialised_graphs = sandstone_common::serialize(&sandstone_common::SavedPrefabs{
+    let serialised_data = sandstone_common::serialize(&sandstone_common::SavedPrefabs{
         main_graph: graphs[main_graph_idx as usize].nodes[0].name.clone(),
         graphs: graphs.into_iter().map(|x| (x.nodes[0].name.clone(), x)).collect(),
         graphics: graphical_assets,
     });
-    let mut graph_file = std::fs::File::create(build_path.join("graph_data.bin")).unwrap();
-    graph_file.write_all(&serialised_graphs).unwrap();
+    let mut game_data_file = std::fs::File::create(build_path.join("game_data.bin")).unwrap();
+    game_data_file.write_all(&serialised_data).unwrap();
 
     let rom_path = build_path.join(project_data.name.clone() + ".nds");
     match build_rom(&rom_path, &arm9_path, &arm7_path, false) {
@@ -163,14 +163,11 @@ fn build_runtime_crate(path: &Path, release: bool) -> Result<(), String> {
 }
 
 fn create_runtime_crate(arm9: bool, path: &Path, code: &str) {
-    let (cargo_toml, cargo_config);
-    if arm9 {
-        cargo_toml = ARM9_CARGO;
-        cargo_config = ARM9_CARGO_CONFIG;
+    let (cargo_toml, cargo_config) = if arm9 {
+        (ARM9_CARGO, ARM9_CARGO_CONFIG)
     } else {
-        cargo_toml = ARM7_CARGO;
-        cargo_config = ARM7_CARGO_CONFIG;
-    }
+        (ARM7_CARGO, ARM7_CARGO_CONFIG)
+    };
     // Regenerate crate if it doesn't exist
     if !path.join("Cargo.toml").exists() {
         // Even if the cargo toml is missing, folder may still exist. in that case, delete it so we get a clean slate
