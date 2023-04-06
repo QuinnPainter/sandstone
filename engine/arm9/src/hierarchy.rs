@@ -155,14 +155,6 @@ impl Hierarchy {
         new_obj_root
     }
 
-    /*pub fn add(&mut self, mut item: Node, parent: Handle<Node>) {
-        item.parent_handle = Some(parent);
-        let handle = self.object_pool.add(item);
-        self.link_new_child(parent, handle);
-
-        self.to_start_stack.push(handle);
-    }*/
-
     fn link_new_child(&mut self, parent: Handle<Node>, child: Handle<Node>) {
         let parent_obj = self.object_pool.borrow_mut(parent);
         self.object_pool.borrow_mut(child).sibling_handle = parent_obj.child_handle.replace(child);
@@ -216,11 +208,7 @@ impl Hierarchy {
     }
 
     pub(crate) fn run_pending_script_starts(&mut self) {
-        while self.run_one_pending_script_start() {}
-    }
-
-    pub(crate) fn run_one_pending_script_start(&mut self) -> bool{
-        if let Some(handle) = self.to_start_stack.pop() {
+        while let Some(handle) = self.to_start_stack.pop() {
             let mut context = ScriptContext {
                 hierarchy: self,
                 handle,
@@ -230,10 +218,10 @@ impl Hierarchy {
                 if let Some(script_data) = item.script_data.take() {
                     script_data
                 } else {
-                    return true; // return early - item has no Script
+                    continue; // stop early - item has no Script
                 }
             } else {
-                return true; // return early - invalid handle on start stack (should panic here?)
+                continue; // stop early - invalid handle on start stack (should panic here?)
             };
             script_data.script.start(&mut context);
 
@@ -241,9 +229,7 @@ impl Hierarchy {
             if let Some(item) = context.hierarchy.try_borrow_mut(handle) {
                 item.script_data = Some(script_data);
             }
-            return true;
         }
-        false
     }
 
     pub(crate) fn run_script_update(&mut self) {
