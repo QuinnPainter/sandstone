@@ -119,7 +119,7 @@ impl ProjectData {
         log::info!("Found graphical assets: {:?}", self.graphical_assets);
     }
 
-    pub fn export_saved_graph(&self) -> Vec<SavedNodeGraph> {
+    pub fn export_saved_graphs(&self) -> Vec<SavedNodeGraph> {
         let mut old_indices: Vec<usize> = Vec::new();
         self.graphs.iter().map(|graph| {
             old_indices.clear();

@@ -1,7 +1,7 @@
 (
     name: "shooter-demo",
     main_graph: Some(0),
-    prefabs: [
+    graphs: [
         (
             nodes: [
                 (

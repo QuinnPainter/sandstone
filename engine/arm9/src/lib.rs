@@ -23,7 +23,7 @@ pub type HashMap<K, V> = sandstone_common::HashMap<K, V>;
 /// Type alias for using a Hashbrown HashSet with FxHash
 pub type HashSet<V> = sandstone_common::HashSet<V>;
 
-pub fn main_loop(prefab_data_raw: &[u8], script_factory: fn(NonZeroU32) -> Box<dyn Script>) -> ! {
+pub fn main_loop(game_data_raw: &[u8], script_factory: fn(NonZeroU32) -> Box<dyn Script>) -> ! {
     nds::interrupt::irq_set_handler(Some(inter));
     nds::interrupt::irq_enable(nds::interrupt::IRQFlags::VBLANK);
 
@@ -69,7 +69,7 @@ pub fn main_loop(prefab_data_raw: &[u8], script_factory: fn(NonZeroU32) -> Box<d
     //nds::display::console::init_default();
     //nds::display::console::print("Hello from Rust on the DS!\n\n");
 
-    let mut hierarchy: Hierarchy = Hierarchy::new(prefab_data_raw, script_factory);
+    let mut hierarchy: Hierarchy = Hierarchy::new(game_data_raw, script_factory);
     hierarchy.run_extension_init();
 
     // Load main scene

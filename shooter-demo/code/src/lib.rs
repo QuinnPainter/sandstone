@@ -40,7 +40,7 @@ impl Script for PlayerScript {
             let mut transform = node.transform;
             transform.x += I20F12::lit("12"); // center
 
-            let handle = context.hierarchy.spawn_prefab(
+            let handle = context.hierarchy.spawn_object(
                 "Bullet", context.hierarchy.root);
             let bullet = context.hierarchy.borrow_mut(handle);
             bullet.transform = transform;

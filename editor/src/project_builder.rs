@@ -76,8 +76,8 @@ pub fn build(project_data: &mut ProjectData) {
 
         #[no_mangle]
         extern "C" fn main() -> ! {
-            let prefab_data_raw = include_bytes!("../../game_data.bin");
-            sandstone::main_loop(prefab_data_raw, script_factory);
+            let game_data_raw = include_bytes!("../../game_data.bin");
+            sandstone::main_loop(game_data_raw, script_factory);
         }
     };
     create_runtime_crate(true, &arm9_path, &arm9_code.to_string());
@@ -98,7 +98,7 @@ pub fn build(project_data: &mut ProjectData) {
         Ok(data) => data,
         Err(msg) => { log::error!("{msg}"); return; }
     };
-    let graphs = project_data.export_saved_graph();
+    let graphs = project_data.export_saved_graphs();
     let Some(main_graph_idx) = project_data.main_graph else {
         log::error!("Failed: No main graph has been set");
         return;

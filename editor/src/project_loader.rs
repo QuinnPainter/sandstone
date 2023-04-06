@@ -148,8 +148,8 @@ fn load_project(path: &Path, project_data: &mut ProjectData, hierarchy: &mut Hie
     project_data.graphical_assets = saved_project_data.graphical_assets.iter().map(|(k, v)| (k.clone(), v.clone().with_path(project_data.get_path().join(&v.path)))).collect();
     project_data.main_graph = saved_project_data.main_graph;
     project_data.graphs.clear();
-    project_data.graphs.reserve(saved_project_data.prefabs.len());
-    for graph in saved_project_data.prefabs {
+    project_data.graphs.reserve(saved_project_data.graphs.len());
+    for graph in saved_project_data.graphs {
         let mut new_graph = NodeGraph::new();
         for node in graph.nodes {
             new_graph.0.push(Node {
@@ -177,7 +177,7 @@ pub fn save_project(project_data: &mut ProjectData) {
     let saved_project_data = SavedProjectData {
         name: project_data.name.clone(),
         main_graph: project_data.main_graph,
-        prefabs: project_data.export_saved_graph(),
+        graphs: project_data.export_saved_graphs(),
         graphical_assets: project_data.graphical_assets.iter().map(|(k, v)| (k.clone(), v.clone().with_path(v.path.strip_prefix(project_data.get_path()).unwrap().to_path_buf()))).collect(),
     };
     let ser_project_data = ron::ser::to_string_pretty(&saved_project_data, ron::ser::PrettyConfig::default()).unwrap();
@@ -212,6 +212,6 @@ impl imgui::InputTextCallbackHandler for FileNameInputFilter {
 pub struct SavedProjectData {
     name: String,
     main_graph: Option<u32>,
-    prefabs: Vec<sandstone_common::SavedNodeGraph>,
+    graphs: Vec<sandstone_common::SavedNodeGraph>,
     graphical_assets: HashMap<String, GraphicalAsset>,
 }

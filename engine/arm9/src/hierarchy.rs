@@ -6,7 +6,6 @@ use crate::{
     pool::{Pool, Handle},
     node::{Transform, Node, NodeScriptData, NodeExtensionHandle, NodeExtensionPools, sprite::SpriteExtensionHandler, camera::CameraExtensionHandler, rect_collider}
 };
-use sandstone_common::SavedPrefabs;
 
 pub trait HierarchyPoolTrait<T> {
     fn borrow(&self, handle: Handle<T>) -> &T;
@@ -22,7 +21,7 @@ pub struct Hierarchy {
     pub(crate) node_ext_pools: NodeExtensionPools,
     to_start_stack: Vec<Handle<Node>>,
     to_destroy_stack: Vec<Handle<Node>>,
-    pub(crate) saved_prefab_data: SavedPrefabs,
+    pub(crate) game_data: sandstone_common::SavedPrefabs,
     sprite_handler: SpriteExtensionHandler,
     camera_handler: CameraExtensionHandler,
     script_factory: fn(NonZeroU32) -> Box<dyn Script>,
@@ -68,7 +67,7 @@ hierarchy_pool_methods!(crate::node::camera::CameraExtension, node_ext_pools.cam
 hierarchy_pool_methods!(crate::node::rect_collider::RectColliderExtension, node_ext_pools.rect_collider_pool);
 
 impl Hierarchy {
-    pub fn new(prefab_data_raw: &[u8], script_factory: fn(NonZeroU32) -> Box<dyn Script>) -> Self {
+    pub fn new(game_data_raw: &[u8], script_factory: fn(NonZeroU32) -> Box<dyn Script>) -> Self {
         let mut object_pool: Pool<Node> = Pool::new();
         let root = object_pool.add(Node {
             child_handle: None,
@@ -89,7 +88,7 @@ impl Hierarchy {
             node_ext_pools: NodeExtensionPools::new(),
             to_start_stack: Vec::new(),
             to_destroy_stack: Vec::new(),
-            saved_prefab_data: sandstone_common::deserialize(prefab_data_raw),
+            game_data: sandstone_common::deserialize(game_data_raw),
             sprite_handler: SpriteExtensionHandler::new(),
             camera_handler: CameraExtensionHandler::new(),
             script_factory,
@@ -98,10 +97,10 @@ impl Hierarchy {
 
     /// Shortcut to set_scene for the main scene.
     pub fn set_scene_main(&mut self) {
-        // SAFETY: this isn't normally allowed because accessing self.saved_prefab_data and set_scene
-        // at the same time is 2 borrows. this is safe as long as set_scene doesn't modify saved_prefab_data.main_graph
+        // SAFETY: this isn't normally allowed because accessing self.game_data and set_scene
+        // at the same time is 2 borrows. this is safe as long as set_scene doesn't modify game_data.main_graph
         // Is there a way to avoid this jank, without doing a clone?
-        self.set_scene(unsafe {&*(self.saved_prefab_data.main_graph.as_str() as *const str)});
+        self.set_scene(unsafe {&*(self.game_data.main_graph.as_str() as *const str)});
     }
 
     /// Destroys the current scene, and starts the new one.
@@ -110,12 +109,12 @@ impl Hierarchy {
         if let Some(old_scene_root) = self.borrow(self.root).child_handle {
             self.destroy_node(old_scene_root);
         }
-        self.spawn_prefab(name, self.root);
+        self.spawn_object(name, self.root);
     }
 
-    pub fn spawn_prefab(&mut self, name: &str, parent: Handle<Node>) -> Handle<Node> {
-        let saved_graph = self.saved_prefab_data.graphs.get(name)
-            .unwrap_or_else(|| panic!("Tried to spawn invalid prefab: {name}"));
+    pub fn spawn_object(&mut self, graph_name: &str, parent: Handle<Node>) -> Handle<Node> {
+        let saved_graph = self.game_data.graphs.get(graph_name)
+            .unwrap_or_else(|| panic!("Tried to spawn invalid graph: {graph_name}"));
 
         // Push the nodes onto the object pool, with placeholder child, parent and sibling handles
         let new_handles: Vec<Handle<Node>> = saved_graph.nodes.iter().map(|node| {
@@ -140,20 +139,20 @@ impl Hierarchy {
         }).collect();
         
         // Wire up the child, parent and sibling handles for the new nodes
-        let mut prefab_root: Option<Handle<Node>> = None;
+        let mut new_obj_root: Option<Handle<Node>> = None;
         for (snode, handle) in saved_graph.nodes.iter().zip(new_handles.iter()) {
             let node = self.object_pool.borrow_mut(*handle);
             node.child_handle = snode.child_index.map(|idx| new_handles[u32::from(idx) as usize]);
             node.sibling_handle = snode.sibling_index.map(|idx| new_handles[u32::from(idx) as usize]);
             node.parent_handle = snode.parent_index.map(|idx| new_handles[idx as usize]).or_else(|| {
-                prefab_root = Some(*handle);
+                new_obj_root = Some(*handle);
                 Some(parent)
             });
             self.to_start_stack.push(*handle);
         }
-        let prefab_root = prefab_root.expect("Tried to create prefab with no root node");
-        self.link_new_child(parent, prefab_root);
-        prefab_root
+        let new_obj_root = new_obj_root.expect("Tried to create graph with no root node");
+        self.link_new_child(parent, new_obj_root);
+        new_obj_root
     }
 
     /*pub fn add(&mut self, mut item: Node, parent: Handle<Node>) {
@@ -304,7 +303,7 @@ impl Hierarchy {
     }
 
     pub(crate) fn run_extension_init(&mut self) {
-        self.sprite_handler.sprite_init(&self.saved_prefab_data);
+        self.sprite_handler.sprite_init(&self.game_data);
     }
 
     pub(crate) fn run_extension_update(&mut self) {

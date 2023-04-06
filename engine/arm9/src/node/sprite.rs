@@ -46,9 +46,9 @@ impl SpriteExtensionHandler {
         }
     }
 
-    pub fn sprite_init(&mut self, saved_prefab_data: &SavedPrefabs) {
-        self.sprite_init_for_engine(saved_prefab_data, GfxEngine::MAIN);
-        self.sprite_init_for_engine(saved_prefab_data, GfxEngine::SUB);
+    pub fn sprite_init(&mut self, game_data: &SavedPrefabs) {
+        self.sprite_init_for_engine(game_data, GfxEngine::MAIN);
+        self.sprite_init_for_engine(game_data, GfxEngine::SUB);
     }
 
     // this really should be happening in Vblank handler, given that OAM is only accessible during vblank
@@ -61,7 +61,7 @@ impl SpriteExtensionHandler {
         }
     }
 
-    fn sprite_init_for_engine(&mut self, saved_prefab_data: &SavedPrefabs, engine: GfxEngine) {
+    fn sprite_init_for_engine(&mut self, game_data: &SavedPrefabs, engine: GfxEngine) {
         #[inline(always)]
         fn align_to(ptr: *mut u8, align: usize) -> *mut u8 {
             let align_mask = align - 1;
@@ -79,7 +79,7 @@ impl SpriteExtensionHandler {
         };
         let mut cur_tile_ram_ptr = tile_ram_base;
         let mut cur_pal_ram_ptr = pal_ram_base;
-        for (name, saved_graphic) in saved_prefab_data.graphics.iter() {
+        for (name, saved_graphic) in game_data.graphics.iter() {
             self.sprite_vram_map.insert(name.clone(), SpriteVramMapping {
                 tile_index: ((cur_tile_ram_ptr as usize - tile_ram_base as usize) / SIZEOF_TILE) as u16,
                 pal_index: ((cur_pal_ram_ptr as usize - pal_ram_base as usize) / SIZEOF_PALETTE) as u8,
@@ -107,7 +107,7 @@ impl SpriteExtensionHandler {
             if node.global_enabled == false { continue; }
 
             let vram_mapping = self.sprite_vram_map[&sprite.graphic_asset];
-            let (shape, size) = sprite_size_to_shape_and_size(hierarchy.saved_prefab_data.graphics[&sprite.graphic_asset].size);
+            let (shape, size) = sprite_size_to_shape_and_size(hierarchy.game_data.graphics[&sprite.graphic_asset].size);
 
             let screen_x = node.global_transform.x - cam_x;
             let screen_y = node.global_transform.y - cam_y;
