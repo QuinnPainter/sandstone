@@ -1,7 +1,7 @@
 use crate::{pool::Handle, node::{Node, camera::{ActiveCameras, CameraExtension}}, hierarchy::Hierarchy, HashMap};
 use alloc::string::String;
 use ironds::display::{obj, GfxEngine};
-use sandstone_common::{SavedPrefabs, SpriteSize};
+use sandstone_common::{SavedGameData, SpriteSize};
 
 // Assumes 16 palette / 16 colour mode.
 const SIZEOF_PALETTE: usize = 2 * 16;
@@ -46,7 +46,7 @@ impl SpriteExtensionHandler {
         }
     }
 
-    pub fn sprite_init(&mut self, game_data: &SavedPrefabs) {
+    pub fn sprite_init(&mut self, game_data: &SavedGameData) {
         self.sprite_init_for_engine(game_data, GfxEngine::MAIN);
         self.sprite_init_for_engine(game_data, GfxEngine::SUB);
     }
@@ -61,7 +61,7 @@ impl SpriteExtensionHandler {
         }
     }
 
-    fn sprite_init_for_engine(&mut self, game_data: &SavedPrefabs, engine: GfxEngine) {
+    fn sprite_init_for_engine(&mut self, game_data: &SavedGameData, engine: GfxEngine) {
         #[inline(always)]
         fn align_to(ptr: *mut u8, align: usize) -> *mut u8 {
             let align_mask = align - 1;

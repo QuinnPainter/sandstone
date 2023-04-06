@@ -21,7 +21,7 @@ pub struct Hierarchy {
     pub(crate) node_ext_pools: NodeExtensionPools,
     to_start_stack: Vec<Handle<Node>>,
     to_destroy_stack: Vec<Handle<Node>>,
-    pub(crate) game_data: sandstone_common::SavedPrefabs,
+    pub(crate) game_data: sandstone_common::SavedGameData,
     sprite_handler: SpriteExtensionHandler,
     camera_handler: CameraExtensionHandler,
     script_factory: fn(NonZeroU32) -> Box<dyn Script>,

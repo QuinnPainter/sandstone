@@ -118,7 +118,7 @@ pub struct SavedGraphic {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct SavedPrefabs {
+pub struct SavedGameData {
     pub main_graph: String,
     pub graphs: HashMap<String, SavedNodeGraph>,
     pub graphics: HashMap<String, SavedGraphic>,

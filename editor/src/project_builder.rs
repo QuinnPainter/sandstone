@@ -104,7 +104,7 @@ pub fn build(project_data: &mut ProjectData) {
         return;
     };
 
-    let serialised_data = sandstone_common::serialize(&sandstone_common::SavedPrefabs{
+    let serialised_data = sandstone_common::serialize(&sandstone_common::SavedGameData{
         main_graph: graphs[main_graph_idx as usize].nodes[0].name.clone(),
         graphs: graphs.into_iter().map(|x| (x.nodes[0].name.clone(), x)).collect(),
         graphics: graphical_assets,
