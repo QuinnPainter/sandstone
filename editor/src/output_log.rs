@@ -9,6 +9,7 @@ pub fn draw_log(ui: &Ui) {
             for t in &log_data.log_lines {
                 ui.text(t);
             }
+            ui.set_scroll_here_y_with_ratio(1.0);
         });
 }
 
