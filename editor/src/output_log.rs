@@ -5,18 +5,22 @@ use imgui::Ui;
 pub fn draw_log(ui: &Ui) {
     ui.window("Log")
         .build(|| {
-            let log_data = LOG_DATA.lock().unwrap();
+            let mut log_data = LOG_DATA.lock().unwrap();
             for t in &log_data.log_lines {
                 ui.text(t);
             }
-            ui.set_scroll_here_y_with_ratio(1.0);
+            if log_data.new_line_pending {
+                log_data.new_line_pending = false;
+                ui.set_scroll_here_y_with_ratio(1.0);
+            }
         });
 }
 
 struct LogData {
-    log_lines: Vec<String>
+    new_line_pending: bool,
+    log_lines: Vec<String>,
 }
-static LOG_DATA: Mutex<LogData> = Mutex::new(LogData { log_lines: Vec::new() });
+static LOG_DATA: Mutex<LogData> = Mutex::new(LogData { new_line_pending: false, log_lines: Vec::new() });
 
 pub struct Logger;
 impl log::Log for Logger {
@@ -27,6 +31,7 @@ impl log::Log for Logger {
     fn log(&self, record: &log::Record) {
         let mut log_data = LOG_DATA.lock().unwrap();
         log_data.log_lines.push(record.args().to_string());
+        log_data.new_line_pending = true;
     }
 
     fn flush(&self) {}
