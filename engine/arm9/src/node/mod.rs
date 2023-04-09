@@ -46,6 +46,7 @@ impl NodeExtensionPools {
                 NodeExtensionHandle::Sprite(self.sprite_pool.add(sprite::SpriteExtension {
                     node_handle,
                     graphic_asset: s.graphic_asset.clone(),
+                    sprite_type: s.sprite_type,
                 }))
             },
             sandstone_common::SavedNodeExtension::Camera(c) => {

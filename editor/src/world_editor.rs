@@ -1,5 +1,5 @@
 use imgui::{Ui, ImColor32};
-use crate::{hierarchy::{Hierarchy, NodeExtension}, project_data::ProjectData, Selected};
+use crate::{hierarchy::{Hierarchy, NodeExtension, SpriteType}, project_data::ProjectData, Selected};
 
 const DS_SCREEN_X: u32 = 256;
 const DS_SCREEN_Y: u32 = 192;
@@ -87,9 +87,21 @@ impl WorldEditor {
                     NodeExtension::Sprite(s) => {
                         if let Some(asset) = project_data.graphical_assets.get(&s.graphic_asset) {
                             let (width, height) = asset.size.to_dimensions();
+                            let (width, height) = (width as f32, height as f32);
                             let p_min = node_canvas_pos;
-                            let p_max = [p_min[0] + width as f32, p_min[1] + height as f32];
-                            draw_list.add_image(asset.texture.unwrap(), p_min, p_max).build();
+                            let p_max = [p_min[0] + width, p_min[1] + height];
+                            if let SpriteType::Affine(a) = s.sprite_type {
+                                let (width, height) = (width * a.scale_x.to_num::<f32>(), height * a.scale_y.to_num::<f32>());
+                                let p_max = [p_min[0] + width, p_min[1] + height];
+                                let center = [p_min[0] + (width / 2.0), p_min[1] + (height / 2.0)];
+                                let top_left = rotate_point(p_min, center, a.rotation.to_num::<f32>());
+                                let top_right = rotate_point([p_max[0], p_min[1]], center, a.rotation.to_num::<f32>());
+                                let bottom_left = rotate_point([p_min[0], p_max[1]], center, a.rotation.to_num::<f32>());
+                                let bottom_right = rotate_point(p_max, center, a.rotation.to_num::<f32>());
+                                draw_list.add_image_quad(asset.texture.unwrap(), top_left, top_right, bottom_right, bottom_left).build();
+                            } else {
+                                draw_list.add_image(asset.texture.unwrap(), p_min, p_max).build();
+                            }
                             if node_selected {
                                 draw_selected_rect_around(draw_list, p_min, p_max);
                             }
@@ -138,6 +150,19 @@ impl WorldEditor {
             }
         }
     }
+}
+
+fn rotate_point(point: [f32; 2], center: [f32; 2], radians: f32) -> [f32; 2] {
+    let sin = radians.sin();
+    let cos = radians.cos();
+
+    let adj_x = point[0] - center[0];
+    let adj_y = point[1] - center[1];
+
+    let rot_x = adj_x * cos - adj_y * sin;
+    let rot_y = adj_x * sin + adj_y * cos;
+
+    [rot_x + center[0], rot_y + center[1]]
 }
 
 fn draw_selected_rect_around(draw_list: &imgui::DrawListMut, top_left: [f32; 2], bottom_right: [f32; 2]) {

@@ -1,5 +1,6 @@
 use crate::{pool::Handle, node::{Node, camera::{ActiveCameras, CameraExtension}}, hierarchy::Hierarchy, HashMap};
 use alloc::string::String;
+use fixed::types::*;
 use ironds::display::{obj, GfxEngine};
 use sandstone_common::{SavedGameData, SpriteSize};
 
@@ -10,6 +11,7 @@ const SIZEOF_TILE: usize = (8 * 8) / 2;
 pub struct SpriteExtension {
     pub node_handle: Handle<Node>,
     pub graphic_asset: String,
+    pub sprite_type: sandstone_common::SavedSpriteType,
 }
 
 pub(crate) struct SpriteExtensionHandler {
@@ -102,6 +104,7 @@ impl SpriteExtensionHandler {
         let (cam_x, cam_y) = (camera_node.global_transform.x, camera_node.global_transform.y);
 
         let mut cur_sprite_index = 0;
+        let mut cur_affine_index = 0;
         for sprite in hierarchy.node_ext_pools.sprite_pool.iter() {
             let node = hierarchy.object_pool.borrow(sprite.node_handle);
             if node.global_enabled == false { continue; }
@@ -111,27 +114,61 @@ impl SpriteExtensionHandler {
 
             let screen_x = node.global_transform.x - cam_x;
             let screen_y = node.global_transform.y - cam_y;
-            if screen_y < 192 && screen_y > -64 && screen_x < 256 && screen_x > -128 {
-                let screen_x = (screen_x.to_num::<i32>() & 0x1FF) as u16;
-                let screen_y = (screen_y.to_num::<i32>() & 0xFF) as u8;
-
-                obj::set_sprite(engine, cur_sprite_index, obj::Sprite::NormalSprite(obj::NormalSprite::new()
-                    .with_x(screen_x)
-                    .with_y(screen_y)
-                    .with_disable(false)
-                    .with_h_flip(false)
-                    .with_v_flip(false)
-                    .with_mode(0) // Normal mode
-                    .with_mosaic(false)
-                    .with_palette_type(false) // 16/16
-                    .with_shape(shape) // square
-                    .with_size(size) // 8x8
-                    .with_tile(vram_mapping.tile_index)
-                    .with_priority(0)
-                    .with_palette(vram_mapping.pal_index)
-                ));
-                cur_sprite_index += 1;
+            if !(screen_y < 192 && screen_y > -64 && screen_x < 256 && screen_x > -128) {
+                continue;
             }
+            let screen_x = (screen_x.to_num::<i32>() & 0x1FF) as u16;
+            let screen_y = (screen_y.to_num::<i32>() & 0xFF) as u8;
+
+            match sprite.sprite_type {
+                sandstone_common::SavedSpriteType::Normal => {
+                    obj::set_sprite(engine, cur_sprite_index, obj::Sprite::NormalSprite(obj::NormalSprite::new()
+                        .with_x(screen_x)
+                        .with_y(screen_y)
+                        .with_disable(false)
+                        .with_h_flip(false)
+                        .with_v_flip(false)
+                        .with_mode(0) // Normal mode
+                        .with_mosaic(false)
+                        .with_palette_type(false) // 16/16
+                        .with_shape(shape)
+                        .with_size(size)
+                        .with_tile(vram_mapping.tile_index)
+                        .with_priority(0)
+                        .with_palette(vram_mapping.pal_index)
+                    ));
+                }
+                sandstone_common::SavedSpriteType::Affine(affine) => {
+                    // Construct an affine transformation matrix for rotation and scale:
+                    // |pa, pb|    =     |cos(angle) / xscale, -sin(angle) / xscale|
+                    // |pc, pd|          |sin(angle) / yscale, cos(angle) / yscale |
+                    // https://www.coranac.com/tonc/text/affobj.htm
+                    let (sin, cos) = cordic::sin_cos(-affine.rotation);
+                    obj::set_affine_param(engine, cur_affine_index, obj::AffineParameter {
+                        pa: I8F8::from_num(cos / affine.scale_x),
+                        pb: I8F8::from_num(-sin / affine.scale_x),
+                        pc: I8F8::from_num(sin / affine.scale_y),
+                        pd: I8F8::from_num(cos / affine.scale_y),
+                    });
+                    obj::set_sprite(engine, cur_sprite_index, obj::Sprite::AffineSprite(obj::AffineSprite::new()
+                        .with_x(screen_x)
+                        .with_y(screen_y)
+                        .with_double_size(true)
+                        .with_mode(0)
+                        .with_mosaic(false)
+                        .with_palette_type(false)
+                        .with_shape(shape)
+                        .with_size(size)
+                        .with_tile(vram_mapping.tile_index)
+                        .with_priority(0)
+                        .with_palette(vram_mapping.pal_index)
+                        .with_affine_param(cur_affine_index)
+                    ));
+                    cur_affine_index += 1;
+                }
+            }
+
+            cur_sprite_index += 1;
         }
         for i in cur_sprite_index..128 {
             obj::set_sprite(engine, i, obj::DISABLED_SPRITE);

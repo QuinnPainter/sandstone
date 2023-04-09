@@ -36,6 +36,17 @@
                     ),
                     node_extension: Sprite((
                         graphic_asset: "playerShip2_small",
+                        sprite_type: Affine((
+                            rotation: (
+                                bits: 4096,
+                            ),
+                            scale_x: (
+                                bits: 8192,
+                            ),
+                            scale_y: (
+                                bits: 4096,
+                            ),
+                        )),
                     )),
                     script_type_id: Some(1),
                     enabled: true,
@@ -119,6 +130,7 @@
                     ),
                     node_extension: Sprite((
                         graphic_asset: "enemyRed3",
+                        sprite_type: Normal,
                     )),
                     script_type_id: None,
                     enabled: true,
@@ -138,6 +150,7 @@
                     ),
                     node_extension: Sprite((
                         graphic_asset: "enemyRed3",
+                        sprite_type: Normal,
                     )),
                     script_type_id: None,
                     enabled: true,
@@ -157,6 +170,7 @@
                     ),
                     node_extension: Sprite((
                         graphic_asset: "enemyRed3",
+                        sprite_type: Normal,
                     )),
                     script_type_id: None,
                     enabled: true,
@@ -225,6 +239,7 @@
                     ),
                     node_extension: Sprite((
                         graphic_asset: "laserBlue04",
+                        sprite_type: Normal,
                     )),
                     script_type_id: Some(2),
                     enabled: true,
@@ -258,20 +273,20 @@
     ],
     graphical_assets: {
         "laserBlue04": (
-            path: "assets/laserBlue04.png",
+            path: "assets\\laserBlue04.png",
             size: _8x16,
         ),
         "enemyRed3": (
-            path: "assets/enemyRed3.png",
-            size: _32x32,
-        ),
-        "playerShip2_small": (
-            path: "assets/playerShip2_small.png",
+            path: "assets\\enemyRed3.png",
             size: _32x32,
         ),
         "playerShip2_blue": (
-            path: "assets/playerShip2_blue.png",
+            path: "assets\\playerShip2_blue.png",
             size: _64x64,
+        ),
+        "playerShip2_small": (
+            path: "assets\\playerShip2_small.png",
+            size: _32x32,
         ),
     },
 )

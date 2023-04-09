@@ -62,9 +62,23 @@ impl SpriteSize {
     }
 }
 
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct SavedAffineSpriteData {
+    pub rotation: fixed::types::I20F12,
+    pub scale_x: fixed::types::I20F12,
+    pub scale_y: fixed::types::I20F12,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum SavedSpriteType {
+    Normal,
+    Affine(SavedAffineSpriteData),
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SavedSpriteExtension {
     pub graphic_asset: String,
+    pub sprite_type: SavedSpriteType,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -87,7 +101,7 @@ pub enum SavedNodeExtension {
     RectCollider(SavedRectColliderExtension),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct SavedTransform {
     pub x: fixed::types::I20F12,
     pub y: fixed::types::I20F12,

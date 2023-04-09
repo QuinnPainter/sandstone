@@ -1,5 +1,5 @@
 use imgui::Ui;
-use crate::{hierarchy::{Hierarchy, NodeExtension, SpriteExtension, CameraExtension, RectColliderExtension}, project_data::ProjectData, Selected};
+use crate::{hierarchy::{Hierarchy, NodeExtension, SpriteExtension, CameraExtension, RectColliderExtension, SpriteType, AffineSpriteData}, project_data::ProjectData, Selected};
 
 pub fn draw_inspector(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut ProjectData, selected: &mut Selected) {
     ui.window("Inspector")
@@ -66,6 +66,30 @@ fn node_inspector(ui: &Ui, hierarchy: &mut Hierarchy, project_data: &mut Project
                         s.graphic_asset = g.clone();
                     }
                 }
+            }
+
+            let mut affine = !matches!(s.sprite_type, SpriteType::Normal);
+            if ui.checkbox("Affine Sprite", &mut affine) {
+                if affine {
+                    s.sprite_type = SpriteType::Affine(AffineSpriteData::default());
+                } else {
+                    s.sprite_type = SpriteType::Normal;
+                }
+            }
+            if let SpriteType::Affine(a) = &mut s.sprite_type {
+                // Rotation input
+                let mut rotation: f32 = a.rotation.to_num::<f32>();
+                imgui::Drag::new("Rotation")
+                    .range(0.0, fixed::types::I20F12::MAX.to_num::<f32>())
+                    .build(ui, &mut rotation);
+                a.rotation = fixed::types::I20F12::from_num(rotation);
+                // Scale input
+                let mut scale: [f32; 2] = [a.scale_x.to_num::<f32>(), a.scale_y.to_num::<f32>()];
+                imgui::Drag::new("Scale")
+                    .range(0.0, fixed::types::I20F12::MAX.to_num::<f32>())
+                    .build_array(ui, &mut scale);
+                a.scale_x = fixed::types::I20F12::from_num(scale[0]);
+                a.scale_y = fixed::types::I20F12::from_num(scale[1]);
             }
         },
         NodeExtension::Camera(c) => {

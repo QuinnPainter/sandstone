@@ -3,12 +3,13 @@ use imgui::{Ui, TreeNodeFlags};
 use stable_vec::StableVec;
 use crate::{project_data::ProjectData, Selected};
 
-#[derive(Default)]
+#[derive(Default, Clone, Copy, Debug)]
 pub struct Transform {
     pub x: fixed::types::I20F12,
     pub y: fixed::types::I20F12,
 }
 
+#[derive(Debug)]
 pub enum NodeExtension {
     None,
     Sprite(SpriteExtension),
@@ -31,7 +32,17 @@ impl NodeExtension {
     pub fn from_saved(saved_extension: sandstone_common::SavedNodeExtension) -> Self {
         match saved_extension {
             sandstone_common::SavedNodeExtension::None => NodeExtension::None,
-            sandstone_common::SavedNodeExtension::Sprite(s) => NodeExtension::Sprite(SpriteExtension { graphic_asset: s.graphic_asset }),
+            sandstone_common::SavedNodeExtension::Sprite(s) => NodeExtension::Sprite(SpriteExtension {
+                graphic_asset: s.graphic_asset,
+                sprite_type: match s.sprite_type {
+                    sandstone_common::SavedSpriteType::Normal => SpriteType::Normal,
+                    sandstone_common::SavedSpriteType::Affine(a) => SpriteType::Affine(AffineSpriteData {
+                        rotation: a.rotation,
+                        scale_x: a.scale_x,
+                        scale_y: a.scale_y,
+                    }),
+                },
+            }),
             sandstone_common::SavedNodeExtension::Camera(c) => NodeExtension::Camera(CameraExtension { active_main: c.active_main, active_sub: c.active_sub }),
             sandstone_common::SavedNodeExtension::RectCollider(c) => NodeExtension::RectCollider(RectColliderExtension { width: c.width, height: c.height })
         }
@@ -40,30 +51,66 @@ impl NodeExtension {
     pub fn to_saved(&self) -> sandstone_common::SavedNodeExtension {
         match self {
             NodeExtension::None => sandstone_common::SavedNodeExtension::None,
-            NodeExtension::Sprite(s) => sandstone_common::SavedNodeExtension::Sprite(sandstone_common::SavedSpriteExtension { graphic_asset: s.graphic_asset.clone() }),
+            NodeExtension::Sprite(s) => sandstone_common::SavedNodeExtension::Sprite(sandstone_common::SavedSpriteExtension {
+                graphic_asset: s.graphic_asset.clone(),
+                sprite_type: match s.sprite_type {
+                    SpriteType::Normal => sandstone_common::SavedSpriteType::Normal,
+                    SpriteType::Affine(a) => sandstone_common::SavedSpriteType::Affine(sandstone_common::SavedAffineSpriteData {
+                        rotation: a.rotation,
+                        scale_x: a.scale_x,
+                        scale_y: a.scale_y,
+                    }),
+                },
+            }),
             NodeExtension::Camera(c) => sandstone_common::SavedNodeExtension::Camera(sandstone_common::SavedCameraExtension { active_main: c.active_main, active_sub: c.active_sub }),
             NodeExtension::RectCollider(c) => sandstone_common::SavedNodeExtension::RectCollider(sandstone_common::SavedRectColliderExtension { width: c.width, height: c.height }),
         }
     }
 }
 
-#[derive(Default)]
-pub struct SpriteExtension {
-    pub graphic_asset: String,
+#[derive(Clone, Copy, Debug)]
+pub struct AffineSpriteData {
+    pub rotation: fixed::types::I20F12,
+    pub scale_x: fixed::types::I20F12,
+    pub scale_y: fixed::types::I20F12,
 }
 
-#[derive(Default)]
+impl Default for AffineSpriteData {
+    fn default() -> Self {
+        Self {
+            rotation: fixed::types::I20F12::lit("0"),
+            scale_x: fixed::types::I20F12::lit("1"),
+            scale_y: fixed::types::I20F12::lit("1"),
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub enum SpriteType {
+    #[default]
+    Normal,
+    Affine(AffineSpriteData),
+}
+
+#[derive(Default, Debug)]
+pub struct SpriteExtension {
+    pub graphic_asset: String,
+    pub sprite_type: SpriteType,
+}
+
+#[derive(Default, Clone, Copy, Debug)]
 pub struct CameraExtension {
     pub active_main: bool,
     pub active_sub: bool,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone, Copy, Debug)]
 pub struct RectColliderExtension {
     pub width: fixed::types::I20F12,
     pub height: fixed::types::I20F12,
 }
 
+#[derive(Debug)]
 pub struct Node {
     pub child_index: Option<NonZeroUsize>,
     pub parent_index: Option<usize>,
