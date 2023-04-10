@@ -160,16 +160,6 @@ impl Hierarchy {
         self.object_pool.borrow_mut(child).sibling_handle = parent_obj.child_handle.replace(child);
     }
 
-    pub fn pretty_print_hierarchy_structure(&self) {
-        for node in &self.object_pool {
-            ironds::nocash::print(&node.name);
-            ironds::nocash::print(alloc::format!("Child: {:?}", node.child_handle).as_str());
-            ironds::nocash::print(alloc::format!("Sibling: {:?}", node.sibling_handle).as_str());
-            ironds::nocash::print(alloc::format!("Parent: {:?}", node.parent_handle).as_str());
-            ironds::nocash::print("");
-        }
-    }
-
     // todo: recursive search?
     // could have fast path for situation where search root is graph root node
     // as we can iterate over vec sequentially instead of following the tree

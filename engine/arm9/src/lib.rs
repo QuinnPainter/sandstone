@@ -52,8 +52,10 @@ pub fn main_loop(game_data_raw: &[u8], script_factory: fn(NonZeroU32) -> Box<dyn
         .with_display_mode(1) // normal BG / OBJ display
     );
 
+    nds::display::console::init_default();
     nds::display::set_sub_display_control(nds::display::DisplayControlSub::new()
-        .with_display_bg0(false)
+        .with_bg_mode(0)
+        .with_display_bg0(true)
         .with_display_bg1(false)
         .with_display_bg2(false)
         .with_display_bg3(false)
@@ -66,16 +68,12 @@ pub fn main_loop(game_data_raw: &[u8], script_factory: fn(NonZeroU32) -> Box<dyn
         .with_display_mode(1) // normal BG / OBJ display
     );
 
-    //nds::display::console::init_default();
-    //nds::display::console::print("Hello from Rust on the DS!\n\n");
-
-    let mut hierarchy: Hierarchy = Hierarchy::new(game_data_raw, script_factory);
+    let mut hierarchy = Hierarchy::new(game_data_raw, script_factory);
     hierarchy.run_extension_init();
 
     // Load main scene
     hierarchy.set_scene_main();
     hierarchy.run_pending_script_starts();
-    //hierarchy.pretty_print_hierarchy_structure();
 
     loop {
         hierarchy.update_global_positions();
