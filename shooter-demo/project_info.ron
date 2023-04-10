@@ -28,23 +28,23 @@
                     name: "Player",
                     transform: (
                         x: (
-                            bits: 344064,
+                            bits: 909312,
                         ),
                         y: (
-                            bits: 1122304,
+                            bits: 1400832,
                         ),
                     ),
                     node_extension: Sprite((
                         graphic_asset: "playerShip2_small",
                         sprite_type: Affine((
                             rotation: (
-                                bits: 4096,
+                                bits: 0,
                             ),
                             scale_x: (
-                                bits: 8192,
+                                bits: 36864,
                             ),
                             scale_y: (
-                                bits: 4096,
+                                bits: 36864,
                             ),
                         )),
                     )),
@@ -273,20 +273,20 @@
     ],
     graphical_assets: {
         "laserBlue04": (
-            path: "assets\\laserBlue04.png",
+            path: "assets/laserBlue04.png",
             size: _8x16,
         ),
         "enemyRed3": (
-            path: "assets\\enemyRed3.png",
+            path: "assets/enemyRed3.png",
+            size: _32x32,
+        ),
+        "playerShip2_small": (
+            path: "assets/playerShip2_small.png",
             size: _32x32,
         ),
         "playerShip2_blue": (
-            path: "assets\\playerShip2_blue.png",
+            path: "assets/playerShip2_blue.png",
             size: _64x64,
-        ),
-        "playerShip2_small": (
-            path: "assets\\playerShip2_small.png",
-            size: _32x32,
         ),
     },
 )
