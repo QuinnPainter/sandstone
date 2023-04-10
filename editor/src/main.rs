@@ -10,6 +10,8 @@ mod output_log;
 mod world_editor;
 
 use std::ffi::CString;
+use std::sync::{Arc, Mutex};
+use std::thread;
 
 pub enum Selected {
     None,
@@ -24,9 +26,10 @@ fn main() {
 
     let mut hierarchy_obj = hierarchy::Hierarchy::new();
     let mut proj_loader = project_loader::ProjectLoader::new();
-    let mut project_data = project_data::ProjectData::new();
+    let project_data = Arc::new(Mutex::new(project_data::ProjectData::new()));
     let mut world_editor = world_editor::WorldEditor::new();
     let mut selected = Selected::None;
+    let mut building_frames = 0;
     
     let mut first_loop = true;
 
@@ -89,7 +92,7 @@ fn main() {
                 });*/
                 // this Ctrl-S doesn't actually set up that shortcut, just displays the text
                 if ui.menu_item_config("Save").shortcut("Ctrl+S").build() {
-                    project_loader::save_project(&mut project_data);
+                    project_loader::save_project(&mut project_data.lock().unwrap());
                 }
                 //ui.menu_item("Save As..");
                 ui.separator();
@@ -99,23 +102,51 @@ fn main() {
             });
             ui.menu("Run", || {
                 if ui.menu_item("Build") {
-                    project_builder::build(&mut project_data);
+                    let p_data = project_data.clone();
+                    thread::spawn(move || {
+                        project_builder::build(&mut p_data.lock().unwrap());
+                    });
+                    building_frames = 0;
                 }
                 if ui.menu_item("Clean Build") {
-                    project_builder::clean_build(&mut project_data);
+                    let p_data = project_data.clone();
+                    thread::spawn(move || {
+                        project_builder::clean_build(&mut p_data.lock().unwrap());
+                    });
+                    building_frames = 0;
                 }
                 //ui.menu_item("Build and Run")
             });
             if ui.menu_item("About") {}
         });
 
-        project_data.check_file_scanner(renderer);
-        proj_loader.update(ui, &mut project_data, &mut hierarchy_obj, renderer, &mut selected);
+        if let Ok(mut project_data) = project_data.try_lock() {
+            project_data.check_file_scanner(renderer);
+            proj_loader.update(ui, &mut project_data, &mut hierarchy_obj, renderer, &mut selected);
 
-        inspector::draw_inspector(ui, &mut hierarchy_obj, &mut project_data, &mut selected);
-        hierarchy_obj.draw_hierarchy(ui, &mut project_data, &mut selected);
-        files::draw_files(ui, &mut project_data, &mut selected);
+            inspector::draw_inspector(ui, &mut hierarchy_obj, &mut project_data, &mut selected);
+            hierarchy_obj.draw_hierarchy(ui, &mut project_data, &mut selected);
+            files::draw_files(ui, &mut project_data, &mut selected);
+            world_editor.draw_world_editor(ui, &mut hierarchy_obj, &mut project_data, &mut selected);
+        } else {
+            // Bouncing back and forth animation
+            const LOAD_BAR_WIDTH: usize = 30;
+            building_frames += 1;
+            let anim_pos = (building_frames / 3) % (LOAD_BAR_WIDTH * 2);
+            let (before, after) = if anim_pos < LOAD_BAR_WIDTH {
+                (anim_pos, LOAD_BAR_WIDTH - anim_pos)
+            } else {
+                (LOAD_BAR_WIDTH - (anim_pos - LOAD_BAR_WIDTH), anim_pos - LOAD_BAR_WIDTH)
+            };
+            let build_text =
+                String::from("[")
+                + &" ".repeat(before)
+                + "<=>"
+                + &" ".repeat(after)
+                + "]";
+            ui.text("Building...");
+            ui.text(build_text);
+        }
         output_log::draw_log(ui);
-        world_editor.draw_world_editor(ui, &mut hierarchy_obj, &mut project_data, &mut selected);
     });
 }
