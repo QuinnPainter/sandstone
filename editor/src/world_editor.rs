@@ -91,9 +91,10 @@ impl WorldEditor {
                             let p_min = node_canvas_pos;
                             let p_max = [p_min[0] + width, p_min[1] + height];
                             if let SpriteType::Affine(a) = s.sprite_type {
-                                let (width, height) = (width * a.scale_x.to_num::<f32>(), height * a.scale_y.to_num::<f32>());
-                                let p_max = [p_min[0] + width, p_min[1] + height];
                                 let center = [p_min[0] + (width / 2.0), p_min[1] + (height / 2.0)];
+                                let (s_width, s_height) = (width * a.scale_x.to_num::<f32>(), height * a.scale_y.to_num::<f32>());
+                                let p_min = [center[0] - (s_width / 2.0), center[1] - (s_height / 2.0)];
+                                let p_max = [center[0] + (s_width / 2.0), center[1] + (s_height / 2.0)];
                                 let top_left = rotate_point(p_min, center, a.rotation.to_num::<f32>());
                                 let top_right = rotate_point([p_max[0], p_min[1]], center, a.rotation.to_num::<f32>());
                                 let bottom_left = rotate_point([p_min[0], p_max[1]], center, a.rotation.to_num::<f32>());

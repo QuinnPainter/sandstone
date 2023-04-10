@@ -8,10 +8,11 @@ use sandstone_common::{SavedGameData, SpriteSize};
 const SIZEOF_PALETTE: usize = 2 * 16;
 const SIZEOF_TILE: usize = (8 * 8) / 2;
 
+pub type SpriteType = sandstone_common::SavedSpriteType;
 pub struct SpriteExtension {
     pub node_handle: Handle<Node>,
     pub graphic_asset: String,
-    pub sprite_type: sandstone_common::SavedSpriteType,
+    pub sprite_type: SpriteType,
 }
 
 pub(crate) struct SpriteExtensionHandler {
@@ -110,7 +111,8 @@ impl SpriteExtensionHandler {
             if node.global_enabled == false { continue; }
 
             let vram_mapping = self.sprite_vram_map[&sprite.graphic_asset];
-            let (shape, size) = sprite_size_to_shape_and_size(hierarchy.game_data.graphics[&sprite.graphic_asset].size);
+            let sprite_size = hierarchy.game_data.graphics[&sprite.graphic_asset].size;
+            let (shape, size) = sprite_size_to_shape_and_size(sprite_size);
 
             let screen_x = node.global_transform.x - cam_x;
             let screen_y = node.global_transform.y - cam_y;
@@ -150,6 +152,9 @@ impl SpriteExtensionHandler {
                         pc: I8F8::from_num(sin / affine.scale_y),
                         pd: I8F8::from_num(cos / affine.scale_y),
                     });
+                    // Double-size sprites have the origin point moved to the center, so we must compensate
+                    let (sz_x, sz_y) = sprite_size.to_dimensions();
+                    let (screen_x, screen_y) = (screen_x - (sz_x/2) as u16, screen_y - (sz_y/2));
                     obj::set_sprite(engine, cur_sprite_index, obj::Sprite::AffineSprite(obj::AffineSprite::new()
                         .with_x(screen_x)
                         .with_y(screen_y)
