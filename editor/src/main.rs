@@ -85,37 +85,37 @@ fn main() {
                 if ui.menu_item("Open") {
                     proj_loader.open_project_file_dialog();
                 }
-                // todo: open recent
-                /*ui.menu("Open Recent", || {
-                    ui.menu_item("Placeholder 1");
-                    ui.menu_item("Placeholder 2");
-                });*/
                 // this Ctrl-S doesn't actually set up that shortcut, just displays the text
                 if ui.menu_item_config("Save").shortcut("Ctrl+S").build() {
                     project_loader::save_project(&mut project_data.lock().unwrap());
                 }
-                //ui.menu_item("Save As..");
                 ui.separator();
                 if ui.menu_item_config("Quit").shortcut("Alt+F4").build() {
                     *exit = true;
                 }
             });
             ui.menu("Run", || {
+                let mut build = false;
+                let mut clean = false;
                 if ui.menu_item("Build") {
-                    let p_data = project_data.clone();
-                    thread::spawn(move || {
-                        project_builder::build(&mut p_data.lock().unwrap());
-                    });
-                    building_frames = 0;
+                    build = true;
                 }
                 if ui.menu_item("Clean Build") {
+                    build = true;
+                    clean = true;
+                }
+                if build {
                     let p_data = project_data.clone();
                     thread::spawn(move || {
-                        project_builder::clean_build(&mut p_data.lock().unwrap());
+                        let mut project_data = p_data.lock().unwrap();
+                        if clean {
+                            project_builder::clean_build(&mut project_data);
+                        } else {
+                            project_builder::build(&mut project_data);
+                        }
                     });
                     building_frames = 0;
                 }
-                //ui.menu_item("Build and Run")
             });
             if ui.menu_item("About") {}
         });
