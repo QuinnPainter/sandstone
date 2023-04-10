@@ -37,14 +37,14 @@ pub fn load_texture(renderer: &mut imgui_glow_renderer::AutoRenderer, tex: Optio
         gl.tex_image_2d(
             glow::TEXTURE_2D,
             0,
-            glow::RGBA as _,
+            glow::SRGB8_ALPHA8 as _,
             width as _,
             height as _,
             0,
             glow::RGBA,
             glow::UNSIGNED_BYTE,
             Some(image),
-        )
+        );
     }
     renderer.texture_map_mut().register(gl_texture).unwrap()
 }
