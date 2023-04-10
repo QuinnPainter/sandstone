@@ -124,7 +124,10 @@ impl ProjectLoader {
 }
     
 fn create_new_project(path: &Path, name: String, project_data: &mut ProjectData, hierarchy: &mut Hierarchy, renderer: &mut imgui_glow_renderer::AutoRenderer, selected: &mut Selected) {
+    // todo: get better way to clear these fields without doing it manually here
     project_data.name = name;
+    project_data.graphical_assets = HashMap::default();
+    project_data.main_graph = None;
     project_data.set_path_without_watch(path.to_path_buf());
     project_data.graphs = Vec::new();
     save_project(project_data);

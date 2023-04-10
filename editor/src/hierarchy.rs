@@ -211,6 +211,10 @@ impl Hierarchy {
                         enabled: true,
                     });
                     self.current_graph_idx = project_data.graphs.len();
+                    // If this is the first graph created, make it the Main Graph
+                    if project_data.graphs.len() == 0 {
+                        project_data.main_graph = Some(self.current_graph_idx as u32);
+                    }
                     *selected = Selected::Graph(self.current_graph_idx);
                     project_data.graphs.push(new_graph);
                     self.new_graph_name_buffer.clear();
