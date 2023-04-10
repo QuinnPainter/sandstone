@@ -4,6 +4,9 @@ use notify::Watcher;
 use sandstone_common::{HashMap, SavedNodeGraph, SavedNode, SavedTransform, SpriteSize};
 use serde::{Deserialize, Serialize};
 
+// Number of frames waited after file change before re-scanning
+const FILE_SCAN_DEBOUCE_TIME: i32 = 60;
+
 pub struct ProjectData {
     path: PathBuf,
     pub name: String,
@@ -12,6 +15,7 @@ pub struct ProjectData {
     file_scanner_tx: std::sync::mpsc::Sender<Result<notify::Event, notify::Error>>,
     file_scanner_rx: std::sync::mpsc::Receiver<Result<notify::Event, notify::Error>>,
     file_scanner_watcher: Option<notify::RecommendedWatcher>,
+    file_scanner_timer: i32,
     pub graphical_assets: HashMap<String, GraphicalAsset>,
 }
 
@@ -41,6 +45,7 @@ impl ProjectData {
             file_scanner_tx: tx,
             file_scanner_rx: rx,
             file_scanner_watcher: None,
+            file_scanner_timer: -1,
             graphical_assets: HashMap::default(),
         }
     }
@@ -80,7 +85,13 @@ impl ProjectData {
             }
         }
         if any_asset_changes {
-            self.find_graphical_assets(renderer);
+            self.file_scanner_timer = FILE_SCAN_DEBOUCE_TIME;
+        }
+        if self.file_scanner_timer > 0 {
+            self.file_scanner_timer -= 1;
+            if self.file_scanner_timer == 0 {
+                self.find_graphical_assets(renderer);
+            }
         }
     }
 
