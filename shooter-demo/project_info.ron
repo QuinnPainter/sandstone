@@ -5,7 +5,7 @@
         (
             nodes: [
                 (
-                    child_index: Some(7),
+                    child_index: Some(9),
                     parent_index: None,
                     sibling_index: None,
                     name: "GameScene",
@@ -199,6 +199,23 @@
                     script_type_id: None,
                     enabled: true,
                 ),
+                (
+                    child_index: None,
+                    parent_index: Some(0),
+                    sibling_index: Some(7),
+                    name: "EnemySpawner",
+                    transform: (
+                        x: (
+                            bits: 0,
+                        ),
+                        y: (
+                            bits: 0,
+                        ),
+                    ),
+                    node_extension: None,
+                    script_type_id: None,
+                    enabled: true,
+                ),
             ],
         ),
         (
@@ -323,6 +340,64 @@
                         ),
                         height: (
                             bits: 57344,
+                        ),
+                    )),
+                    script_type_id: None,
+                    enabled: true,
+                ),
+            ],
+        ),
+        (
+            nodes: [
+                (
+                    child_index: Some(1),
+                    parent_index: None,
+                    sibling_index: None,
+                    name: "Enemy",
+                    transform: (
+                        x: (
+                            bits: 0,
+                        ),
+                        y: (
+                            bits: 0,
+                        ),
+                    ),
+                    node_extension: Sprite((
+                        graphic_asset: "enemyRed3",
+                        sprite_type: Affine((
+                            rotation: (
+                                bits: 0,
+                            ),
+                            scale_x: (
+                                bits: 4096,
+                            ),
+                            scale_y: (
+                                bits: 4096,
+                            ),
+                        )),
+                    )),
+                    script_type_id: None,
+                    enabled: true,
+                ),
+                (
+                    child_index: None,
+                    parent_index: Some(0),
+                    sibling_index: None,
+                    name: "EnemyCollider",
+                    transform: (
+                        x: (
+                            bits: 0,
+                        ),
+                        y: (
+                            bits: 0,
+                        ),
+                    ),
+                    node_extension: RectCollider((
+                        width: (
+                            bits: 131072,
+                        ),
+                        height: (
+                            bits: 98304,
                         ),
                     )),
                     script_type_id: None,
