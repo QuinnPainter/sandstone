@@ -225,6 +225,9 @@ impl Hierarchy {
     pub(crate) fn run_script_update(&mut self) {
         for i in 0..self.object_pool.vec_len() {
             if let Some(handle) = self.handle_from_index(i) {
+                if self.to_start_stack.contains(&handle) {
+                    continue;
+                }
                 let mut context = ScriptContext {
                     hierarchy: self,
                     handle,
