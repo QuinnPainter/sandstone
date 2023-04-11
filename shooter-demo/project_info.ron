@@ -1,6 +1,6 @@
 (
     name: "shooter-demo",
-    main_graph: Some(0),
+    main_graph: Some(1),
     graphs: [
         (
             nodes: [
@@ -8,7 +8,7 @@
                     child_index: Some(7),
                     parent_index: None,
                     sibling_index: None,
-                    name: "Main Scene",
+                    name: "GameScene",
                     transform: (
                         x: (
                             bits: 0,
@@ -204,10 +204,10 @@
         (
             nodes: [
                 (
-                    child_index: Some(1),
+                    child_index: Some(3),
                     parent_index: None,
                     sibling_index: None,
-                    name: "Menu Scene",
+                    name: "MenuScene",
                     transform: (
                         x: (
                             bits: 0,
@@ -234,8 +234,48 @@
                         ),
                     ),
                     node_extension: Camera((
-                        active_main: true,
+                        active_main: false,
                         active_sub: true,
+                    )),
+                    script_type_id: None,
+                    enabled: true,
+                ),
+                (
+                    child_index: None,
+                    parent_index: Some(0),
+                    sibling_index: Some(1),
+                    name: "TitleText",
+                    transform: (
+                        x: (
+                            bits: 409600,
+                        ),
+                        y: (
+                            bits: 122880,
+                        ),
+                    ),
+                    node_extension: Sprite((
+                        graphic_asset: "title3",
+                        sprite_type: Normal,
+                    )),
+                    script_type_id: Some(3),
+                    enabled: true,
+                ),
+                (
+                    child_index: None,
+                    parent_index: Some(0),
+                    sibling_index: Some(2),
+                    name: "TopCam",
+                    transform: (
+                        x: (
+                            bits: 1077248,
+                        ),
+                        y: (
+                            bits: 0,
+                        ),
+                    ),
+                    node_extension: Camera((
+                        active_main: true,
+                        active_sub: false,
                     )),
                     script_type_id: None,
                     enabled: true,
@@ -296,13 +336,17 @@
             path: "assets/laserBlue04.png",
             size: _8x16,
         ),
+        "enemyRed3": (
+            path: "assets/enemyRed3.png",
+            size: _32x32,
+        ),
         "playerShip2_small": (
             path: "assets/playerShip2_small.png",
             size: _32x32,
         ),
-        "enemyRed3": (
-            path: "assets/enemyRed3.png",
-            size: _32x32,
+        "title3": (
+            path: "assets/title3.png",
+            size: _64x32,
         ),
     },
 )

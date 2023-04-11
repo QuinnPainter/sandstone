@@ -1,10 +1,13 @@
 #![no_std]
 extern crate alloc;
 
+pub mod menu;
+pub use menu::MenuScript;
+
 use sandstone::{Script, ScriptContext};
 use sandstone::fixed::types::*;
 use sandstone::hierarchy::HierarchyPoolTrait;
-use sandstone::ironds as ds;
+use sandstone::ironds::input;
 
 const SPEED: I20F12 = I20F12::lit("1.5");
 const SHOOT_COOLDOWN_RELOAD: u32 = 10;
@@ -22,7 +25,7 @@ impl Script for PlayerScript {
 
     fn update(&mut self, context: &mut ScriptContext) {
         let node = context.hierarchy.borrow_mut(context.handle);
-        let keys = ds::input::read_keys();
+        let keys = input::read_keys();
         let sandstone::node::NodeExtensionHandle::Sprite(s) = node.node_extension else {
             panic!("f");
         };
@@ -30,29 +33,29 @@ impl Script for PlayerScript {
         let sandstone::node::sprite::SpriteType::Affine(aff) = &mut node_sprite.sprite_type else {
             panic!("f");
         };
-        if keys.contains(ds::input::Buttons::UP) {
+        if keys.contains(input::Buttons::UP) {
             aff.scale_y += I20F12::lit("0.02");
             //node.transform.y -= SPEED;
         }
-        if keys.contains(ds::input::Buttons::DOWN) {
+        if keys.contains(input::Buttons::DOWN) {
             aff.scale_y -= I20F12::lit("0.02");
             //node.transform.y += SPEED;
         }
-        if keys.contains(ds::input::Buttons::LEFT) {
+        if keys.contains(input::Buttons::LEFT) {
             aff.scale_x -= I20F12::lit("0.02");
             //node.transform.x -= SPEED;
         }
-        if keys.contains(ds::input::Buttons::RIGHT) {
+        if keys.contains(input::Buttons::RIGHT) {
             aff.scale_x += I20F12::lit("0.02");
             //node.transform.x += SPEED;
         }
-        if keys.contains(ds::input::Buttons::L) {
+        if keys.contains(input::Buttons::L) {
             aff.rotation -= I20F12::lit("0.02");
         }
-        if keys.contains(ds::input::Buttons::R) {
+        if keys.contains(input::Buttons::R) {
             aff.rotation += I20F12::lit("0.02");
         }
-        if keys.contains(ds::input::Buttons::A) &&
+        if keys.contains(input::Buttons::A) &&
             self.shoot_cooldown > SHOOT_COOLDOWN_RELOAD
         {
             let node = context.hierarchy.borrow(context.handle);
@@ -95,9 +98,9 @@ impl Script for BulletScript {
         let mut died = false;
         let collider = context.hierarchy.borrow(collider_handle);
         for intersecting_node_handle in collider.intersect_list.iter() {
-            ds::nocash::print(&context.hierarchy.borrow(*intersecting_node_handle).name);
+            //ds::nocash::print(&context.hierarchy.borrow(*intersecting_node_handle).name);
             if context.hierarchy.borrow(*intersecting_node_handle).name.contains("Enemy") {
-                ds::nocash::print("died");
+                //ds::nocash::print("died");
                 died = true;
             }
         }
