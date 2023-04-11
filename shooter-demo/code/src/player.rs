@@ -20,34 +20,17 @@ impl Script for PlayerScript {
     fn update(&mut self, context: &mut ScriptContext) {
         let node = context.hierarchy.borrow_mut(context.handle);
         let keys = input::read_keys();
-        let sandstone::node::NodeExtensionHandle::Sprite(s) = node.node_extension else {
-            panic!("f");
-        };
-        let node_sprite = context.hierarchy.borrow_mut(s);
-        let sandstone::node::sprite::SpriteType::Affine(aff) = &mut node_sprite.sprite_type else {
-            panic!("f");
-        };
         if keys.contains(input::Buttons::UP) {
-            aff.scale_y += I20F12::lit("0.02");
-            //node.transform.y -= SPEED;
+            node.transform.y -= SPEED;
         }
         if keys.contains(input::Buttons::DOWN) {
-            aff.scale_y -= I20F12::lit("0.02");
-            //node.transform.y += SPEED;
+            node.transform.y += SPEED;
         }
         if keys.contains(input::Buttons::LEFT) {
-            aff.scale_x -= I20F12::lit("0.02");
-            //node.transform.x -= SPEED;
+            node.transform.x -= SPEED;
         }
         if keys.contains(input::Buttons::RIGHT) {
-            aff.scale_x += I20F12::lit("0.02");
-            //node.transform.x += SPEED;
-        }
-        if keys.contains(input::Buttons::L) {
-            aff.rotation -= I20F12::lit("0.02");
-        }
-        if keys.contains(input::Buttons::R) {
-            aff.rotation += I20F12::lit("0.02");
+            node.transform.x += SPEED;
         }
         if keys.contains(input::Buttons::A) &&
             self.shoot_cooldown > SHOOT_COOLDOWN_RELOAD

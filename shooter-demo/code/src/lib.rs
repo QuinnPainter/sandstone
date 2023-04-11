@@ -12,3 +12,6 @@ pub use player::PlayerScript;
 
 pub mod enemy_spawner;
 pub use enemy_spawner::EnemySpawnerScript;
+
+pub mod enemy;
+pub use enemy::EnemyScript;

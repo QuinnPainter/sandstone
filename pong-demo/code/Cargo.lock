@@ -86,7 +86,7 @@ dependencies = [
 [[package]]
 name = "ironds"
 version = "0.1.0"
-source = "git+https://github.com/QuinnPainter/ironds#033d372ea0aec941e53a287f203b678821bdc843"
+source = "git+https://github.com/QuinnPainter/ironds#37c85508588492054e84abedc0a2f0020e1b8f1b"
 dependencies = [
  "bitfield-struct",
  "bitflags",
@@ -124,6 +124,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "randomize"
+version = "4.0.0-alpha.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f542bc38e3f3ddef024f3403748744afb354559ec0ed95380f050713ea9b9b54"
+
+[[package]]
 name = "rustc-hash"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -136,6 +142,7 @@ dependencies = [
  "cordic",
  "fixed",
  "ironds",
+ "randomize",
  "sandstone_common",
 ]
 
@@ -179,9 +186,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.13"
+version = "2.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c9da457c5285ac1f936ebd076af6dac17a61cfe7826f2076b4d015cf47bc8ec"
+checksum = "fcf316d5356ed6847742d036f8a39c3b8435cac10bd528a4bd461928a6ab34d5"
 dependencies = [
  "proc-macro2",
  "quote",
