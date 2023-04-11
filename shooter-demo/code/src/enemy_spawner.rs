@@ -10,7 +10,7 @@ pub struct EnemySpawnerScript {
 sandstone::register_script!(EnemySpawnerScript, 4);
 impl Script for EnemySpawnerScript {
     fn start(&mut self, _context: &mut ScriptContext) {
-        self.enemy_spawn_countdown = 20;
+        self.enemy_spawn_countdown = 240;
     }
 
     fn update(&mut self, context: &mut ScriptContext) {
@@ -23,7 +23,7 @@ impl Script for EnemySpawnerScript {
 }
 
 fn spawn_enemy(context: &mut ScriptContext) {
-    let new_enemy_x = sandstone::random::rand_i32_in_range(0, 256);
+    let new_enemy_x = sandstone::random::rand_i32_in_range(64, 256-32-64);
     let new_enemy_angle =
         I20F12::from_num(sandstone::random::rand_i32_in_range(-128, 128))
         / 128 // number from -1 to 1

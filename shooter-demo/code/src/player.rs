@@ -39,8 +39,7 @@ impl Script for PlayerScript {
         if keys.contains(input::Buttons::RIGHT) {
             node.transform.x += speed;
         }
-        if keys.contains(input::Buttons::A) && self.shoot_cooldown == 0
-        {
+        if keys.contains(input::Buttons::A) && self.shoot_cooldown == 0 {
             let node = context.hierarchy.borrow(context.handle);
             let mut transform = node.transform;
             transform.x += I20F12::lit("12"); // center
@@ -50,6 +49,27 @@ impl Script for PlayerScript {
             let bullet = context.hierarchy.borrow_mut(handle);
             bullet.transform = transform;
             self.shoot_cooldown = SHOOT_COOLDOWN_RELOAD;
+        }
+        // Check for collision with the enemy
+        let node = context.hierarchy.borrow(context.handle);
+        let child = context.hierarchy.borrow(node.child_handle.unwrap());
+
+        let sandstone::node::NodeExtensionHandle::RectCollider(collider_handle) = child.node_extension else {
+            panic!("Player has no Collider");
+        };
+        let mut hit_enemy = false;
+        let collider = context.hierarchy.borrow(collider_handle);
+        for intersecting_node_handle in collider.intersect_list.iter() {
+            if context.hierarchy.borrow(*intersecting_node_handle).name.contains("Enemy") {
+                hit_enemy = true;
+            }
+        }
+        if hit_enemy {
+            context.hierarchy.destroy_node(context.handle);
+            // Trigger game over
+            let game_manager_handle = context.hierarchy.borrow(context.hierarchy.root).child_handle.unwrap();
+            let game_manager = context.hierarchy.borrow_mut(game_manager_handle).cast_script_mut::<crate::GameManagerScript>();
+            game_manager.game_over();
         }
     }
 }
