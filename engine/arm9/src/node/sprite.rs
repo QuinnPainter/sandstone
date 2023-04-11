@@ -114,16 +114,24 @@ impl SpriteExtensionHandler {
             let sprite_size = hierarchy.game_data.graphics[&sprite.graphic_asset].size;
             let (shape, size) = sprite_size_to_shape_and_size(sprite_size);
 
-            let screen_x = node.global_transform.x - cam_x;
-            let screen_y = node.global_transform.y - cam_y;
-            if !(screen_y < 192 && screen_y > -64 && screen_x < 256 && screen_x > -128) {
+            let mut screen_x_f = node.global_transform.x - cam_x;
+            let mut screen_y_f = node.global_transform.y - cam_y;
+            if let SpriteType::Affine(_) = sprite.sprite_type {
+                // Double-size sprites have the origin point moved to the center, so we must compensate
+                let (sz_x, sz_y) = sprite_size.to_dimensions();
+                (screen_x_f, screen_y_f) = (
+                    screen_x_f.wrapping_sub(I20F12::from_num(sz_x/2)),
+                    screen_y_f.wrapping_sub(I20F12::from_num(sz_y/2))
+                );
+            }
+            if !(screen_y_f < 192 && screen_y_f > -64 && screen_x_f < 256 && screen_x_f > -128) {
                 continue;
             }
-            let screen_x = (screen_x.to_num::<i32>() & 0x1FF) as u16;
-            let screen_y = (screen_y.to_num::<i32>() & 0xFF) as u8;
+            let screen_x = (screen_x_f.to_num::<i32>() & 0x1FF) as u16;
+            let screen_y = (screen_y_f.to_num::<i32>() & 0xFF) as u8;
 
             match sprite.sprite_type {
-                sandstone_common::SavedSpriteType::Normal => {
+                SpriteType::Normal => {
                     obj::set_sprite(engine, cur_sprite_index, obj::Sprite::NormalSprite(obj::NormalSprite::new()
                         .with_x(screen_x)
                         .with_y(screen_y)
@@ -140,7 +148,7 @@ impl SpriteExtensionHandler {
                         .with_palette(vram_mapping.pal_index)
                     ));
                 }
-                sandstone_common::SavedSpriteType::Affine(affine) => {
+                SpriteType::Affine(affine) => {
                     // Construct an affine transformation matrix for rotation and scale:
                     // |pa, pb|    =     |cos(angle) / xscale, -sin(angle) / xscale|
                     // |pc, pd|          |sin(angle) / yscale, cos(angle) / yscale |
@@ -152,9 +160,6 @@ impl SpriteExtensionHandler {
                         pc: I8F8::from_num(sin / affine.scale_y),
                         pd: I8F8::from_num(cos / affine.scale_y),
                     });
-                    // Double-size sprites have the origin point moved to the center, so we must compensate
-                    let (sz_x, sz_y) = sprite_size.to_dimensions();
-                    let (screen_x, screen_y) = (screen_x - (sz_x/2) as u16, screen_y - (sz_y/2));
                     obj::set_sprite(engine, cur_sprite_index, obj::Sprite::AffineSprite(obj::AffineSprite::new()
                         .with_x(screen_x)
                         .with_y(screen_y)

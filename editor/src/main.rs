@@ -41,7 +41,9 @@ fn main() {
     let log_name = CString::new("Log").unwrap();
 
     ui::mainloop(move |ui, renderer, exit| {
-        //ui.show_demo_window(&mut true);
+        // Uncomment this to show the Dear IMGUI demo window, to see all the widget possibilities:
+        // ui.show_demo_window(&mut true);
+
         // seems that imgui-rs has no abstractions for any docking stuff yet, so we must use the raw bindings
         unsafe {
             let view = imgui::sys::igGetMainViewport();
