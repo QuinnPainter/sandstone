@@ -1,0 +1,10 @@
+{
+    "rust-analyzer.check.allTargets": false,
+    "rust-analyzer.check.extraArgs": [
+        "--lib"
+    ],
+    "rust-analyzer.cargo.target": "thumbv5te-none-eabi",
+    "files.associations": {
+        "*.s": "arm"
+    }
+}

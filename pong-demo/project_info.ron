@@ -1,0 +1,274 @@
+(
+    name: "pong-demo",
+    main_graph: Some(0),
+    graphs: [
+        (
+            nodes: [
+                (
+                    child_index: Some(10),
+                    parent_index: None,
+                    sibling_index: None,
+                    name: "GameGraph",
+                    transform: (
+                        x: (
+                            bits: 0,
+                        ),
+                        y: (
+                            bits: 0,
+                        ),
+                    ),
+                    node_extension: None,
+                    script_type_id: None,
+                    enabled: true,
+                ),
+                (
+                    child_index: Some(6),
+                    parent_index: Some(0),
+                    sibling_index: None,
+                    name: "Ball",
+                    transform: (
+                        x: (
+                            bits: 524288,
+                        ),
+                        y: (
+                            bits: 786432,
+                        ),
+                    ),
+                    node_extension: Sprite((
+                        graphic_asset: "ball",
+                        sprite_type: Normal,
+                    )),
+                    script_type_id: Some(2),
+                    enabled: true,
+                ),
+                (
+                    child_index: Some(3),
+                    parent_index: Some(0),
+                    sibling_index: Some(1),
+                    name: "PlayerPaddle",
+                    transform: (
+                        x: (
+                            bits: 471040,
+                        ),
+                        y: (
+                            bits: 1478656,
+                        ),
+                    ),
+                    node_extension: Sprite((
+                        graphic_asset: "paddle",
+                        sprite_type: Normal,
+                    )),
+                    script_type_id: Some(1),
+                    enabled: true,
+                ),
+                (
+                    child_index: None,
+                    parent_index: Some(2),
+                    sibling_index: None,
+                    name: "PlayerCollider",
+                    transform: (
+                        x: (
+                            bits: 0,
+                        ),
+                        y: (
+                            bits: 0,
+                        ),
+                    ),
+                    node_extension: RectCollider((
+                        width: (
+                            bits: 131072,
+                        ),
+                        height: (
+                            bits: 32768,
+                        ),
+                    )),
+                    script_type_id: None,
+                    enabled: true,
+                ),
+                (
+                    child_index: None,
+                    parent_index: Some(0),
+                    sibling_index: Some(2),
+                    name: "TopCamera",
+                    transform: (
+                        x: (
+                            bits: 0,
+                        ),
+                        y: (
+                            bits: 0,
+                        ),
+                    ),
+                    node_extension: Camera((
+                        active_main: true,
+                        active_sub: false,
+                    )),
+                    script_type_id: None,
+                    enabled: true,
+                ),
+                (
+                    child_index: None,
+                    parent_index: Some(0),
+                    sibling_index: Some(4),
+                    name: "BottomCamera",
+                    transform: (
+                        x: (
+                            bits: 0,
+                        ),
+                        y: (
+                            bits: 786432,
+                        ),
+                    ),
+                    node_extension: Camera((
+                        active_main: false,
+                        active_sub: true,
+                    )),
+                    script_type_id: None,
+                    enabled: true,
+                ),
+                (
+                    child_index: None,
+                    parent_index: Some(1),
+                    sibling_index: None,
+                    name: "BallCollider",
+                    transform: (
+                        x: (
+                            bits: 0,
+                        ),
+                        y: (
+                            bits: 0,
+                        ),
+                    ),
+                    node_extension: RectCollider((
+                        width: (
+                            bits: 32768,
+                        ),
+                        height: (
+                            bits: 32768,
+                        ),
+                    )),
+                    script_type_id: None,
+                    enabled: true,
+                ),
+                (
+                    child_index: Some(9),
+                    parent_index: Some(0),
+                    sibling_index: Some(5),
+                    name: "Walls",
+                    transform: (
+                        x: (
+                            bits: 0,
+                        ),
+                        y: (
+                            bits: 0,
+                        ),
+                    ),
+                    node_extension: None,
+                    script_type_id: None,
+                    enabled: true,
+                ),
+                (
+                    child_index: None,
+                    parent_index: Some(7),
+                    sibling_index: None,
+                    name: "LeftWall",
+                    transform: (
+                        x: (
+                            bits: -122880,
+                        ),
+                        y: (
+                            bits: 0,
+                        ),
+                    ),
+                    node_extension: RectCollider((
+                        width: (
+                            bits: 122880,
+                        ),
+                        height: (
+                            bits: 1572864,
+                        ),
+                    )),
+                    script_type_id: None,
+                    enabled: true,
+                ),
+                (
+                    child_index: None,
+                    parent_index: Some(7),
+                    sibling_index: Some(8),
+                    name: "RightWall",
+                    transform: (
+                        x: (
+                            bits: 1048576,
+                        ),
+                        y: (
+                            bits: 0,
+                        ),
+                    ),
+                    node_extension: RectCollider((
+                        width: (
+                            bits: 122880,
+                        ),
+                        height: (
+                            bits: 1572864,
+                        ),
+                    )),
+                    script_type_id: None,
+                    enabled: true,
+                ),
+                (
+                    child_index: Some(11),
+                    parent_index: Some(0),
+                    sibling_index: Some(7),
+                    name: "AIPaddle",
+                    transform: (
+                        x: (
+                            bits: 471040,
+                        ),
+                        y: (
+                            bits: 61440,
+                        ),
+                    ),
+                    node_extension: Sprite((
+                        graphic_asset: "paddle",
+                        sprite_type: Normal,
+                    )),
+                    script_type_id: Some(3),
+                    enabled: true,
+                ),
+                (
+                    child_index: None,
+                    parent_index: Some(10),
+                    sibling_index: None,
+                    name: "AIPaddleCollider",
+                    transform: (
+                        x: (
+                            bits: 0,
+                        ),
+                        y: (
+                            bits: 0,
+                        ),
+                    ),
+                    node_extension: RectCollider((
+                        width: (
+                            bits: 131072,
+                        ),
+                        height: (
+                            bits: 32768,
+                        ),
+                    )),
+                    script_type_id: None,
+                    enabled: true,
+                ),
+            ],
+        ),
+    ],
+    graphical_assets: {
+        "ball": (
+            path: "assets/ball.png",
+            size: _8x8,
+        ),
+        "paddle": (
+            path: "assets/paddle.png",
+            size: _32x8,
+        ),
+    },
+)
