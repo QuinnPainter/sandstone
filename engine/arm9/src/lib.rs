@@ -109,3 +109,18 @@ pub macro register_script ($script:ident, $num:literal) {
         }
     }
 }
+
+// Could make this an attribute of the camera
+#[inline(always)]
+pub fn set_bg_colour(colour: u32) {
+    unsafe {
+        core::ptr::write_volatile(
+            ironds::mmio::BG_PALETTE_RAM_BASE_SUB as *mut u16,
+            ironds::display::rgb15(colour)
+        );
+        core::ptr::write_volatile(
+            ironds::mmio::BG_PALETTE_RAM_BASE_MAIN as *mut u16,
+            ironds::display::rgb15(colour)
+        );
+    }
+}

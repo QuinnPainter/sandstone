@@ -17,7 +17,7 @@ pub struct PlayerScript {
 sandstone::register_script!(PlayerScript, 1);
 impl Script for PlayerScript {
     fn start(&mut self, _context: &mut ScriptContext) {
-        ds::display::console::print("help");
+        sandstone::set_bg_colour(0x3A2E3F);
     }
 
     fn update(&mut self, context: &mut ScriptContext) {
