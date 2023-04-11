@@ -1,5 +1,5 @@
 use ironds::sync::NdsMutex;
-use randomize::PCG32;
+use randomize::{PCG32, Gen32};
 
 // could improve this by making a version of LazyStatic / LazyCell for NdsMutex / NdsCell
 static RAND_GENERATOR: NdsMutex<PCG32> = NdsMutex::new(PCG32::seed(0, 0));
@@ -13,5 +13,12 @@ pub fn seed(seed: u64) {
 
 pub fn rand_u32() -> u32 {
     RAND_GENERATOR.lock().next_u32()
+}
+
+pub fn rand_i32_in_range(lower: i32, upper: i32) -> i32 {
+    assert!(upper >= lower);
+    let range = upper - lower;
+    let rand = RAND_GENERATOR.lock().next_bounded(range as u32);
+    rand as i32 + lower
 }
 
