@@ -15,7 +15,6 @@ pub struct PlayerScript {
 sandstone::register_script!(PlayerScript, 1);
 impl Script for PlayerScript {
     fn start(&mut self, _context: &mut ScriptContext) {
-        sandstone::set_bg_colour(0x3A2E3F);
     }
 
     fn update(&mut self, context: &mut ScriptContext) {
@@ -47,7 +46,7 @@ impl Script for PlayerScript {
             transform.x += I20F12::lit("12"); // center
 
             let handle = context.hierarchy.spawn_object(
-                "Bullet", context.hierarchy.root);
+                "Bullet", node.parent_handle.unwrap());
             let bullet = context.hierarchy.borrow_mut(handle);
             bullet.transform = transform;
             self.shoot_cooldown = SHOOT_COOLDOWN_RELOAD;

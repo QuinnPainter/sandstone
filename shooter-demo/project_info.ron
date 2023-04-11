@@ -18,7 +18,7 @@
                         ),
                     ),
                     node_extension: None,
-                    script_type_id: None,
+                    script_type_id: Some(6),
                     enabled: true,
                 ),
                 (
@@ -28,7 +28,7 @@
                     name: "Player",
                     transform: (
                         x: (
-                            bits: 909312,
+                            bits: 483328,
                         ),
                         y: (
                             bits: 1400832,

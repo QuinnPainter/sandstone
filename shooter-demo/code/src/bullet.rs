@@ -5,6 +5,7 @@ use sandstone::fixed::types::*;
 use sandstone::hierarchy::HierarchyPoolTrait;
 
 const BULLET_SPEED: I20F12 = I20F12::lit("5");
+const SCORE_PER_ENEMY: u32 = 10;
 
 #[derive(Default)]
 pub struct BulletScript {
@@ -36,9 +37,17 @@ impl Script for BulletScript {
             }
         }
         if let Some(hit_enemy_handle) = hit_enemy_handle {
+            // Destroy bullet
             context.hierarchy.destroy_node(context.handle);
+
+            // Destroy enemy
             let enemy_handle = context.hierarchy.borrow(hit_enemy_handle).parent_handle.unwrap();
             context.hierarchy.destroy_node(enemy_handle);
+
+            // Add score
+            let game_manager_handle = context.hierarchy.borrow(context.hierarchy.root).child_handle.unwrap();
+            let game_manager = context.hierarchy.borrow_mut(game_manager_handle).cast_script_mut::<crate::GameManagerScript>();
+            game_manager.add_score(SCORE_PER_ENEMY);
         }
     }
 }

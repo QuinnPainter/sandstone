@@ -15,3 +15,6 @@ pub use enemy_spawner::EnemySpawnerScript;
 
 pub mod enemy;
 pub use enemy::EnemyScript;
+
+pub mod game_manager;
+pub use game_manager::GameManagerScript;
