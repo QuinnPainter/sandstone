@@ -41,10 +41,10 @@
                                 bits: 0,
                             ),
                             scale_x: (
-                                bits: 36864,
+                                bits: 4096,
                             ),
                             scale_y: (
-                                bits: 36864,
+                                bits: 4096,
                             ),
                         )),
                     )),
@@ -78,18 +78,18 @@
                     name: "PlayerCollider",
                     transform: (
                         x: (
-                            bits: -8192,
+                            bits: 24576,
                         ),
                         y: (
-                            bits: 16384,
+                            bits: 32768,
                         ),
                     ),
                     node_extension: RectCollider((
                         width: (
-                            bits: 143360,
+                            bits: 81920,
                         ),
                         height: (
-                            bits: 98304,
+                            bits: 65536,
                         ),
                     )),
                     script_type_id: None,
@@ -204,7 +204,7 @@
         (
             nodes: [
                 (
-                    child_index: None,
+                    child_index: Some(1),
                     parent_index: None,
                     sibling_index: None,
                     name: "Menu Scene",
@@ -217,6 +217,26 @@
                         ),
                     ),
                     node_extension: None,
+                    script_type_id: None,
+                    enabled: true,
+                ),
+                (
+                    child_index: None,
+                    parent_index: Some(0),
+                    sibling_index: None,
+                    name: "MenuCam",
+                    transform: (
+                        x: (
+                            bits: 0,
+                        ),
+                        y: (
+                            bits: 0,
+                        ),
+                    ),
+                    node_extension: Camera((
+                        active_main: true,
+                        active_sub: true,
+                    )),
                     script_type_id: None,
                     enabled: true,
                 ),
@@ -276,17 +296,13 @@
             path: "assets/laserBlue04.png",
             size: _8x16,
         ),
-        "enemyRed3": (
-            path: "assets/enemyRed3.png",
-            size: _32x32,
-        ),
         "playerShip2_small": (
             path: "assets/playerShip2_small.png",
             size: _32x32,
         ),
-        "playerShip2_blue": (
-            path: "assets/playerShip2_blue.png",
-            size: _64x64,
+        "enemyRed3": (
+            path: "assets/enemyRed3.png",
+            size: _32x32,
         ),
     },
 )

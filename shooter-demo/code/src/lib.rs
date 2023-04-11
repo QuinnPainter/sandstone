@@ -17,26 +17,45 @@ pub struct PlayerScript {
 sandstone::register_script!(PlayerScript, 1);
 impl Script for PlayerScript {
     fn start(&mut self, _context: &mut ScriptContext) {
+        ds::display::console::print("help");
     }
 
     fn update(&mut self, context: &mut ScriptContext) {
         let node = context.hierarchy.borrow_mut(context.handle);
         let keys = ds::input::read_keys();
+        let sandstone::node::NodeExtensionHandle::Sprite(s) = node.node_extension else {
+            panic!("f");
+        };
+        let node_sprite = context.hierarchy.borrow_mut(s);
+        let sandstone::node::sprite::SpriteType::Affine(aff) = &mut node_sprite.sprite_type else {
+            panic!("f");
+        };
         if keys.contains(ds::input::Buttons::UP) {
-            node.transform.y -= SPEED;
+            aff.scale_y += I20F12::lit("0.02");
+            //node.transform.y -= SPEED;
         }
         if keys.contains(ds::input::Buttons::DOWN) {
-            node.transform.y += SPEED;
+            aff.scale_y -= I20F12::lit("0.02");
+            //node.transform.y += SPEED;
         }
         if keys.contains(ds::input::Buttons::LEFT) {
-            node.transform.x -= SPEED;
+            aff.scale_x -= I20F12::lit("0.02");
+            //node.transform.x -= SPEED;
         }
         if keys.contains(ds::input::Buttons::RIGHT) {
-            node.transform.x += SPEED;
+            aff.scale_x += I20F12::lit("0.02");
+            //node.transform.x += SPEED;
+        }
+        if keys.contains(ds::input::Buttons::L) {
+            aff.rotation -= I20F12::lit("0.02");
+        }
+        if keys.contains(ds::input::Buttons::R) {
+            aff.rotation += I20F12::lit("0.02");
         }
         if keys.contains(ds::input::Buttons::A) &&
             self.shoot_cooldown > SHOOT_COOLDOWN_RELOAD
         {
+            let node = context.hierarchy.borrow(context.handle);
             let mut transform = node.transform;
             transform.x += I20F12::lit("12"); // center
 
