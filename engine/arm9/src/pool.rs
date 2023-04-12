@@ -161,6 +161,7 @@ impl<T> Pool<T> {
 
     #[inline]
     pub fn try_remove(&mut self, handle: Handle<T>) -> Option<()> {
+        self.free_stack.push(handle.index);
         self.try_take(handle).map(|_| ())
     }
 

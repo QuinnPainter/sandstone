@@ -295,18 +295,28 @@ impl Hierarchy {
         // unlink parent and sibling
         while let Some(root_handle) = self.to_destroy_stack.pop() {
             self.unlink_node(root_handle);
-            let mut handle = root_handle;
             // Recursively delete children of node
-            loop {
-                let Some((_t, node)) = self.object_pool.try_take(handle) else {
-                    panic!("Tried to destroy node with invalid handle");
-                };
-                self.node_ext_pools.destroy_extension(node.node_extension);
-                handle = match if handle == root_handle {node.child_handle} else {node.sibling_handle} {
-                    Some(x) => x,
-                    None => break,
-                };
-            }
+            self.process_destroy(root_handle);
+        }
+    }
+
+    fn process_destroy(&mut self, handle: Handle<Node>) {
+        // todo: by taking and not putting back, these objects don't get on the free stack
+        let Some((_t, node)) = self.object_pool.try_take(handle) else {
+            panic!("Tried to destroy node with invalid handle");
+        };
+        self.node_ext_pools.destroy_extension(node.node_extension);
+        let mut handle = match node.child_handle {
+            Some(h) => h,
+            None => return,
+        };
+        loop {
+            let sibling = self.borrow(handle).sibling_handle;
+            self.process_destroy(handle);
+            handle = match sibling {
+                Some(x) => x,
+                None => break,
+            };
         }
     }
 
