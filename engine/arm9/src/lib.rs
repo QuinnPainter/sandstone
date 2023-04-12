@@ -75,7 +75,7 @@ pub fn main_loop(game_data_raw: &[u8], script_factory: fn(NonZeroU32) -> Box<dyn
 
     // Load main scene
     hierarchy.set_scene_main();
-    hierarchy.run_pending_script_starts();
+    hierarchy.process_pending_scene_change();
 
     loop {
         hierarchy.update_global_positions();
@@ -83,6 +83,7 @@ pub fn main_loop(game_data_raw: &[u8], script_factory: fn(NonZeroU32) -> Box<dyn
         hierarchy.run_script_update();
         hierarchy.run_pending_script_starts();
         hierarchy.process_pending_destroys();
+        hierarchy.process_pending_scene_change();
 
         nds::interrupt::wait_for_vblank();
     }

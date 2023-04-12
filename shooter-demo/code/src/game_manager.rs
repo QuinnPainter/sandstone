@@ -46,7 +46,7 @@ impl Script for GameManagerScript {
         if self.state == GameState::GameOver {
             if input::read_keys().contains(input::Buttons::START) {
                 console::set_cursor_pos(12, 10);
-                console::print(&" ".repeat(GAMEOVER_MESSAGE.len()));
+                console::print(&" ".repeat(32*3));
                 context.hierarchy.set_scene("GameScene");
             }
         }

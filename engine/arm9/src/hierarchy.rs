@@ -25,6 +25,7 @@ pub struct Hierarchy {
     sprite_handler: SpriteExtensionHandler,
     camera_handler: CameraExtensionHandler,
     script_factory: fn(NonZeroU32) -> Box<dyn Script>,
+    pending_scene: Option<String>,
 }
 
 macro hierarchy_pool_methods ($t:ty, $( $pool:ident ).+) {
@@ -92,6 +93,7 @@ impl Hierarchy {
             sprite_handler: SpriteExtensionHandler::new(),
             camera_handler: CameraExtensionHandler::new(),
             script_factory,
+            pending_scene: None,
         }
     }
 
@@ -104,12 +106,24 @@ impl Hierarchy {
     }
 
     /// Destroys the current scene, and starts the new one.
-    /// As destroys are processed at the end of the frame, there will be a brief period where both scenes are loaded.
     pub fn set_scene(&mut self, name: &str) {
-        if let Some(old_scene_root) = self.borrow(self.root).child_handle {
-            self.destroy_node(old_scene_root);
+        self.pending_scene = Some(String::from(name));
+    }
+
+    pub fn process_pending_scene_change(&mut self) {
+        if let Some(name) = &self.pending_scene {
+            self.pretty_print_hierarchy_structure();
+            let name = name.clone();
+            if let Some(old_scene_root) = self.borrow(self.root).child_handle {
+                self.destroy_node(old_scene_root);
+            }
+            self.spawn_object(&name, self.root);
+            self.process_pending_destroys();
+            self.run_pending_script_starts();
+            self.pending_scene = None;
+            ironds::nocash::print("\n");
+            self.pretty_print_hierarchy_structure();
         }
-        self.spawn_object(name, self.root);
     }
 
     pub fn spawn_object(&mut self, graph_name: &str, parent: Handle<Node>) -> Handle<Node> {
@@ -158,6 +172,20 @@ impl Hierarchy {
     fn link_new_child(&mut self, parent: Handle<Node>, child: Handle<Node>) {
         let parent_obj = self.object_pool.borrow_mut(parent);
         self.object_pool.borrow_mut(child).sibling_handle = parent_obj.child_handle.replace(child);
+    }
+
+    pub fn pretty_print_hierarchy_structure(&self) {
+        for i in 0..self.object_pool.vec_len() {
+            if let Some(handle) = self.object_pool.handle_from_index_checked(i) {
+                let node = self.object_pool.borrow(handle);
+                ironds::nocash::print(&alloc::format!("{:?}", handle));
+                ironds::nocash::print(&node.name);
+                ironds::nocash::print(alloc::format!("Child: {:?}", node.child_handle).as_str());
+                ironds::nocash::print(alloc::format!("Sibling: {:?}", node.sibling_handle).as_str());
+                ironds::nocash::print(alloc::format!("Parent: {:?}", node.parent_handle).as_str());
+                ironds::nocash::print("");
+            }
+        }
     }
 
     // todo: recursive search?
