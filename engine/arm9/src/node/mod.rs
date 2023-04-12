@@ -82,6 +82,15 @@ pub struct NodeScriptData {
     pub script: Box<dyn Script>,
 }
 
+impl core::fmt::Debug for NodeScriptData {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("NodeScriptData")
+            .field("type_id", &self.type_id)
+            .finish()
+    }
+}
+
+#[derive(Debug)]
 pub struct Node {
     pub child_handle: Option<Handle<Node>>, // todo: maybe could be more efficient, could just be Index without Generation
     pub parent_handle: Option<Handle<Node>>, // should only be None on root node
