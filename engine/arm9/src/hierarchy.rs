@@ -112,7 +112,6 @@ impl Hierarchy {
 
     pub fn process_pending_scene_change(&mut self) {
         if let Some(name) = &self.pending_scene {
-            self.pretty_print_hierarchy_structure();
             let name = name.clone();
             if let Some(old_scene_root) = self.borrow(self.root).child_handle {
                 self.destroy_node(old_scene_root);
@@ -121,8 +120,6 @@ impl Hierarchy {
             self.process_pending_destroys();
             self.run_pending_script_starts();
             self.pending_scene = None;
-            ironds::nocash::print("\n");
-            self.pretty_print_hierarchy_structure();
         }
     }
 
