@@ -157,29 +157,7 @@ impl Hierarchy {
                 }
                 if let Some(_p) = ui.begin_popup("hierarchy_context") {
                     if ui.selectable("Add Node") {
-                        if let Some(graph) = project_data.graphs.get_mut(self.current_graph_idx) {
-                            let mut node_number = 0;
-                            let mut node_name;
-                            loop {
-                                node_name = format!("Node {node_number}");
-                                if !graph.0.iter().any(|(_, n)| n.name == node_name) {
-                                    break;
-                                }
-                                node_number += 1;
-                            }
-                            let new_index = graph.0.push(Node {
-                                child_index: None,
-                                parent_index: None,
-                                sibling_index: None,
-                                name: node_name,
-                                transform: Transform::default(),
-                                node_extension: NodeExtension::None,
-                                script_type_id: None,
-                                enabled: true,
-                            });
-                            Hierarchy::link_node(graph, NonZeroUsize::new(new_index).unwrap(), 0);
-                            *selected = Selected::Node(new_index);
-                        }
+                        self.add_node(project_data, selected);
                     }
                 }
                 self.draw_hierarchy_node(ui, project_data, selected, 0);
@@ -199,25 +177,7 @@ impl Hierarchy {
                 ui.input_text("##new_graph_name", &mut self.new_graph_name_buffer).hint("New Graph").build();
                 ui.same_line();
                 if ui.button("+##add_graph") {
-                    let mut new_graph = NodeGraph(StableVec::new());
-                    new_graph.0.push(Node {
-                        child_index: None,
-                        parent_index: None,
-                        sibling_index: None,
-                        name: self.new_graph_name_buffer.clone(),
-                        transform: Transform::default(),
-                        node_extension: NodeExtension::None,
-                        script_type_id: None,
-                        enabled: true,
-                    });
-                    self.current_graph_idx = project_data.graphs.len();
-                    // If this is the first graph created, make it the Main Graph
-                    if project_data.graphs.len() == 0 {
-                        project_data.main_graph = Some(self.current_graph_idx as u32);
-                    }
-                    *selected = Selected::Graph(self.current_graph_idx);
-                    project_data.graphs.push(new_graph);
-                    self.new_graph_name_buffer.clear();
+                    self.add_graph(project_data, selected);
                 }
             });
 
@@ -292,6 +252,54 @@ impl Hierarchy {
                     t.pop();
                 }
             }
+        }
+    }
+
+    fn add_graph(&mut self, project_data: &mut ProjectData, selected: &mut Selected) {
+        let mut new_graph = NodeGraph::new();
+        new_graph.0.push(Node {
+            child_index: None,
+            parent_index: None,
+            sibling_index: None,
+            name: self.new_graph_name_buffer.clone(),
+            transform: Transform::default(),
+            node_extension: NodeExtension::None,
+            script_type_id: None,
+            enabled: true,
+        });
+        self.current_graph_idx = project_data.graphs.len();
+        // If this is the first graph created, make it the Main Graph
+        if project_data.graphs.len() == 0 {
+            project_data.main_graph = Some(self.current_graph_idx as u32);
+        }
+        *selected = Selected::Graph(self.current_graph_idx);
+        project_data.graphs.push(new_graph);
+        self.new_graph_name_buffer.clear();
+    }
+
+    fn add_node(&mut self, project_data: &mut ProjectData, selected: &mut Selected) {
+        if let Some(graph) = project_data.graphs.get_mut(self.current_graph_idx) {
+            let mut node_number = 0;
+            let mut node_name;
+            loop {
+                node_name = format!("Node {node_number}");
+                if !graph.0.iter().any(|(_, n)| n.name == node_name) {
+                    break;
+                }
+                node_number += 1;
+            }
+            let new_index = graph.0.push(Node {
+                child_index: None,
+                parent_index: None,
+                sibling_index: None,
+                name: node_name,
+                transform: Transform::default(),
+                node_extension: NodeExtension::None,
+                script_type_id: None,
+                enabled: true,
+            });
+            Hierarchy::link_node(graph, NonZeroUsize::new(new_index).unwrap(), 0);
+            *selected = Selected::Node(new_index);
         }
     }
 
