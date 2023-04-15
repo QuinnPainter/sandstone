@@ -317,6 +317,10 @@
             path: "assets/laserBlue04.png",
             size: _8x16,
         ),
+        "meteorBrown_big1": (
+            path: "assets/meteorBrown_big1.png",
+            size: _64x64,
+        ),
         "enemyRed3": (
             path: "assets/enemyRed3.png",
             size: _32x32,
@@ -328,6 +332,10 @@
         "title3": (
             path: "assets/title3.png",
             size: _64x32,
+        ),
+        "meteorBrown_med1": (
+            path: "assets/meteorBrown_med1.png",
+            size: _32x32,
         ),
     },
 )

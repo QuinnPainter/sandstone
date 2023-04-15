@@ -10,14 +10,14 @@ pub struct EnemySpawnerScript {
 sandstone::register_script!(EnemySpawnerScript, 4);
 impl Script for EnemySpawnerScript {
     fn start(&mut self, _context: &mut ScriptContext) {
-        self.enemy_spawn_countdown = 240;
+        self.enemy_spawn_countdown = 200;
     }
 
     fn update(&mut self, context: &mut ScriptContext) {
         self.enemy_spawn_countdown -= 1;
         if self.enemy_spawn_countdown == 0 {
             spawn_enemy(context);
-            self.enemy_spawn_countdown = 60;
+            self.enemy_spawn_countdown = 50;
         }
     }
 }
