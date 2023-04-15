@@ -209,7 +209,7 @@ impl Hierarchy {
     fn draw_hierarchy_node(&mut self, ui: &Ui, project_data: &ProjectData, selected: &mut Selected, node_idx: usize) {
         if let Some(graph) = project_data.graphs.get(self.current_graph_idx) {
             if let Some(node) = graph.0.get(node_idx) {
-                let mut _tree_node_token: Option<imgui::TreeNodeToken> = None;
+                let tree_node_token;
                 // Draw node
                 {
                     let mut flags = TreeNodeFlags::empty();
@@ -220,7 +220,7 @@ impl Hierarchy {
                     // flags.set(TreeNodeFlags::SELECTED, selected_node_idx.is_some_and(|x| usize::from(x) == node_idx));
                     flags.set(TreeNodeFlags::SELECTED, matches!(selected, &mut Selected::Node(x) if x == node_idx));
                     
-                    _tree_node_token = ui.tree_node_config(format!("{}##TreeNode{}", node.name, node_idx).as_str()).flags(flags).push();
+                    tree_node_token = ui.tree_node_config(format!("{}##TreeNode{}", node.name, node_idx).as_str()).flags(flags).push();
                     if ui.is_item_clicked() {
                         *selected = Selected::Node(node_idx);
                     }
@@ -237,7 +237,7 @@ impl Hierarchy {
                         target.pop();
                     }
                 }
-                if let Some(t) = _tree_node_token {
+                if let Some(t) = tree_node_token {
                     // Draw child nodes recursively
                     if let Some(mut cur_child_idx) = node.child_index {
                         loop {
@@ -374,3 +374,21 @@ impl Hierarchy {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn add_graph() {
+        const TEST_GRAPH_NAME: &str = "TestGraph";
+        let mut h = Hierarchy::new();
+        let mut project_data = ProjectData::new();
+        let mut selected = Selected::None;
+        h.new_graph_name_buffer = "TestGraph".to_string();
+        h.add_graph(&mut project_data, &mut selected);
+        assert_eq!(project_data.graphs.len(), 1);
+        assert_eq!(project_data.graphs[0].0[0].name, TEST_GRAPH_NAME);
+    }
+}
+
