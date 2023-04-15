@@ -135,6 +135,7 @@ pub struct Hierarchy {
     pending_node_moves: Vec<NodeMove>,
 }
 
+#[derive(Clone, Copy, Debug)]
 struct NodeMove {
     pub node_idx: usize,
     pub new_parent_idx: usize
@@ -182,27 +183,8 @@ impl Hierarchy {
             });
 
         // Process the pending node moves
-        if let Some(graph) = project_data.graphs.get_mut(self.current_graph_idx) {
-            while let Some(node_move) = self.pending_node_moves.pop() {
-                let mut valid_move = true;
-
-                // check if the new parent is the same node that is being moved
-                if node_move.node_idx == node_move.new_parent_idx {
-                    valid_move = false;
-                }
-
-                // check if the new parent is actually a child of the node
-                Hierarchy::loop_over_children_recursive(graph, node_move.node_idx, |_, idx| {
-                    if idx == node_move.new_parent_idx {
-                        valid_move = false;
-                    }
-                });
-                
-                if valid_move {
-                    Hierarchy::unlink_node(graph, NonZeroUsize::new(node_move.node_idx).unwrap());
-                    Hierarchy::link_node(graph, NonZeroUsize::new(node_move.node_idx).unwrap(), node_move.new_parent_idx);
-                }
-            }
+        while let Some(node_move) = self.pending_node_moves.pop() {
+            self.move_node(project_data, node_move);
         }
     }
 
@@ -303,6 +285,29 @@ impl Hierarchy {
         }
     }
 
+    fn move_node(&mut self, project_data: &mut ProjectData, node_move: NodeMove) {
+        if let Some(graph) = project_data.graphs.get_mut(self.current_graph_idx) {
+            let mut valid_move = true;
+
+            // check if the new parent is the same node that is being moved
+            if node_move.node_idx == node_move.new_parent_idx {
+                valid_move = false;
+            }
+
+            // check if the new parent is actually a child of the node
+            Hierarchy::loop_over_children_recursive(graph, node_move.node_idx, |_, idx| {
+                if idx == node_move.new_parent_idx {
+                    valid_move = false;
+                }
+            });
+
+            if valid_move {
+                Hierarchy::unlink_node(graph, NonZeroUsize::new(node_move.node_idx).unwrap());
+                Hierarchy::link_node(graph, NonZeroUsize::new(node_move.node_idx).unwrap(), node_move.new_parent_idx);
+            }
+        }
+    }
+
     pub fn delete_node(&mut self, project_data: &mut ProjectData, selected: &mut Selected, node_idx: NonZeroUsize) {
         // Deselect node just in case it is deleted
         *selected = Selected::None;
@@ -389,6 +394,49 @@ mod tests {
         h.add_graph(&mut project_data, &mut selected);
         assert_eq!(project_data.graphs.len(), 1);
         assert_eq!(project_data.graphs[0].0[0].name, TEST_GRAPH_NAME);
+    }
+
+    #[test]
+    fn add_node() {
+        let mut h = Hierarchy::new();
+        let mut project_data = ProjectData::new();
+        let mut selected = Selected::None;
+        h.add_graph(&mut project_data, &mut selected);
+        h.add_node(&mut project_data, &mut selected);
+        assert_eq!(project_data.graphs[0].0.num_elements(), 2);
+        assert_eq!(project_data.graphs[0].0[1].name, "Node 0");
+    }
+
+    #[test]
+    fn move_node() {
+        let (mut h, mut project_data, mut selected) = (Hierarchy::new(), ProjectData::new(), Selected::None);
+        h.add_graph(&mut project_data, &mut selected);
+        h.add_node(&mut project_data, &mut selected);
+        h.add_node(&mut project_data, &mut selected);
+        h.add_node(&mut project_data, &mut selected);
+        h.move_node(&mut project_data, NodeMove { node_idx: 2, new_parent_idx: 1 });
+        let graph = &mut project_data.graphs[0].0;
+        assert_eq!(graph[1].child_index, Some(NonZeroUsize::new(2).unwrap()));
+        assert_eq!(graph[2].parent_index, Some(1));
+        h.move_node(&mut project_data, NodeMove { node_idx: 3, new_parent_idx: 1 });
+        let graph = &mut project_data.graphs[0].0;
+        assert_eq!(graph[1].child_index, Some(NonZeroUsize::new(3).unwrap()));
+        assert_eq!(graph[3].sibling_index, Some(NonZeroUsize::new(2).unwrap()));
+        assert_eq!(graph[3].parent_index, Some(1));
+        assert_eq!(graph[2].parent_index, Some(1));
+    }
+
+    #[test]
+    fn delete_node() {
+        let (mut h, mut project_data, mut selected) = (Hierarchy::new(), ProjectData::new(), Selected::None);
+        h.add_graph(&mut project_data, &mut selected);
+        h.add_node(&mut project_data, &mut selected);
+        h.add_node(&mut project_data, &mut selected);
+        h.add_node(&mut project_data, &mut selected);
+
+        h.move_node(&mut project_data, NodeMove { node_idx: 3, new_parent_idx: 2 });
+        h.delete_node(&mut project_data, &mut selected, NonZeroUsize::new(2).unwrap());
+        assert_eq!(project_data.graphs[0].0.num_elements(), 2);
     }
 }
 
