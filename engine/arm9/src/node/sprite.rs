@@ -108,7 +108,7 @@ impl SpriteExtensionHandler {
         let mut cur_affine_index = 0;
         for sprite in hierarchy.node_ext_pools.sprite_pool.iter() {
             let node = hierarchy.object_pool.borrow(sprite.node_handle);
-            if node.global_enabled == false { continue; }
+            if !node.global_enabled { continue; }
 
             let vram_mapping = self.sprite_vram_map[&sprite.graphic_asset];
             let sprite_size = hierarchy.game_data.graphics[&sprite.graphic_asset].size;

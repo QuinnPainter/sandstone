@@ -1,7 +1,5 @@
 use alloc::format;
 use sandstone::{Script, ScriptContext};
-//use sandstone::fixed::types::*;
-//use sandstone::hierarchy::HierarchyPoolTrait;
 use sandstone::ironds::display::console;
 use sandstone::ironds::input;
 

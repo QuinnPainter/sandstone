@@ -260,7 +260,7 @@ impl Hierarchy {
                 // this could return None if an object was immediately destroyed after creating it
                 let mut script_data = if let Some(item) = context.hierarchy.try_borrow_mut(handle) {
                     // return early - node is disabled
-                    if item.global_enabled == false { continue; }
+                    if !item.global_enabled { continue; }
                     if let Some(script_data) = item.script_data.take() {
                         script_data
                     } else {
