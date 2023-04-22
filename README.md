@@ -1,14 +1,14 @@
 # Sandstone
 Game engine for the Nintendo DS written in Rust, with Rust-based scripting. Built on [IronDS](https://github.com/QuinnPainter/ironds).  
-Still in early prototype stages.
+Still in prototype stages, but works well enough for basic games.
 
 ## Progress
 
-Project File Management  
-![Screenshot_20230208_075629](https://user-images.githubusercontent.com/1771999/217640374-f2fb3ffb-0142-47b9-8966-113dfac8ea07.png)
+Shooter Demo Game  
+![image](https://user-images.githubusercontent.com/1771999/233807865-a14ffd20-abe5-4424-81d7-6656f83bfd58.png)
 
-Object Hierarchy Editing  
-![Screenshot_20230208_075829](https://user-images.githubusercontent.com/1771999/217640400-2910a207-a26e-4e13-a40e-70c8d74bb954.png)
+Pong Demo Game  
+![image](https://user-images.githubusercontent.com/1771999/233808320-ce77955a-1cd4-4aa1-a412-fe93845076d5.png)
 
-Test program running on a DS  
-![Screenshot_20230208_080911](https://user-images.githubusercontent.com/1771999/217640410-d67905bb-7019-47fb-868d-f733763af9e4.png)
+Example game running on a DS emulator  
+![image](https://user-images.githubusercontent.com/1771999/233808461-a0ff652d-cf37-4192-bdee-3458f1a0dbd7.png)
