@@ -390,7 +390,7 @@ mod tests {
         let mut h = Hierarchy::new();
         let mut project_data = ProjectData::new();
         let mut selected = Selected::None;
-        h.new_graph_name_buffer = "TestGraph".to_string();
+        h.new_graph_name_buffer = TEST_GRAPH_NAME.to_string();
         h.add_graph(&mut project_data, &mut selected);
         assert_eq!(project_data.graphs.len(), 1);
         assert_eq!(project_data.graphs[0].0[0].name, TEST_GRAPH_NAME);
